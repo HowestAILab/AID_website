@@ -1,9 +1,12 @@
 <template>
   <div class="flex h-full">
-    <div class="bg-[#6C6C6C] w-3/4 p-4 flex rounded-l-xl">
-      <div class="w-1/2 overflow-y-auto">
-        <h3 class="text-3xl font-semibold text-white">User personas</h3>
-        <div class="mt-4">
+    <div class="bg-[#6C6C6C] w-3/4 flex rounded-l-xl">
+      <div class="w-1/2 overflow-y-auto relative">
+        <div class="sticky top-0 z-10 rounded-tl-xl backdrop-blur-sm p-4">
+          <h3 class="text-3xl font-semibold text-white">User personas</h3>
+        </div>
+
+        <div class="p-4">
           <div>
             <h4 class="text-xl font-semibold text-white">Prompts</h4>
             <div
@@ -38,7 +41,7 @@
               </div>
             </div>
             <div>
-              <p>After</p>
+              <p class="text-lg font-medium text-white">After</p>
               <div
                 v-for="(prompt, index) in tools[0].ethical.after"
                 :key="index"
@@ -68,7 +71,7 @@
       </div>
       <Separator class="bg-gray-500" />
       <div class="mt-auto">
-        <Input class="text-white" placeholder="Write your prompt here" />
+        <Input class="text-black" placeholder="Write your prompt here" />
       </div>
     </div>
   </div>
@@ -99,6 +102,7 @@ let tools = [
     prompt_list: [
       "Enim nulla ullamco eiusmod magna dolor fugiat laboris do non quis excepteur minim ad. Minim non anim anim sunt proident in eu laboris esse amet quis reprehenderit enim. Laborum occaecat consectetur velit magna. Dolore elit irure amet deserunt laborum. Cillum sit esse nisi ipsum mollit sint occaecat ullamco nisi nulla sint reprehenderit officia qui.",
       "Irure veniam incididunt laboris Lorem officia proident exercitation occaecat eu dolore reprehenderit consectetur. Culpa est nisi fugiat consectetur cupidatat aute Lorem ad exercitation ex pariatur ad irure. Ad elit fugiat elit amet irure culpa eiusmod.",
+      "Incididunt consectetur pariatur nisi consectetur sit laborum. Ipsum anim aliquip cupidatat cillum adipisicing sunt incididunt dolor. Ullamco culpa est eiusmod in sint incididunt aliquip aliqua aliquip eiusmod. Voluptate sunt laborum occaecat qui culpa cupidatat velit consectetur sint minim irure. Sit ad exercitation adipisicing incididunt aliquip aliqua ut laborum minim exercitation.",
     ],
     ethical: {
       before: ["Question 1", "Question 2"],

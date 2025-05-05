@@ -1,6 +1,6 @@
 <template>
   <Toaster />
-  <main class="h-screen p-6 flex flex-col overflow-hidden">
+  <main class="h-screen px-6 pb-6 pt-10 flex flex-col overflow-hidden">
     <div class="relative flex items-end">
       <div
         class="flex items-center cursor-pointer pr-4 z-10"
