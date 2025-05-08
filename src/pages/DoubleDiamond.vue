@@ -63,6 +63,9 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import dummyData from "../../dummy.json";
+
+const tools = dummyData.tools;
 
 const STORAGE_KEY = "selectedDiagramPinIndices";
 
@@ -87,30 +90,14 @@ let hoverTimeout = null;
 const hoverCardRef = ref(null);
 const measuredCardSize = ref({ width: 0, height: 0 });
 
-// Possibly add icons to each pin too which can also be used in the stepper
-const pins = ref([
-  { id: "pin1", sceneX: 400, sceneY: 200, content: "Placheholder" },
-  { id: "pin2", sceneX: 200, sceneY: 400, content: "Personas" },
-  { id: "pin3", sceneX: 370, sceneY: 510, content: "Research" },
-  {
-    id: "pin4",
-    sceneX: 825,
-    sceneY: 450,
-    content: "Placeholder placeholdering",
-  },
-  {
-    id: "pin5",
-    sceneX: 900,
-    sceneY: 263,
-    content: "Placeholder placeholdering a place",
-  },
-  {
-    id: "pin6",
-    sceneX: 1000,
-    sceneY: 400,
-    content: "Placeholder placeholdering a place for placeholders",
-  },
-]);
+const pins = computed(() =>
+  tools.map((tool, index) => ({
+    id: `pin${index + 1}`,
+    sceneX: tool.location ? tool.location[0] : 0,
+    sceneY: tool.location ? tool.location[1] : 0,
+    content: tool.name,
+  }))
+);
 
 const hoveredPinContent = computed(() => {
   if (hoveredPinIndex.value !== null && pins.value[hoveredPinIndex.value]) {
