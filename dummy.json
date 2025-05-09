@@ -76,7 +76,7 @@
       "name": "Content Generator",
       "description": "Generate high-quality, engaging written content for various platforms based on specified topics, keywords, and target audiences. Streamline content creation for marketing, communication, and documentation.",
       "icon": "material-symbols:content-paste-go",
-      "location": [800, 500],
+      "location": [810, 530],
       "diamond_position": "develop",
       "color": "#FDC45B",
       "prompt_list": [

@@ -1,13 +1,13 @@
 <template>
-  <div class="max-w-lg h-96 flex flex-col overflow-hidden">
+  <div class="max-w-lg h-80 flex flex-col overflow-hidden">
     <h3
-      class="text-2xl font-bold py-1 px-6 w-fit rounded-t-lg"
-      :style="{ color: color, background: h3Background }"
+      class="font-bold py-1 px-6 w-fit rounded-t-lg mr-4 truncate"
+      :style="{ color: color, background: h3Background, fontSize: 'clamp(1rem, 3vw, 1.5rem)', lineHeight: '1.4' }"
     >
       {{ title }}
     </h3>
-    <div 
-      class="flex-1 flex flex-col p-4 overflow-hidden rounded-tr-lg rounded-b-lg" 
+    <div
+      class="flex-1 flex flex-col p-4 overflow-hidden rounded-tr-lg rounded-b-lg"
       :style="{ background: bodyBackground }"
     >
       <p class="text-white mb-4 line-clamp-14">
@@ -24,7 +24,10 @@
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <path :d="svgPaths.discover" :fill="getSectionFillColor('discover')" />
+          <path
+            :d="svgPaths.discover"
+            :fill="getSectionFillColor('discover')"
+          />
           <path :d="svgPaths.define" :fill="getSectionFillColor('define')" />
           <path :d="svgPaths.develop" :fill="getSectionFillColor('develop')" />
           <path :d="svgPaths.deliver" :fill="getSectionFillColor('deliver')" />
@@ -49,7 +52,7 @@ const svgPaths = {
   discover: "M0 8.5L8.5 0V17L0 8.5Z",
   define: "M17 8.5L8.5 0V17L17 8.5Z",
   develop: "M17 8.5L25.5 0V17L17 8.5Z",
-  deliver: "M34 8.5L25.5 0V17L34 8.5Z"
+  deliver: "M34 8.5L25.5 0V17L34 8.5Z",
 };
 
 const inactiveSvgPartColor = computed(() => {
@@ -62,14 +65,22 @@ const inactiveSvgPartColor = computed(() => {
   const b = parseInt(hex.substring(4, 6), 16);
 
   const factor = 0.75;
-  const newR = Math.round(r * factor).toString(16).padStart(2, '0');
-  const newG = Math.round(g * factor).toString(16).padStart(2, '0');
-  const newB = Math.round(b * factor).toString(16).padStart(2, '0');
+  const newR = Math.round(r * factor)
+    .toString(16)
+    .padStart(2, "0");
+  const newG = Math.round(g * factor)
+    .toString(16)
+    .padStart(2, "0");
+  const newB = Math.round(b * factor)
+    .toString(16)
+    .padStart(2, "0");
 
   return `#${newR}${newG}${newB}`;
 });
 
-const getSectionFillColor = (sectionName: 'discover' | 'define' | 'develop' | 'deliver'): string => {
+const getSectionFillColor = (
+  sectionName: "discover" | "define" | "develop" | "deliver"
+): string => {
   if (props.tag.toLowerCase() === sectionName) {
     return props.color;
   }

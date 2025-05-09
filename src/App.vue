@@ -4,7 +4,7 @@
     <div class="relative flex items-end">
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
-          <Button variant="" class="flex items-center z-10 rounded-t-lg rounded-b-none">
+          <Button class="flex items-center z-10 rounded-t-lg rounded-b-none">
             <h2 class="text-3xl font-bold mr-2">
               {{ currentViewFormatted }}
             </h2>
@@ -12,9 +12,9 @@
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuItem @click="setView('Directory')">Directory</DropdownMenuItem>
+          <DropdownMenuItem @click="setView('Catalog')">Catalog</DropdownMenuItem>
           <DropdownMenuItem @click="setView('DoubleDiamond')">Double Diamond</DropdownMenuItem>
-          <DropdownMenuItem @click="setView('Workflow')">Workflow</DropdownMenuItem>
+          <DropdownMenuItem @click="setView('Workflow')" :disabled="selectedTools.length === 0">Workflow</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <Stepper
@@ -35,7 +35,7 @@
       </Stepper>
     </div>
     <div class="flex-1 h-full">
-      <Directory v-if="currentView === 'Directory'" class="border rounded-tr-xl rounded-br-xl rounded-bl-xl" />
+      <Catalog v-if="currentView === 'Catalog'" class="border rounded-tr-xl rounded-br-xl rounded-bl-xl" />
       <DoubleDiamond v-else-if="currentView === 'DoubleDiamond'" class="border rounded-xl" />
       <Workflow v-else-if="currentView === 'Workflow'" />
     </div>
@@ -43,10 +43,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, provide } from "vue";
+import { ref, computed, provide, watch } from "vue";
 import Workflow from "./pages/Workflow.vue";
 import DoubleDiamond from "./pages/DoubleDiamond.vue";
-import Directory from "./pages/Directory.vue";
+import Catalog from "./pages/Catalog.vue";
 import { Icon } from "@iconify/vue";
 import {
   DropdownMenu,
@@ -67,15 +67,29 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import dummyData from "../dummy.json";
 
-const validViews = ['Directory', 'DoubleDiamond', 'Workflow'] as const;
+interface Tool {
+  name: string;
+  description: string;
+  icon: string;
+  location: number[];
+  diamond_position: string;
+  color: string;
+  prompt_list: string[];
+  ethical: {
+    before: string[];
+    after: string[];
+  };
+}
+
+const validViews = ['Catalog', 'DoubleDiamond', 'Workflow'] as const;
 type View = typeof validViews[number];
 
 const currentView = ref<View>('DoubleDiamond');
 
 const currentViewFormatted = computed(() => {
   switch (currentView.value) {
-    case 'Directory':
-      return 'Directory';
+    case 'Catalog':
+      return 'Catalog';
     case 'DoubleDiamond':
       return 'Double Diamond';
     case 'Workflow':
@@ -85,17 +99,19 @@ const currentViewFormatted = computed(() => {
   }
 });
 
-const tools = Array.isArray(dummyData.tools) ? dummyData.tools : [];
-const initialStep = tools.length > 0 ? 0 : -1;
-const currentStep = ref(initialStep);
+const tools: Tool[] = Array.isArray(dummyData.tools) ? dummyData.tools as Tool[] : [];
 
 provide('tools', tools);
 
-const selectedPinIndices = computed(() => {
+const selectedPinIndices = computed<number[]>(() => {
   const savedSelection = localStorage.getItem('selectedDiagramPinIndices');
   if (savedSelection) {
     try {
-      return JSON.parse(savedSelection);
+      const parsed = JSON.parse(savedSelection);
+      if (Array.isArray(parsed) && parsed.every(item => typeof item === 'number')) {
+        return parsed as number[];
+      }
+      return [];
     } catch {
       return [];
     }
@@ -105,17 +121,31 @@ const selectedPinIndices = computed(() => {
 
 const selectedTools = computed(() => {
   return selectedPinIndices.value
-    .map(index => tools[index])
-    .filter(tool => tool);
+    .map((index: number) => tools[index])
+    .filter((tool: Tool | undefined) => tool) as Tool[];
 });
+
+const currentStep = ref(selectedPinIndices.value.length > 0 ? selectedPinIndices.value[0] : -1);
+
+watch(currentView, (newView) => {
+  if (newView === 'Workflow') {
+    if (selectedTools.value.length === 0) {
+      currentStep.value = -1;
+    } else {
+      if (!selectedPinIndices.value.includes(currentStep.value)) {
+        currentStep.value = selectedPinIndices.value[0];
+      }
+    }
+  }
+});
+
+provide('currentStep', currentStep);
 
 const setView = (view: View) => {
   if (validViews.includes(view)) {
     currentView.value = view;
   }
 };
-
-provide('currentStep', currentStep);
 
 const handleStepClick = (clickedTool: any) => {
   const originalIndex = tools.findIndex(t => t === clickedTool);
