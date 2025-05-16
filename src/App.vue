@@ -53,9 +53,9 @@
           </nav>
         </div>
         <div ref="labelBarRef" class="relative h-10 border-t border-[#A1824A]">
-          <template v-for="label in sectionLabels" :key="'label-' + index">
+          <template v-for="(label) in sectionLabels" :key="'label-' + index">
             <div
-              class="absolute flex items-center justify-center text-center text-sm font-medium text-[#1C170D]"
+              class="pt-1 absolute flex items-center justify-center text-center text-sm font-medium text-[#1C170D]"
               :style="{
                 left: label.left + 'px',
                 width: label.width + 'px',
@@ -68,7 +68,7 @@
           </template>
         </div>
 
-        <div class="py-6">
+        <div class="py-6 flex-1">
           <v-stage :config="configKonva">
             <v-layer>
               <v-image :config="configImage" />
@@ -81,9 +81,32 @@
             </v-layer>
           </v-stage>
         </div>
+
+        <!-- Add Stuff Buttons Section -->
+        <div
+          v-if="addStuffButtonCenterOffsets.length > 0"
+          class="relative py-4"
+          style="min-height: 60px"
+        >
+          <button
+            v-for="(offset, index) in addStuffButtonCenterOffsets"
+            :key="'add-stuff-button-' + index"
+            class="absolute bg-white hover:cursor-pointer text-black border font-medium py-3 px-10 rounded text-sm"
+            :style="{
+              left: offset + 'px',
+              transform: 'translateX(-50%)',
+              bottom: '16px',
+            }"
+          >
+            Add Excercises
+          </button>
+        </div>
       </main>
     </div>
-    <CurrentPipelineSection />
+    <CurrentPipelineSection
+      :all-rendering-line-offsets="allRenderingLineOffsets"
+      :main-content-screen-left="mainContentScreenLeft"
+    />
   </div>
 </template>
 
@@ -120,6 +143,7 @@ const configImage = ref({
   image: null as HTMLImageElement | null,
   width: 834,
   height: 420,
+  x: 0,
 });
 
 const mainElementRef = shallowRef<HTMLElement | null>(null);
@@ -145,9 +169,27 @@ const defineButtonRef = shallowRef<HTMLButtonElement | null>(null);
 const developButtonRef = shallowRef<HTMLButtonElement | null>(null);
 const deliverButtonRef = shallowRef<HTMLButtonElement | null>(null);
 
-const horizontalLineYFraction1 = 1 / 4;
-const horizontalLineYFraction2 = 1 / 2;
-const horizontalLineYFraction3 = 3 / 4;
+const mainContentScreenLeft = ref(0);
+
+const addStuffButtonCenterOffsets = computed(() => {
+  if (
+    allRenderingLineOffsets.value &&
+    allRenderingLineOffsets.value.length >= 8
+  ) {
+    // These correspond to the midpoints of the Discover, Define, Develop, and Deliver tab sections
+    return [
+      allRenderingLineOffsets.value[1],
+      allRenderingLineOffsets.value[3],
+      allRenderingLineOffsets.value[5],
+      allRenderingLineOffsets.value[7],
+    ];
+  }
+  return [];
+});
+
+const horizontalLineYFraction1 = 9 / 40;
+const horizontalLineYFraction2 = 17.9 / 40;
+const horizontalLineYFraction3 = 26.7 / 40;
 
 const configHorizontalLine1 = computed(() => ({
   points: [
@@ -183,158 +225,190 @@ const configHorizontalLine3 = computed(() => ({
 }));
 
 const configHumanAxisLabel = computed(() => ({
-  x: 10,
-  y: configKonva.value.height * horizontalLineYFraction1 - 15,
+  x: -100, // Move further left into the empty column
+  y: configKonva.value.height * horizontalLineYFraction1,
   text: "human axis",
   fontSize: 12,
   fill: "#374151",
+  align: "right",
 }));
 
 const configHumanAiAxisLabel = computed(() => ({
-  x: 10,
-  y: configKonva.value.height * horizontalLineYFraction2 - 15,
+  x: -100, // Move further left into the empty column
+  y: configKonva.value.height * horizontalLineYFraction2,
   text: "human+ai axis",
   fontSize: 12,
   fill: "#374151",
+  align: "right",
 }));
 
 const configAiAxisLabel = computed(() => ({
-  x: 10,
-  y: configKonva.value.height * horizontalLineYFraction3 - 15,
+  x: -100, // Move further left into the empty column
+  y: configKonva.value.height * horizontalLineYFraction3,
   text: "ai axis",
   fontSize: 12,
   fill: "#374151",
+  align: "right",
 }));
 
 const updateLayout = () => {
-  if (
-    mainElementRef.value &&
-    discoverButtonRef.value &&
-    defineButtonRef.value &&
-    developButtonRef.value &&
-    deliverButtonRef.value
-  ) {
-    const mainRect = mainElementRef.value.getBoundingClientRect();
-    const discoverRect = discoverButtonRef.value.getBoundingClientRect();
-    const defineRect = defineButtonRef.value.getBoundingClientRect();
-    const developRect = developButtonRef.value.getBoundingClientRect();
-    const deliverRect = deliverButtonRef.value.getBoundingClientRect();
+  // Use the mainElement's width for the canvas
+  if (mainElementRef.value) {
+    const mainWidth = mainElementRef.value.clientWidth;
+    configKonva.value.x = 0; // Start from the left edge
+    configKonva.value.width = mainWidth; // Use full container width
+    const aspectRatio = 420 / 834; // Original SVG aspect ratio
+    configKonva.value.height = mainWidth * aspectRatio;
 
-    const offsets: number[] = [];
-    if (mainRect && discoverRect) {
-      offsets.push(discoverRect.left - mainRect.left); // Line 1: Left of Discover
-      offsets.push(discoverRect.right - mainRect.left); // Line 2: Right of Discover / Left of Define
-    }
-    if (mainRect && defineRect) {
-      offsets.push(defineRect.right - mainRect.left); // Line 3: Right of Define / Left of Develop
-    }
-    if (mainRect && developRect) {
-      offsets.push(developRect.right - mainRect.left); // Line 4: Right of Develop / Left of Deliver
-    }
-    if (mainRect && deliverRect) {
-      offsets.push(deliverRect.right - mainRect.left); // Line 5: Right of Deliver
-    }
-    verticalLineOffsets.value = offsets; // These are the 5 key tab boundary offsets
+    configImage.value.width = mainWidth;
+    configImage.value.height = mainWidth * aspectRatio;
+    configImage.value.x = 0; // Image should also start at x=0 by default
 
-    if (verticalLineOffsets.value.length === 5) {
-      const o = verticalLineOffsets.value; // o[0] to o[4]
+    // Proceed to calculate overlays if other refs are available
+    if (
+      discoverButtonRef.value &&
+      defineButtonRef.value &&
+      developButtonRef.value &&
+      deliverButtonRef.value
+    ) {
+      const mainRect = mainElementRef.value.getBoundingClientRect();
+      mainContentScreenLeft.value = mainRect.left;
 
-      const m: number[] = [];
-      m[0] = (o[0] + o[1]) / 2;
-      m[1] = (o[1] + o[2]) / 2;
-      m[2] = (o[2] + o[3]) / 2;
-      m[3] = (o[3] + o[4]) / 2;
+      const discoverRect = discoverButtonRef.value.getBoundingClientRect();
+      const defineRect = defineButtonRef.value.getBoundingClientRect();
+      const developRect = developButtonRef.value.getBoundingClientRect();
+      const deliverRect = deliverButtonRef.value.getBoundingClientRect();
 
-      allRenderingLineOffsets.value = [
-        o[0],
-        m[0],
-        o[1],
-        m[1],
-        o[2],
-        m[2],
-        o[3],
-        m[3],
-        o[4],
-      ];
-
-      const labelsData: { text: string; left: number; width: number }[] = [];
-      const sectionPoints = allRenderingLineOffsets.value;
-
-      for (let i = 0; i < 8; i++) {
-        // 8 sections
-        const sectionStart = sectionPoints[i];
-        const sectionEnd = sectionPoints[i + 1];
-        labelsData.push({
-          text: sectionLabelTexts[i],
-          left: sectionStart,
-          width: sectionEnd - sectionStart,
-        });
+      const offsets: number[] = [];
+      // Ensure rects are valid before calculating offsets from them
+      if (discoverRect && mainRect) {
+        // mainRect is implied by mainElementRef.value but good to be explicit if using its properties
+        offsets.push(discoverRect.left - mainRect.left);
+        offsets.push(discoverRect.right - mainRect.left);
       }
-      sectionLabels.value = labelsData;
-
-      if (labelBarRef.value) {
-        labelBarCalculatedTop.value = labelBarRef.value.offsetTop;
+      if (defineRect && mainRect) {
+        offsets.push(defineRect.right - mainRect.left);
       }
+      if (developRect && mainRect) {
+        offsets.push(developRect.right - mainRect.left);
+      }
+      if (deliverRect && mainRect) {
+        offsets.push(deliverRect.right - mainRect.left);
+      }
+      verticalLineOffsets.value = offsets;
 
-      const konvaTargetX = verticalLineOffsets.value[0];
-      const konvaTargetWidth =
-        verticalLineOffsets.value[4] - verticalLineOffsets.value[0];
+      if (verticalLineOffsets.value.length === 5) {
+        const o = verticalLineOffsets.value;
 
-      if (konvaTargetWidth > 0) {
-        configKonva.value.x = konvaTargetX;
-        configKonva.value.width = konvaTargetWidth;
-        const aspectRatio = 420 / 834; // Original SVG aspect ratio
-        configKonva.value.height = konvaTargetWidth * aspectRatio;
+        const m: number[] = [];
+        m[0] = (o[0] + o[1]) / 2;
+        m[1] = (o[1] + o[2]) / 2;
+        m[2] = (o[2] + o[3]) / 2;
+        m[3] = (o[3] + o[4]) / 2;
 
-        configImage.value.width = konvaTargetWidth;
-        configImage.value.height = konvaTargetWidth * aspectRatio;
+        allRenderingLineOffsets.value = [
+          o[0],
+          m[0],
+          o[1],
+          m[1],
+          o[2],
+          m[2],
+          o[3],
+          m[3],
+          o[4],
+        ];
+
+        // Use the full width between the first and last rendering lines
+        if (
+          allRenderingLineOffsets.value &&
+          allRenderingLineOffsets.value.length >= 9
+        ) {
+          const canvasStartX = allRenderingLineOffsets.value[0];
+          const newCanvasWidth = mainWidth - canvasStartX; // Extends from first line to edge of main container
+
+          if (newCanvasWidth > 0) {
+            configKonva.value.x = canvasStartX;
+            configKonva.value.width = newCanvasWidth;
+            configKonva.value.height = newCanvasWidth * (420 / 834); // Konva stage height
+
+            // ADJUST THIS FACTOR (e.g., 0.95 for 95%, 1.0 for 100%) to scale the image
+            const imageWidthScaleFactor = 0.892; // Example: Image uses 98% of the Konva stage width
+
+            configImage.value.width =
+              configKonva.value.width * imageWidthScaleFactor;
+            configImage.value.height = configImage.value.width * (420 / 834); // Maintain image's aspect ratio
+
+            // Align the image to the left of the Konva stage
+            configImage.value.x = 0;
+            // configImage.value.y could be similarly centered if needed:
+            // (configKonva.value.height - configImage.value.height) / 2;
+            // It defaults to 0 if not set, which is usually fine for y.
+
+            const labelsData: { text: string; left: number; width: number }[] =
+              [];
+            const sectionPoints = allRenderingLineOffsets.value;
+
+            for (let i = 0; i < 8; i++) {
+              const sectionStart = sectionPoints[i];
+              const sectionEnd = sectionPoints[i + 1];
+              labelsData.push({
+                text: sectionLabelTexts[i],
+                left: sectionStart,
+                width: sectionEnd - sectionStart,
+              });
+            }
+            sectionLabels.value = labelsData;
+
+            if (labelBarRef.value) {
+              labelBarCalculatedTop.value = labelBarRef.value.offsetTop;
+            }
+          } else {
+            console.warn(
+              "Calculated newCanvasWidth (mainWidth - canvasStartX) is not positive. " +
+                "Canvas will use full mainWidth starting at x=0."
+            );
+            // Fallback to canvas filling the entire main element, as set at the start of updateLayout
+            configKonva.value.x = 0;
+            configKonva.value.width = mainWidth;
+            configKonva.value.height = mainWidth * (420 / 834);
+            configImage.value.width = mainWidth;
+            configImage.value.height = mainWidth * (420 / 834);
+            configImage.value.x = 0;
+          }
+        } else {
+          console.warn(
+            "allRenderingLineOffsets not populated sufficiently. Canvas will use mainWidth-based size or previous valid size."
+          );
+          // If offsets are not sufficient, the Konva/Image dimensions set earlier (from mainWidth) will remain.
+        }
       } else {
         console.warn(
-          "Calculated width for Konva canvas is not positive. Using default dimensions and position."
+          "Base vertical line offsets not fully calculated (expected 5). Visual line/label rendering might be incomplete."
         );
-        configKonva.value.x = 0;
-        configKonva.value.width = 834;
-        configKonva.value.height = 420;
-        configImage.value.width = 834;
-        configImage.value.height = 420;
+        allRenderingLineOffsets.value = [];
+        sectionLabels.value = [];
+        // Konva settings already handled by user's logic if mainElementRef.value is true
       }
     } else {
+      // mainElementRef.value is true, but one or more button refs are missing.
       console.warn(
-        "Base vertical line offsets not fully calculated (need 5). Konva stage position and size might be based on incomplete data or fallbacks."
+        "One or more button elements (Discover, Define, Develop, Deliver) not found. Vertical lines/labels will not be rendered or will be cleared."
       );
+      verticalLineOffsets.value = [];
       allRenderingLineOffsets.value = [];
       sectionLabels.value = [];
-      // This part is complex and depends on which rects are available.
-      const fallbackWidth =
-        deliverButtonRef.value &&
-        discoverButtonRef.value &&
-        deliverRect &&
-        discoverRect
-          ? deliverRect.right - discoverRect.left
-          : 0;
-      if (fallbackWidth > 0) {
-        configKonva.value.width = fallbackWidth;
-        const aspectRatio = 420 / 834;
-        configKonva.value.height = fallbackWidth * aspectRatio;
-        configImage.value.width = fallbackWidth;
-        configImage.value.height = fallbackWidth * aspectRatio;
-      } else {
-        // If even fallbackWidth cannot be calculated, use defaults for Konva
-        configKonva.value.x = 0;
-        configKonva.value.width = 834;
-        configKonva.value.height = 420;
-        configImage.value.width = 834;
-        configImage.value.height = 420;
-      }
+      labelBarCalculatedTop.value = 0;
+      // Konva settings already handled by user's logic
     }
   } else {
+    // mainElementRef.value is null. This is the original fallback logic.
     console.warn(
-      "One or more critical elements (Main element, or any of Discover, Define, Develop, Deliver buttons) not found for layout calculation. Using default dimensions for Konva and no vertical lines/labels."
+      "Main element not found for layout calculation. Using default dimensions for Konva and no vertical lines/labels."
     );
-    verticalLineOffsets.value = []; // Clear original offsets
-    allRenderingLineOffsets.value = []; // Clear rendering lines
-    sectionLabels.value = []; // Clear labels
-    labelBarCalculatedTop.value = 0; // Reset top offset if layout fails
+    verticalLineOffsets.value = [];
+    allRenderingLineOffsets.value = [];
+    sectionLabels.value = [];
+    labelBarCalculatedTop.value = 0;
 
     configKonva.value.x = 0;
     configKonva.value.width = 834;
