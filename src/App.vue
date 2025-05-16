@@ -24,34 +24,12 @@
           ></div>
         </template>
 
-        <div class="border-b border-[#A1824A]">
-          <nav class="flex -mb-px" aria-label="Tabs">
-            <div class="flex-1"></div>
-            <button
-              v-for="tab in tabs"
-              :key="tab"
-              :ref="(el) => assignButtonRef(el, tab)"
-              @click="setActiveTab(tab)"
-              :class="[
-                'grow-2',
-                'shrink',
-                'basis-0',
-                'py-4',
-                'px-1',
-                'text-center',
-                'text-sm',
-                'font-bold',
-                'focus:outline-none',
-                activeTab === tab
-                  ? ['border-b-2', 'border-b-[#A1824A]', 'text-[#A1824A]', '']
-                  : ['border-b', 'border-b-[#A1824A]', '', 'text-[#1C170D]'],
-              ]"
-            >
-              {{ tab }}
-            </button>
-            <div class="flex-1"></div>
-          </nav>
-        </div>
+        <Tabs 
+          :tabs="tabs"
+          :active-tab="activeTab"
+          @update:active-tab="setActiveTab"
+          @button-refs-updated="handleButtonRefsUpdate"
+        />
         <div ref="labelBarRef" class="relative h-10 border-t border-[#A1824A]">
           <template v-for="(label) in sectionLabels" :key="'label-' + index">
             <div
@@ -68,39 +46,13 @@
           </template>
         </div>
 
-        <div class="py-6 flex-1">
-          <v-stage :config="configKonva">
-            <v-layer>
-              <v-image :config="configImage" />
-              <v-line :config="configHorizontalLine1" />
-              <v-line :config="configHorizontalLine2" />
-              <v-line :config="configHorizontalLine3" />
-              <v-text :config="configHumanAxisLabel" />
-              <v-text :config="configHumanAiAxisLabel" />
-              <v-text :config="configAiAxisLabel" />
-            </v-layer>
-          </v-stage>
-        </div>
+        <KonvaCanvas
+          :config-konva="configKonva"
+          :config-image="configImage"
+          :image-obj="imageObj"
+        />
 
-        <!-- Add Stuff Buttons Section -->
-        <div
-          v-if="addStuffButtonCenterOffsets.length > 0"
-          class="relative py-4"
-          style="min-height: 60px"
-        >
-          <button
-            v-for="(offset, index) in addStuffButtonCenterOffsets"
-            :key="'add-stuff-button-' + index"
-            class="absolute bg-white hover:cursor-pointer text-black border font-medium py-3 px-10 rounded text-sm"
-            :style="{
-              left: offset + 'px',
-              transform: 'translateX(-50%)',
-              bottom: '16px',
-            }"
-          >
-            Add Excercises
-          </button>
-        </div>
+        <AddStuffButtons :add-exercises-button-center-offsets="addExercisesButtonCenterOffsets" />
       </main>
     </div>
     <CurrentPipelineSection
@@ -114,6 +66,9 @@
 import Header from "./components/Header.vue";
 import Sidebar from "./components/Sidebar.vue";
 import CurrentPipelineSection from "./components/CurrentPipelineSection.vue";
+import Tabs from "./components/Tabs.vue";
+import KonvaCanvas from "./components/KonvaCanvas.vue";
+import AddStuffButtons from "./components/AddStuffButtons.vue";
 import {
   ref,
   onMounted,
@@ -129,6 +84,7 @@ const activeTab = ref("Discover");
 
 const setActiveTab = (tabName: string) => {
   activeTab.value = tabName;
+  nextTick(() => updateLayout()); // Ensure layout updates after tab change which might affect button refs
 };
 
 const configKonva = ref({
@@ -164,14 +120,26 @@ const labelBarRef = shallowRef<HTMLElement | null>(null);
 const labelBarCalculatedTop = ref<number>(0);
 const fullHeightLineIndices = [0, 2, 4, 6, 8];
 
-const discoverButtonRef = shallowRef<HTMLButtonElement | null>(null);
-const defineButtonRef = shallowRef<HTMLButtonElement | null>(null);
-const developButtonRef = shallowRef<HTMLButtonElement | null>(null);
-const deliverButtonRef = shallowRef<HTMLButtonElement | null>(null);
+const buttonRefs = {
+  Discover: shallowRef<HTMLButtonElement | null>(null),
+  Define: shallowRef<HTMLButtonElement | null>(null),
+  Develop: shallowRef<HTMLButtonElement | null>(null),
+  Deliver: shallowRef<HTMLButtonElement | null>(null),
+};
+
+const handleButtonRefsUpdate = (refs: Record<string, HTMLButtonElement | null>) => {
+  buttonRefs.Discover.value = refs.Discover;
+  buttonRefs.Define.value = refs.Define;
+  buttonRefs.Develop.value = refs.Develop;
+  buttonRefs.Deliver.value = refs.Deliver;
+  nextTick(() => {
+    updateLayout(); // Update layout once button refs are available
+  });
+};
 
 const mainContentScreenLeft = ref(0);
 
-const addStuffButtonCenterOffsets = computed(() => {
+const addExercisesButtonCenterOffsets = computed(() => {
   if (
     allRenderingLineOffsets.value &&
     allRenderingLineOffsets.value.length >= 8
@@ -186,70 +154,6 @@ const addStuffButtonCenterOffsets = computed(() => {
   }
   return [];
 });
-
-const horizontalLineYFraction1 = 9 / 40;
-const horizontalLineYFraction2 = 17.9 / 40;
-const horizontalLineYFraction3 = 26.7 / 40;
-
-const configHorizontalLine1 = computed(() => ({
-  points: [
-    0,
-    configKonva.value.height * horizontalLineYFraction1,
-    configKonva.value.width,
-    configKonva.value.height * horizontalLineYFraction1,
-  ],
-  stroke: "#D1D5DB",
-  strokeWidth: 1,
-}));
-
-const configHorizontalLine2 = computed(() => ({
-  points: [
-    0,
-    configKonva.value.height * horizontalLineYFraction2,
-    configKonva.value.width,
-    configKonva.value.height * horizontalLineYFraction2,
-  ],
-  stroke: "#D1D5DB",
-  strokeWidth: 1,
-}));
-
-const configHorizontalLine3 = computed(() => ({
-  points: [
-    0,
-    configKonva.value.height * horizontalLineYFraction3,
-    configKonva.value.width,
-    configKonva.value.height * horizontalLineYFraction3,
-  ],
-  stroke: "#D1D5DB",
-  strokeWidth: 1,
-}));
-
-const configHumanAxisLabel = computed(() => ({
-  x: -100, // Move further left into the empty column
-  y: configKonva.value.height * horizontalLineYFraction1,
-  text: "human axis",
-  fontSize: 12,
-  fill: "#374151",
-  align: "right",
-}));
-
-const configHumanAiAxisLabel = computed(() => ({
-  x: -100, // Move further left into the empty column
-  y: configKonva.value.height * horizontalLineYFraction2,
-  text: "human+ai axis",
-  fontSize: 12,
-  fill: "#374151",
-  align: "right",
-}));
-
-const configAiAxisLabel = computed(() => ({
-  x: -100, // Move further left into the empty column
-  y: configKonva.value.height * horizontalLineYFraction3,
-  text: "ai axis",
-  fontSize: 12,
-  fill: "#374151",
-  align: "right",
-}));
 
 const updateLayout = () => {
   // Use the mainElement's width for the canvas
@@ -266,18 +170,18 @@ const updateLayout = () => {
 
     // Proceed to calculate overlays if other refs are available
     if (
-      discoverButtonRef.value &&
-      defineButtonRef.value &&
-      developButtonRef.value &&
-      deliverButtonRef.value
+      buttonRefs.Discover.value &&
+      buttonRefs.Define.value &&
+      buttonRefs.Develop.value &&
+      buttonRefs.Deliver.value
     ) {
       const mainRect = mainElementRef.value.getBoundingClientRect();
       mainContentScreenLeft.value = mainRect.left;
 
-      const discoverRect = discoverButtonRef.value.getBoundingClientRect();
-      const defineRect = defineButtonRef.value.getBoundingClientRect();
-      const developRect = developButtonRef.value.getBoundingClientRect();
-      const deliverRect = deliverButtonRef.value.getBoundingClientRect();
+      const discoverRect = buttonRefs.Discover.value.getBoundingClientRect();
+      const defineRect = buttonRefs.Define.value.getBoundingClientRect();
+      const developRect = buttonRefs.Develop.value.getBoundingClientRect();
+      const deliverRect = buttonRefs.Deliver.value.getBoundingClientRect();
 
       const offsets: number[] = [];
       // Ensure rects are valid before calculating offsets from them
@@ -409,24 +313,17 @@ const updateLayout = () => {
     allRenderingLineOffsets.value = [];
     sectionLabels.value = [];
     labelBarCalculatedTop.value = 0;
+    // Clear button refs as they are not valid if main element is not found or other issues occur
+    buttonRefs.Discover.value = null;
+    buttonRefs.Define.value = null;
+    buttonRefs.Develop.value = null;
+    buttonRefs.Deliver.value = null;
 
     configKonva.value.x = 0;
     configKonva.value.width = 834;
     configKonva.value.height = 420;
     configImage.value.width = 834;
     configImage.value.height = 420;
-  }
-};
-
-const assignButtonRef = (el: any, tabName: string) => {
-  if (tabName === "Discover") {
-    discoverButtonRef.value = el as HTMLButtonElement;
-  } else if (tabName === "Define") {
-    defineButtonRef.value = el as HTMLButtonElement;
-  } else if (tabName === "Develop") {
-    developButtonRef.value = el as HTMLButtonElement;
-  } else if (tabName === "Deliver") {
-    deliverButtonRef.value = el as HTMLButtonElement;
   }
 };
 
