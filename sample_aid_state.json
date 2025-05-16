@@ -1,0 +1,74 @@
+{
+    "exercise": [
+        {
+            "name": "user_personas",
+            "description": "Define and explore user personas for the project.",
+            "location": {
+                "phase": "DISCOVER",
+                "human_ai_scale": 3
+            },
+            "prompt_example": [
+                "Describe a typical user for this product.",
+                "What are the main goals and frustrations of this user?"
+            ],
+            "etchical": {
+                "before": [
+                    "Consider privacy when collecting user data."
+                ],
+                "after": [
+                    "Review if all personas respect inclusivity."
+                ]
+            },
+            "miro_board": "https://miro.com/app/board/xyz123"
+        },
+        {
+            "name": "stakeholder_map",
+            "description": "Map all stakeholders involved in the project.",
+            "location": {
+                "phase": "DEFINE",
+                "human_ai_scale": 2
+            },
+            "prompt_example": [
+                "List all stakeholders and their interests.",
+                "How might each stakeholder influence the project?"
+            ],
+            "etchical": {
+                "before": [
+                    "Ensure all voices are considered."
+                ],
+                "after": [
+                    "Check for potential bias in stakeholder selection."
+                ]
+            },
+            "miro_board": "https://miro.com/app/board/abc456"
+        }
+    ],
+    "project": [
+        {
+            "project_name": "projectName",
+            "workflow": [
+                {
+                    "toolname": "brainstorming",
+                    "position": 0,
+                    "notes": [
+                        "Initial ideation session."
+                    ],
+                    "chat_history": [
+                        "What ideas did the team generate?",
+                        "Which ideas align with user needs?"
+                    ]
+                },
+                {
+                    "toolname": "prototyping",
+                    "position": 1,
+                    "notes": [
+                        "Create low-fidelity prototypes."
+                    ],
+                    "chat_history": [
+                        "What feedback was received on the prototype?"
+                    ]
+                }
+            ]
+        }
+    ]
+}
