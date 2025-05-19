@@ -1,171 +1,398 @@
-{
-  "tools": [
-    {
-      "name": "User Personas",
-      "description": "Develop detailed user personas to understand your target audience's needs, motivations, behaviors, and pain points. Personas help ensure user-centered design and decision-making throughout the project lifecycle.",
-      "icon": "material-symbols:person",
-      "location": [200, 400],
-      "diamond_position": "define",
-      "color": "#DC5BFD",
-      "prompt_list": [
-        "Generate three distinct user personas for a new mobile banking application, including their tech-savviness, financial goals, and frustrations with current banking solutions.",
-        "Create a primary user persona for an e-learning platform targeting working professionals seeking to upskill. Focus on their learning habits, time constraints, and career aspirations.",
-        "Develop a set of proto-personas based on initial market research for a sustainable fashion brand. Include demographics, shopping habits, and values related to sustainability."
-      ],
-      "ethical": {
-        "before": [
-          "Ensure persona creation is based on actual research, not stereotypes, to avoid bias.",
-          "Represent diverse user groups and avoid creating exclusionary personas.",
-          "Clearly state the research and data sources used for persona development."
-        ],
-        "after": [
-          "Regularly review and update personas as new user data becomes available.",
-          "Use personas to advocate for user needs, not to justify pre-existing assumptions."
-        ]
-      }
+[
+  {
+    "isSelected": false,
+    "config": {
+      "x": 200,
+      "y": 200,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
     },
-    {
-      "name": "User Research",
-      "description": "Plan, conduct, and synthesize user research to uncover deep insights into user behaviors, needs, and contexts. This foundational research informs product strategy and design direction.",
-      "icon": "streamline:magnifying-glass-solid",
-      "location": [400, 200],
-      "diamond_position": "discover",
-      "color": "#5BCCFD",
-      "prompt_list": [
-        "Outline a user research plan to investigate how small business owners manage their social media presence. Include research questions, methodologies (e.g., interviews, surveys), and participant criteria.",
-        "Generate a set of 10 open-ended interview questions for understanding user experiences with online grocery shopping services.",
-        "Synthesize findings from a series of user interviews and create an affinity diagram to identify key themes and pain points related to project management software."
-      ],
-      "ethical": {
-        "before": [
-          "Obtain informed consent from all research participants, clearly explaining the purpose of the research and how their data will be used.",
-          "Ensure anonymity and confidentiality of participant data.",
-          "Compensate participants fairly for their time and effort."
-        ],
-        "after": [
-          "Store research data securely and dispose of it responsibly after the project.",
-          "Report findings accurately and avoid misrepresenting data to support a particular viewpoint."
-        ]
-      }
+    "labelConfig": {
+      "x": 220,
+      "y": 190,
+      "text": "Interviews",
+      "fontSize": 14,
+      "fill": "#374151"
     },
-    {
-      "name": "Data Explorer",
-      "description": "Interactively explore and visualize complex datasets to uncover patterns, trends, and actionable insights. Transform raw data into understandable narratives that drive informed decisions.",
-      "icon": "icon-park-solid:data",
-      "location": [600, 380],
-      "diamond_position": "discover",
-      "color": "#94F182",
-      "prompt_list": [
-        "Visualize sales data over the past five years, highlighting regional performance and product category trends using a combination of bar charts and line graphs.",
-        "Analyze user engagement metrics for a web application (e.g., daily active users, session duration, feature adoption) and create a dashboard to monitor key performance indicators.",
-        "Explore customer feedback data from surveys and support tickets, identifying common issues and sentiment trends using text analysis and thematic mapping."
-      ],
-      "ethical": {
-        "before": [
-          "Ensure data sources are reliable and the data is cleaned and preprocessed appropriately to avoid misleading visualizations.",
-          "Protect sensitive information and comply with data privacy regulations (e.g., GDPR, CCPA) when handling user data.",
-          "Choose visualization types that accurately represent the data and avoid distortion."
-        ],
-        "after": [
-          "Clearly label all visualizations and provide context to prevent misinterpretation.",
-          "Acknowledge limitations of the data and potential biases in the analysis and interpretation."
-        ]
-      }
+    "description": "Gather qualitative data directly from users to understand their needs, motivations, and pain points.",
+    "driveType": "human",
+    "phase": "Discover",
+    "category": "Empathize"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 320,
+      "y": 180,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
     },
-    {
-      "name": "Content Generator",
-      "description": "Generate high-quality, engaging written content for various platforms based on specified topics, keywords, and target audiences. Streamline content creation for marketing, communication, and documentation.",
-      "icon": "material-symbols:content-paste-go",
-      "location": [810, 530],
-      "diamond_position": "develop",
-      "color": "#FDC45B",
-      "prompt_list": [
-        "Write a 500-word blog post about the benefits of remote work for employee well-being, targeting HR professionals. Include statistics and a call to action.",
-        "Generate three variations of social media posts (Twitter, LinkedIn, Instagram) announcing a new product feature for a SaaS application.",
-        "Draft an email newsletter introducing a seasonal promotion for an e-commerce store, focusing on creating a sense of urgency and highlighting key products."
-      ],
-      "ethical": {
-        "before": [
-          "Clearly disclose when content is AI-generated, especially in contexts where transparency is crucial (e.g., news, academic writing).",
-          "Ensure generated content is original and does not plagiarize existing work. Use plagiarism checkers if necessary.",
-          "Verify the accuracy of any factual claims or data presented in the generated content."
-        ],
-        "after": [
-          "Thoroughly review, edit, and humanize AI-generated content to ensure quality, tone, and alignment with brand voice.",
-          "Be mindful of potential biases in the AI model that might be reflected in the generated content and correct them."
-        ]
-      }
+    "labelConfig": {
+      "x": 340,
+      "y": 170,
+      "text": "Brainstorm",
+      "fontSize": 14,
+      "fill": "#374151"
     },
-    {
-      "name": "Prototype Builder",
-      "description": "Quickly create interactive prototypes to visualize and test design concepts. Ideal for iterating on user flows and gathering early feedback before development.",
-      "icon": "ph:device-mobile-camera-fill",
-      "location": [800, 500],
-      "diamond_position": "develop",
-      "color": "#4DD0E1",
-      "prompt_list": [
-        "Generate an interactive prototype for a 3-step user onboarding flow for a new mobile app.",
-        "Create a clickable wireframe for the checkout process of an e-commerce website, including cart review, shipping, and payment pages.",
-        "Develop a low-fidelity prototype to test the navigation structure of a redesigned company intranet."
-      ],
-      "ethical": {
-        "before": [
-          "Clearly communicate that prototypes are not final products and are for testing/feedback purposes.",
-          "Focus on testing core functionality and user flows rather than visual perfection in early stages.",
-          "Ensure placeholder content is appropriate and does not misrepresent the final product's intent."
-        ],
-        "after": [
-          "Document feedback gathered during prototype testing thoroughly.",
-          "Iterate on designs based on feedback before committing to full development."
-        ]
-      }
+    "description": "Generate a wide range of ideas and solutions collaboratively with a human-centric approach.",
+    "driveType": "human",
+    "phase": "Develop",
+    "category": "Ideate"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 120,
+      "y": 330,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
     },
-    {
-      "name": "A/B Test Designer",
-      "description": "Design and configure A/B tests to compare different versions of a feature or design, enabling data-driven decisions for optimization and improvement.",
-      "icon": "mdi:ab-testing",
-      "location": [1000, 300],
-      "diamond_position": "deliver",
-      "color": "#FF8A65",
-      "prompt_list": [
-        "Set up an A/B test to compare two different call-to-action button texts on a landing page. Define success metrics (e.g., conversion rate).",
-        "Design an experiment to test a new homepage layout against the current one, focusing on user engagement and bounce rate.",
-        "Create variations for an email subject line A/B test to optimize open rates for a marketing campaign."
-      ],
-      "ethical": {
-        "before": [
-          "Ensure test variations do not create significantly negative user experiences or introduce dark patterns.",
-          "Define a clear hypothesis and success metrics before starting the test.",
-          "Determine appropriate sample size and test duration to achieve statistically significant results."
-        ],
-        "after": [
-          "Analyze results objectively and avoid confirmation bias.",
-          "Share learnings from both successful and unsuccessful variations with the team."
-        ]
-      }
+    "labelConfig": {
+      "x": 140,
+      "y": 320,
+      "text": "Insight Scraping",
+      "fontSize": 14,
+      "fill": "#374151"
     },
-    {
-      "name": "Accessibility Checker",
-      "description": "Analyze designs and code for compliance with accessibility standards (WCAG), ensuring products are usable by people with a wide range of disabilities.",
-      "icon": "material-symbols:accessibility-new",
-      "location": [500, 450],
-      "diamond_position": "deliver",
-      "color": "#AED581",
-      "prompt_list": [
-        "Scan a webpage URL and generate a report of WCAG 2.1 AA violations, with suggestions for fixes.",
-        "Evaluate a design mockup (e.g., Figma link) for color contrast issues and interactive element accessibility.",
-        "Check a code snippet for proper ARIA attributes and keyboard navigation support."
-      ],
-      "ethical": {
-        "before": [
-          "Understand that automated checkers are a tool, not a replacement for manual testing and user feedback from people with disabilities.",
-          "Prioritize fixing critical accessibility issues that create major barriers for users."
-        ],
-        "after": [
-          "Integrate accessibility checks throughout the design and development process, not just at the end.",
-          "Continuously educate the team on accessibility best practices."
-        ]
-      }
-    }
-  ]
-}
+    "description": "Automatically gather and analyze data from various online sources using AI to uncover actionable insights.",
+    "driveType": "ai",
+    "phase": "Discover",
+    "category": "Explore"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 760,
+      "y": 400,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 780,
+      "y": 390,
+      "text": "Automated Research",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Leverage AI to conduct research tasks like literature reviews, market analysis, or competitive analysis efficiently.",
+    "driveType": "ai",
+    "phase": "Discover",
+    "category": "Explore"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 500,
+      "y": 220,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 520,
+      "y": 210,
+      "text": "Data Analysis",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Employ AI algorithms, complemented by human expertise, to interpret complex datasets and identify significant patterns.",
+    "driveType": "human-ai",
+    "phase": "Define",
+    "category": "Synthesize"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 650,
+      "y": 250,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 670,
+      "y": 240,
+      "text": "Data Synthesis",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "AI assists in finding connections across diverse data sources, while human designers synthesize these into a cohesive understanding.",
+    "driveType": "human-ai",
+    "phase": "Define",
+    "category": "Synthesize"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 880,
+      "y": 150,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 900,
+      "y": 140,
+      "text": "Data Visualization",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Create compelling visual representations of data, where AI can suggest optimal formats and humans refine for clarity and impact.",
+    "driveType": "human-ai",
+    "phase": "Define",
+    "category": "Synthesize"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 400,
+      "y": 450,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 420,
+      "y": 440,
+      "text": "Synthetic Personas",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "AI-generated user personas based on aggregated data to represent target user segments, providing a quick understanding of user archetypes.",
+    "driveType": "ai",
+    "phase": "Define",
+    "category": "Frame"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 900,
+      "y": 580,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 920,
+      "y": 570,
+      "text": "AI-Powered Moodboarding",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Use AI to automatically curate images, color palettes, and typography based on keywords or visual styles for design inspiration.",
+    "driveType": "ai",
+    "phase": "Develop",
+    "category": "Ideate"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 150,
+      "y": 420,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 170,
+      "y": 410,
+      "text": "Generative Sketching",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Employ AI tools to transform rough sketches into more refined digital drawings or explore numerous design variations rapidly.",
+    "driveType": "human-ai",
+    "phase": "Develop",
+    "category": "Prototype"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 550,
+      "y": 300,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 570,
+      "y": 290,
+      "text": "Predictive UX Analytics",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Use AI to analyze user behavior data and predict future trends, potential usability issues, or user satisfaction.",
+    "driveType": "ai",
+    "phase": "Define",
+    "category": "Frame"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 890,
+      "y": 500,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 910,
+      "y": 490,
+      "text": "AI-Assisted Content Creation",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Leverage AI to generate draft copy, microcopy, or even image placeholders for design mockups, speeding up the content process.",
+    "driveType": "ai",
+    "phase": "Develop",
+    "category": "Ideate"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 700,
+      "y": 350,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 720,
+      "y": 340,
+      "text": "Human-AI Co-Ideation",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "A collaborative ideation process where designers and AI work together, with AI offering novel suggestions and augmenting human creativity.",
+    "driveType": "human-ai",
+    "phase": "Develop",
+    "category": "Ideate"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 250,
+      "y": 200,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 270,
+      "y": 190,
+      "text": "Automated A/B Test Analysis",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "AI automatically analyzes results from A/B tests to quickly identify winning variations, statistical significance, and actionable insights.",
+    "driveType": "ai",
+    "phase": "Define",
+    "category": "Synthesize"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 100,
+      "y": 250,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 120,
+      "y": 240,
+      "text": "Ethical AI Impact Review",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "A structured review process, potentially AI-assisted, to evaluate the ethical implications, fairness, and potential biases of an AI-infused design before and after deployment.",
+    "driveType": "human-ai",
+    "phase": "Deliver",
+    "category": "Implement"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 950,
+      "y": 310,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 970,
+      "y": 300,
+      "text": "AI for Accessibility Audits",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Use AI tools to automatically scan designs and code to identify potential accessibility issues (e.g., color contrast, ARIA tagging).",
+    "driveType": "ai",
+    "phase": "Deliver",
+    "category": "Test"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 50,
+      "y": 290,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 70,
+      "y": 280,
+      "text": "Dynamic UI Personalization",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "AI adapts user interface elements, content, and layouts in real-time based on individual user preferences, behavior, or context.",
+    "driveType": "ai",
+    "phase": "Deliver",
+    "category": "Implement"
+  },
+  {
+    "isSelected": false,
+    "config": {
+      "x": 950,
+      "y": 100,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 970,
+      "y": 90,
+      "text": "AI Trend Spotting & Forecasting",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "AI analyzes vast datasets (social media, news, articles) to identify emerging design trends, technological shifts, or evolving user needs.",
+    "driveType": "ai",
+    "phase": "Discover",
+    "category": "Explore"
+  }
+]

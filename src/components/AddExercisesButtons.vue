@@ -13,6 +13,7 @@
         transform: 'translateX(-50%)',
         bottom: '16px',
       }"
+      @click="handleClick(getPhaseForIndex(index))"
     >
       Add Exercises
     </button>
@@ -20,9 +21,22 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from "vue";
+import { defineProps, defineEmits } from "vue";
 
-defineProps<{
+const props = defineProps<{
   addExercisesButtonCenterOffsets: number[];
 }>();
-</script> 
+
+const emit = defineEmits<{
+  (e: "exercise-button-click", phase: string): void;
+}>();
+
+const getPhaseForIndex = (index: number): string => {
+  const phases = ["Discover", "Define", "Develop", "Deliver"];
+  return phases[index];
+};
+
+const handleClick = (phase: string) => {
+  emit("exercise-button-click", phase);
+};
+</script>

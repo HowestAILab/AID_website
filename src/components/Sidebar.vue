@@ -17,7 +17,6 @@
         </div>
       </div>
     </div>
-
     <nav class="flex-grow space-y-1">
       <a
         href="#"
@@ -65,7 +64,32 @@
       </a>
     </nav>
 
-    <div class="mt-auto"></div>
+    <div class="mt-auto flex justify-between text-[#1C170D]">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button class="flex items-center gap-2 cursor-pointer">
+              <Settings class="w-5 h-5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Settings</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button class="flex items-center gap-2 cursor-pointer">
+              <LogOut class="w-5 h-5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Logout</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
   </div>
 </template>
 
@@ -74,7 +98,20 @@ import { ref } from "vue";
 import Avatar from "@/components/ui/avatar/Avatar.vue";
 import AvatarFallback from "@/components/ui/avatar/AvatarFallback.vue";
 import AvatarImage from "@/components/ui/avatar/AvatarImage.vue";
-import { LayoutDashboard, Gem, GitFork, Briefcase } from "lucide-vue-next";
+import {
+  LayoutDashboard,
+  Gem,
+  GitFork,
+  Briefcase,
+  Settings,
+  LogOut,
+} from "lucide-vue-next";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type ActiveItem = "overview" | "diamond" | "pipeline" | "tools";
 

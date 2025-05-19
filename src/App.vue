@@ -1,4 +1,5 @@
 <template>
+  <Toaster />
   <div class="flex flex-col h-screen">
     <div class="flex flex-1 overflow-hidden">
       <Sidebar />
@@ -6,53 +7,64 @@
         ref="mainElementRef"
         class="flex-1 flex flex-col overflow-y-auto relative"
       >
-        <!-- Vertical Grey Lines -->
-        <template
-          v-for="(offset, index) in allRenderingLineOffsets"
-          :key="'line-' + index"
-        >
-          <div
-            class="absolute bottom-0 bg-gray-300 w-px"
-            :style="{
-              left: offset + 'px',
-              top: fullHeightLineIndices.includes(index)
-                ? '0px'
-                : labelBarCalculatedTop + 'px',
-              bottom: '0px',
-            }"
-          ></div>
-        </template>
-
-        <Tabs 
-          :tabs="tabs"
-          :active-tab="activeTab"
-          @update:active-tab="setActiveTab"
-          @button-refs-updated="handleButtonRefsUpdate"
-        />
-        <div ref="labelBarRef" class="relative h-10 border-t border-[#A1824A]">
-          <template v-for="(label) in sectionLabels" :key="'label-' + index">
+        <template v-if="!showExercisesPage">
+          <!-- Vertical Grey Lines -->
+          <template
+            v-for="(offset, index) in allRenderingLineOffsets"
+            :key="'line-' + index"
+          >
             <div
-              class="pt-1 absolute flex items-center justify-center text-center text-sm font-medium text-[#1C170D]"
+              class="absolute bottom-0 bg-gray-300 w-px"
               :style="{
-                left: label.left + 'px',
-                width: label.width + 'px',
-                top: '0',
-                height: '100%',
+                left: offset + 'px',
+                top: fullHeightLineIndices.includes(index)
+                  ? '0px'
+                  : labelBarCalculatedTop + 'px',
+                bottom: '0px',
               }"
-            >
-              <span>{{ label.text }}</span>
-            </div>
+            ></div>
           </template>
-        </div>
 
-        <KonvaCanvas
-          :config-konva="configKonva"
-          :config-image="configImage"
-          :image-obj="imageObj"
-          @selected-pins-change="handleSelectedPinsChange"
+          <Tabs 
+            :tabs="tabs"
+            :active-tab="activeTab"
+            @update:active-tab="setActiveTab"
+            @button-refs-updated="handleButtonRefsUpdate"
+          />
+          <div ref="labelBarRef" class="relative h-10 border-t border-[#A1824A]">
+            <template v-for="(label) in sectionLabels" :key="'label-' + index">
+              <div
+                class="pt-1 absolute flex items-center justify-center text-center text-sm font-medium text-[#1C170D]"
+                :style="{
+                  left: label.left + 'px',
+                  width: label.width + 'px',
+                  top: '0',
+                  height: '100%',
+                }"
+              >
+                <span>{{ label.text }}</span>
+              </div>
+            </template>
+          </div>
+
+          <KonvaCanvas
+            :config-konva="configKonva"
+            :config-image="configImage"
+            :image-obj="imageObj"
+            @selected-pins-change="handleSelectedPinsChange"
+          />
+
+          <AddExercisesButtons 
+            :add-exercises-button-center-offsets="addExercisesButtonCenterOffsets" 
+            @exercise-button-click="handleExerciseButtonClick"
+          />
+        </template>
+        <ExercisesPage
+          v-else
+          :phase="currentPhase"
+          @close="handleExercisesClose"
+          @update:phase="phase => currentPhase = phase"
         />
-
-        <AddExercisesButtons :add-exercises-button-center-offsets="addExercisesButtonCenterOffsets" />
       </main>
     </div>
     <CurrentPipelineSection
@@ -70,6 +82,7 @@ import CurrentPipelineSection from "./components/CurrentPipelineSection.vue";
 import Tabs from "./components/Tabs.vue";
 import KonvaCanvas from "./components/KonvaCanvas.vue";
 import AddExercisesButtons from "./components/AddExercisesButtons.vue";
+import ExercisesPage from "./components/ExercisesPage.vue";
 import {
   ref,
   onMounted,
@@ -79,13 +92,14 @@ import {
   computed,
 } from "vue";
 import DoubleDiamond from "./assets/DoubleDiamond.svg";
+import { Toaster } from '@/components/ui/sonner'
 
 const tabs = ["Discover", "Define", "Develop", "Deliver"];
 const activeTab = ref("Discover");
 
 const setActiveTab = (tabName: string) => {
   activeTab.value = tabName;
-  nextTick(() => updateLayout()); // Ensure layout updates after tab change which might affect button refs
+  nextTick(() => updateLayout());
 };
 
 const configKonva = ref({
@@ -160,6 +174,19 @@ const selectedPins = ref<number[]>([]);
 
 const handleSelectedPinsChange = (pins: number[]) => {
   selectedPins.value = pins;
+};
+
+const showExercisesPage = ref(false);
+const currentPhase = ref('');
+
+const handleExerciseButtonClick = (phase: string) => {
+  showExercisesPage.value = true;
+  currentPhase.value = phase;
+};
+
+const handleExercisesClose = () => {
+  showExercisesPage.value = false;
+  currentPhase.value = '';
 };
 
 const updateLayout = () => {
