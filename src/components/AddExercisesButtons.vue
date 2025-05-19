@@ -14,7 +14,7 @@
         bottom: '16px',
       }"
     >
-      Add Excercises
+      Add Exercises
     </button>
   </div>
 </template>

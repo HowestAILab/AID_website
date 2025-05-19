@@ -1,6 +1,5 @@
 <template>
   <div class="flex flex-col h-screen">
-    <Header />
     <div class="flex flex-1 overflow-hidden">
       <Sidebar />
       <main
@@ -50,14 +49,16 @@
           :config-konva="configKonva"
           :config-image="configImage"
           :image-obj="imageObj"
+          @selected-pins-change="handleSelectedPinsChange"
         />
 
-        <AddStuffButtons :add-exercises-button-center-offsets="addExercisesButtonCenterOffsets" />
+        <AddExercisesButtons :add-exercises-button-center-offsets="addExercisesButtonCenterOffsets" />
       </main>
     </div>
     <CurrentPipelineSection
       :all-rendering-line-offsets="allRenderingLineOffsets"
       :main-content-screen-left="mainContentScreenLeft"
+      :selected-pins="selectedPins"
     />
   </div>
 </template>
@@ -68,7 +69,7 @@ import Sidebar from "./components/Sidebar.vue";
 import CurrentPipelineSection from "./components/CurrentPipelineSection.vue";
 import Tabs from "./components/Tabs.vue";
 import KonvaCanvas from "./components/KonvaCanvas.vue";
-import AddStuffButtons from "./components/AddStuffButtons.vue";
+import AddExercisesButtons from "./components/AddExercisesButtons.vue";
 import {
   ref,
   onMounted,
@@ -154,6 +155,12 @@ const addExercisesButtonCenterOffsets = computed(() => {
   }
   return [];
 });
+
+const selectedPins = ref<number[]>([]);
+
+const handleSelectedPinsChange = (pins: number[]) => {
+  selectedPins.value = pins;
+};
 
 const updateLayout = () => {
   // Use the mainElement's width for the canvas
