@@ -42,7 +42,7 @@
         <div class="grid grid-cols-3 gap-4 w-full">
           <template v-for="(exercise, index) in getExercisesForCategory(categoryName)" :key="exercise.title + '-' + index">
             <div class="relative">
-              <ExerciseCard2
+              <ExerciseCard
                 :title="exercise.title"
                 :description="exercise.description"
                 :driveType="exercise.driveType"
@@ -68,7 +68,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import Tabs from "./Tabs.vue";
-import ExerciseCard2 from "./ExerciseCard2.vue";
+import ExerciseCard from "./ExerciseCard.vue";
 import AddExerciseDialog from "./AddExerciseDialog.vue";
 import { ArrowLeft, CirclePlus, Trash2 } from "lucide-vue-next";
 import dummyData from "../../dummy.json";
