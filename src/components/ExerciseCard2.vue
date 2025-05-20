@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4 border border-[#E5E7EB] rounded-lg shadow-sm">
+  <div class="p-4 border border-[#E5E7EB] rounded-lg shadow-sm h-full flex flex-col">
     <div class="flex items-center justify-between mb-1">
       <p class="text-lg font-medium mb-1">{{ title }}</p>
       <div
@@ -12,9 +12,9 @@
         <p>{{ driveTypeConfig.text }}</p>
       </div>
     </div>
-    <p class="text-[#4B5563] mb-4">{{ description }}</p>
+    <p class="text-[#4B5563] mb-4 flex-grow">{{ description }}</p>
     <button
-      class="flex items-center gap-2 text-[#F59E0C]"
+      class="flex items-center gap-2 text-[#F59E0C] mt-auto"
       @click="$emit('addToDiamond')"
     >
       <CirclePlus />

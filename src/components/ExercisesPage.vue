@@ -71,11 +71,11 @@ import Tabs from "./Tabs.vue";
 import ExerciseCard2 from "./ExerciseCard2.vue";
 import AddExerciseDialog from "./AddExerciseDialog.vue";
 import { ArrowLeft, CirclePlus, Trash2 } from "lucide-vue-next";
-import dummyData from "../../dummy.json"; // Import the JSON data
+import dummyData from "../../dummy.json";
 
 const tabNames = ["Discover", "Define", "Develop", "Deliver"];
 
-// Define the structure for an exercise
+
 interface Exercise {
   title: string;
   description: string;
@@ -83,29 +83,23 @@ interface Exercise {
   phase: string;
   category: string;
   isCustom?: boolean;
-  // Add other fields from dummy.json if needed by ExerciseCard2, e.g., config for ID
-  id?: string; // Optional: for unique key and easier deletion if titles aren't unique
+
+  id?: string;
   x?: number;
   y?: number;
 }
 
-// Props definition
 const props = defineProps<{
   phase: string;
 }>();
 
-// Emits definition
 const emit = defineEmits<{
   (e: "close"): void;
   (e: "update:phase", phase: string): void;
 }>();
 
-// All exercises loaded from dummy.json would go here
-// For demonstration, it's initialized as empty.
-// In a real app, you would fetch and parse dummy.json, then populate this ref.
 const allStaticExercises = ref<Exercise[]>([]);
 
-// Custom exercises added by the user
 const customExercises = ref<Exercise[]>([]);
 
 const LOCAL_STORAGE_KEY_CUSTOM_EXERCISES = 'customDesignExercises';
@@ -121,7 +115,7 @@ onMounted(() => {
     phase: item.phase,
     category: item.category,
     isCustom: false,
-    // Include x and y if they exist in dummy.json and are needed for static items
+
     x: item.config?.x, 
     y: item.config?.y,
   }));

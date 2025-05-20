@@ -1,6 +1,7 @@
 [
   {
     "isSelected": false,
+    "order": 4,
     "config": {
       "x": 200,
       "y": 200,
@@ -23,6 +24,7 @@
   },
   {
     "isSelected": false,
+    "order": 6,
     "config": {
       "x": 320,
       "y": 180,
@@ -45,6 +47,7 @@
   },
   {
     "isSelected": false,
+    "order": 2,
     "config": {
       "x": 120,
       "y": 330,
@@ -67,6 +70,7 @@
   },
   {
     "isSelected": false,
+    "order": 12,
     "config": {
       "x": 760,
       "y": 400,
@@ -89,6 +93,7 @@
   },
   {
     "isSelected": false,
+    "order": 8,
     "config": {
       "x": 500,
       "y": 220,
@@ -111,6 +116,7 @@
   },
   {
     "isSelected": false,
+    "order": 10,
     "config": {
       "x": 650,
       "y": 250,
@@ -133,6 +139,7 @@
   },
   {
     "isSelected": false,
+    "order": 13,
     "config": {
       "x": 880,
       "y": 150,
@@ -155,6 +162,7 @@
   },
   {
     "isSelected": false,
+    "order": 7,
     "config": {
       "x": 400,
       "y": 450,
@@ -177,6 +185,7 @@
   },
   {
     "isSelected": false,
+    "order": 15,
     "config": {
       "x": 900,
       "y": 580,
@@ -199,6 +208,7 @@
   },
   {
     "isSelected": false,
+    "order": 3,
     "config": {
       "x": 150,
       "y": 420,
@@ -221,6 +231,7 @@
   },
   {
     "isSelected": false,
+    "order": 9,
     "config": {
       "x": 550,
       "y": 300,
@@ -243,6 +254,7 @@
   },
   {
     "isSelected": false,
+    "order": 14,
     "config": {
       "x": 890,
       "y": 500,
@@ -265,6 +277,7 @@
   },
   {
     "isSelected": false,
+    "order": 11,
     "config": {
       "x": 700,
       "y": 350,
@@ -287,6 +300,7 @@
   },
   {
     "isSelected": false,
+    "order": 5,
     "config": {
       "x": 250,
       "y": 200,
@@ -309,6 +323,7 @@
   },
   {
     "isSelected": false,
+    "order": 1,
     "config": {
       "x": 100,
       "y": 250,
@@ -331,6 +346,7 @@
   },
   {
     "isSelected": false,
+    "order": 18,
     "config": {
       "x": 950,
       "y": 310,
@@ -353,6 +369,7 @@
   },
   {
     "isSelected": false,
+    "order": 0,
     "config": {
       "x": 50,
       "y": 290,
@@ -375,6 +392,7 @@
   },
   {
     "isSelected": false,
+    "order": 17,
     "config": {
       "x": 950,
       "y": 100,

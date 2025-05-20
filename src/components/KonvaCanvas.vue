@@ -33,14 +33,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, defineEmits, ref, watch, onMounted } from "vue";
+import { computed, defineProps, defineEmits, ref, watch, onMounted, defineExpose } from "vue";
 import Konva from "konva";
 import pinsData from "@/../dummy.json";
 
 const SELECTED_PINS_STORAGE_KEY = 'selected-pins';
 
+interface SelectedPinInfo {
+  name: string;
+  originalIndex: number;
+  order: number;
+}
+
 const emit = defineEmits<{
-  (e: "selectedPinsChange", selectedPins: number[]): void;
+  (e: "selectedPinsChange", selectedPins: SelectedPinInfo[]): void;
 }>();
 
 const props = defineProps<{
@@ -53,22 +59,29 @@ const stageRef = ref<Konva.Stage | null>(null);
 
 interface PinConfig {
   isSelected: boolean;
+  order: number;
   config: Record<string, any>;
   labelConfig: Record<string, any>;
 }
 
-const pins = ref<PinConfig[]>(pinsData);
+const pins = ref<PinConfig[]>(pinsData as PinConfig[]);
 
 function togglePinSelected(index: number) {
   pins.value[index].isSelected = !pins.value[index].isSelected;
-  const selectedIndices = pins.value
-    .map((pin, idx) => (pin.isSelected ? idx : -1))
-    .filter((idx) => idx !== -1);
-  emit("selectedPinsChange", selectedIndices);
+  const selectedPinData: SelectedPinInfo[] = pins.value
+    .map((pin, idx) => (pin.isSelected ? { name: pin.labelConfig.text, originalIndex: idx, order: pin.order } : null))
+    .filter((pinInfo): pinInfo is SelectedPinInfo => pinInfo !== null);
+  emit("selectedPinsChange", selectedPinData);
   
-  // Save to localStorage
+  // Save selected indices to localStorage
+  const selectedIndices = selectedPinData.map(p => p.originalIndex);
   localStorage.setItem(SELECTED_PINS_STORAGE_KEY, JSON.stringify(selectedIndices));
 }
+
+// Expose the togglePinSelected method
+defineExpose({
+  togglePinSelected,
+});
 
 const handleMouseEnter = () => {
   if (stageRef.value) {
@@ -153,16 +166,22 @@ const configAiAxisLabel = computed(() => ({
 }));
 
 onMounted(() => {
-  // Load selected pins from localStorage
-  const savedPins = localStorage.getItem(SELECTED_PINS_STORAGE_KEY);
-  if (savedPins) {
-    const selectedIndices = JSON.parse(savedPins);
+  // Load selected pins from localStorage (still stores indices)
+  const savedPinIndices = localStorage.getItem(SELECTED_PINS_STORAGE_KEY);
+  if (savedPinIndices) {
+    const selectedIndices: number[] = JSON.parse(savedPinIndices);
+    const currentSelectedPinData: SelectedPinInfo[] = [];
     selectedIndices.forEach((index: number) => {
       if (index >= 0 && index < pins.value.length) {
         pins.value[index].isSelected = true;
+        currentSelectedPinData.push({ 
+          name: pins.value[index].labelConfig.text, 
+          originalIndex: index, 
+          order: pins.value[index].order 
+        });
       }
     });
-    emit("selectedPinsChange", selectedIndices);
+    emit("selectedPinsChange", currentSelectedPinData);
   }
 });
 </script>

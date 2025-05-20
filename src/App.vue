@@ -48,6 +48,7 @@
           </div>
 
           <KonvaCanvas
+            ref="konvaCanvasRef"
             :config-konva="configKonva"
             :config-image="configImage"
             :image-obj="imageObj"
@@ -71,6 +72,7 @@
       :all-rendering-line-offsets="allRenderingLineOffsets"
       :main-content-screen-left="mainContentScreenLeft"
       :selected-pins="selectedPins"
+      @unselectPinRequested="handleUnselectPin"
     />
   </div>
 </template>
@@ -93,6 +95,14 @@ import {
 } from "vue";
 import DoubleDiamond from "./assets/DoubleDiamond.svg";
 import { Toaster } from '@/components/ui/sonner'
+
+interface SelectedPinInfo {
+  name: string;
+  originalIndex: number;
+  order: number; 
+}
+
+const konvaCanvasRef = ref<InstanceType<typeof KonvaCanvas> | null>(null);
 
 const tabs = ["Discover", "Define", "Develop", "Deliver"];
 const activeTab = ref("Discover");
@@ -170,10 +180,16 @@ const addExercisesButtonCenterOffsets = computed(() => {
   return [];
 });
 
-const selectedPins = ref<number[]>([]);
+const selectedPins = ref<SelectedPinInfo[]>([]);
 
-const handleSelectedPinsChange = (pins: number[]) => {
+const handleSelectedPinsChange = (pins: SelectedPinInfo[]) => {
   selectedPins.value = pins;
+};
+
+const handleUnselectPin = (originalPinIndex: number) => {
+  if (konvaCanvasRef.value) {
+    konvaCanvasRef.value.togglePinSelected(originalPinIndex);
+  }
 };
 
 const showExercisesPage = ref(false);
