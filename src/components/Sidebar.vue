@@ -123,7 +123,7 @@
     <!-- Collapse trigger button -->
     <button
       @click="toggleCollapse"
-      class="absolute -right-3 top-1/2 transform -translate-y-1/2 bg-white border border-gray-200 rounded-full p-1.5 hover:bg-gray-50"
+      class="absolute -right-3 top-1/2 transform -translate-y-1/2 bg-white border border-gray-200 rounded-full p-1.5 hover:bg-gray-50 z-10 cursor-pointer"
     >
       <ChevronLeft
         class="w-4 h-4 transition-transform duration-300"

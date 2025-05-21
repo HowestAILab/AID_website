@@ -31,13 +31,24 @@
               currentCategoryForDialog === categoryName
             "
             @update:open="isAddExerciseDialogOpen = $event"
-            :title="`Add Custom Exercise to ${categoryName}`"
-            :description="`Create a new custom exercise for the ${categoryName} category in the ${phase} phase.`"
+            :title="
+              editingExercise
+                ? `Edit Exercise in ${categoryName}`
+                : `Add Custom Exercise to ${categoryName}`
+            "
+            :description="
+              editingExercise
+                ? `Edit this custom exercise in the ${categoryName} category.`
+                : `Create a new custom exercise for the ${categoryName} category in the ${phase} phase.`
+            "
+            :mode="editingExercise ? 'edit' : 'add'"
+            :initial-data="editingExercise"
             @add-exercise="handleAddNewExercise"
+            @edit-exercise="handleEditExistingExercise"
           >
             <template #trigger>
               <button
-                class="text-[#F59E0C] flex items-center gap-2"
+                class="text-[#F59E0C] flex items-center gap-2 cursor-pointer"
                 @click="openDialogForCategory(categoryName)"
               >
                 <CirclePlus />
@@ -59,13 +70,23 @@
                 :isAddedToDiamond="exercise.isAddedToDiamond"
                 @add-to-diamond="handleAddToDiamond"
               />
-              <button
+              <div
                 v-if="exercise.isCustom"
-                @click="handleDeleteExercise(exercise)"
-                class="absolute bottom-4 right-4 text-red-500 hover:text-red-700"
+                class="absolute bottom-4 right-4 flex gap-3"
               >
-                <Trash2 :size="20" />
-              </button>
+                <button
+                  @click="handleEditExercise(exercise)"
+                  class="text-black hover:text-gray-600 cursor-pointer"
+                >
+                  <SquarePen :size="20" />
+                </button>
+                <button
+                  @click="handleDeleteExercise(exercise)"
+                  class="text-red-500 hover:text-red-700 cursor-pointer"
+                >
+                  <Trash2 :size="20" />
+                </button>
+              </div>
             </div>
           </template>
           <p
@@ -88,7 +109,7 @@ import { ref, computed, onMounted } from "vue";
 import Tabs from "./Tabs.vue";
 import ExerciseCard from "./ExerciseCard.vue";
 import AddExerciseDialog from "./AddExerciseDialog.vue";
-import { ArrowLeft, CirclePlus, Trash2 } from "lucide-vue-next";
+import { ArrowLeft, CirclePlus, Trash2, SquarePen } from "lucide-vue-next";
 import dummyData from "../../dummy.json";
 
 const tabNames = ["Discover", "Define", "Develop", "Deliver"];
@@ -194,9 +215,17 @@ const getExercisesForCategory = (categoryName: string) => {
 // Dialog state and handling
 const isAddExerciseDialogOpen = ref(false);
 const currentCategoryForDialog = ref<string | null>(null);
+const editingExercise = ref<Exercise | null>(null);
 
 const openDialogForCategory = (category: string) => {
   currentCategoryForDialog.value = category;
+  editingExercise.value = null;
+  isAddExerciseDialogOpen.value = true;
+};
+
+const handleEditExercise = (exercise: Exercise) => {
+  editingExercise.value = exercise;
+  currentCategoryForDialog.value = exercise.category;
   isAddExerciseDialogOpen.value = true;
 };
 
@@ -227,6 +256,27 @@ const handleAddNewExercise = (exerciseData: {
   }
   isAddExerciseDialogOpen.value = false;
   currentCategoryForDialog.value = null;
+};
+
+const handleEditExistingExercise = (exerciseData: Exercise) => {
+  const index = customExercises.value.findIndex(
+    (ex) => ex.id === exerciseData.id
+  );
+  if (index !== -1) {
+    customExercises.value[index] = {
+      ...exerciseData,
+      phase: props.phase,
+      category: currentCategoryForDialog.value!,
+      isCustom: true,
+    };
+    localStorage.setItem(
+      LOCAL_STORAGE_KEY_CUSTOM_EXERCISES,
+      JSON.stringify(customExercises.value)
+    );
+  }
+  isAddExerciseDialogOpen.value = false;
+  currentCategoryForDialog.value = null;
+  editingExercise.value = null;
 };
 
 const handleAddToDiamond = (title: string) => {

@@ -91,7 +91,7 @@
       </div>
       <DialogFooter>
         <Button variant="outline" @click="isOpen = false">Cancel</Button>
-        <Button @click="handleAddExercise">Add Exercise</Button>
+        <Button @click="handleSubmit">{{ mode === 'edit' ? 'Save Changes' : 'Add Exercise' }}</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
@@ -128,17 +128,25 @@ interface ExerciseData {
   driveType: "human" | "human-ai" | "ai";
   x?: number;
   y?: number;
+  id?: string;
+  phase?: string;
+  category?: string;
+  isCustom?: boolean;
+  isAddedToDiamond?: boolean;
 }
 
 const props = defineProps<{
   open: boolean;
   title: string;
   description: string;
+  mode?: 'add' | 'edit';
+  initialData?: ExerciseData;
 }>();
 
 const emit = defineEmits<{
   (e: "update:open", value: boolean): void;
   (e: "add-exercise", exercise: ExerciseData): void;
+  (e: "edit-exercise", exercise: ExerciseData): void;
 }>();
 
 const isOpen = ref(props.open);
@@ -154,61 +162,82 @@ watch(
   () => props.open,
   (newValue) => {
     isOpen.value = newValue;
+    if (newValue && props.mode === 'edit' && props.initialData) {
+      // Populate form with initial data when editing
+      Object.assign(exerciseData, props.initialData);
+    }
   }
 );
 
 watch(isOpen, (newValue) => {
   emit("update:open", newValue);
   if (!newValue) {
-    exerciseData.title = "";
-    exerciseData.description = "";
-    exerciseData.driveType = "human";
-    exerciseData.x = undefined;
-    exerciseData.y = undefined;
+    resetForm();
   }
 });
 
-const handleAddExercise = () => {
+const resetForm = () => {
+  exerciseData.title = "";
+  exerciseData.description = "";
+  exerciseData.driveType = "human";
+  exerciseData.x = undefined;
+  exerciseData.y = undefined;
+  exerciseData.id = undefined;
+};
+
+const validateForm = () => {
   if (!exerciseData.title.trim()) {
     toast.error("Exercise title is required.");
-    return;
+    return false;
   }
   if (!exerciseData.description.trim()) {
     toast.error("Exercise description is required.");
-    return;
+    return false;
   }
   if (exerciseData.x === undefined || exerciseData.x === null) {
     toast.error("X Position is required and must be a number.");
-    return;
+    return false;
   }
   if (exerciseData.x < 0 || exerciseData.x > 1400) {
     toast.error("X Position must be between 0 and 1400.");
-    return;
+    return false;
   }
   if (exerciseData.y === undefined || exerciseData.y === null) {
     toast.error("Y Position is required and must be a number.");
-    return;
+    return false;
   }
   if (exerciseData.y < 0 || exerciseData.y > 700) {
     toast.error("Y Position must be between 0 and 700.");
-    return;
+    return false;
   }
-
   if (
     typeof exerciseData.x !== "number" ||
     typeof exerciseData.y !== "number"
   ) {
     toast.error("X and Y Positions must be valid numbers.");
-    return;
+    return false;
   }
+  return true;
+};
 
-  emit("add-exercise", {
+const handleSubmit = () => {
+  if (!validateForm()) return;
+
+  const exercisePayload = {
     title: exerciseData.title,
     description: exerciseData.description,
     driveType: exerciseData.driveType,
     x: exerciseData.x,
     y: exerciseData.y,
-  });
+    id: exerciseData.id,
+  };
+
+  if (props.mode === 'edit') {
+    emit("edit-exercise", exercisePayload);
+  } else {
+    emit("add-exercise", exercisePayload);
+  }
+  
   isOpen.value = false;
 };
 </script>
