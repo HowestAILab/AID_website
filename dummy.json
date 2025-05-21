@@ -2,31 +2,9 @@
   {
     "isSelected": false,
     "order": 4,
+    "isAddedToDiamond": false,
     "config": {
-      "x": 200,
-      "y": 200,
-      "radius": 12,
-      "fill": "#F5F0E5",
-      "stroke": "black",
-      "strokeWidth": 1
-    },
-    "labelConfig": {
-      "x": 220,
-      "y": 190,
-      "text": "Interviews",
-      "fontSize": 14,
-      "fill": "#374151"
-    },
-    "description": "Gather qualitative data directly from users to understand their needs, motivations, and pain points.",
-    "driveType": "human",
-    "phase": "Discover",
-    "category": "Empathize"
-  },
-  {
-    "isSelected": false,
-    "order": 6,
-    "config": {
-      "x": 320,
+      "x": 262,
       "y": 180,
       "radius": 12,
       "fill": "#F5F0E5",
@@ -34,7 +12,31 @@
       "strokeWidth": 1
     },
     "labelConfig": {
-      "x": 340,
+      "x": 282,
+      "y": 170,
+      "text": "Interviews",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Gather qualitative data directly from users to understand their needs, motivations, and pain points.",
+    "driveType": "human",
+    "phase": "Discover",
+    "category": "Prepare (Discover)"
+  },
+  {
+    "isSelected": false,
+    "order": 6,
+    "isAddedToDiamond": false,
+    "config": {
+      "x": 962,
+      "y": 180,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 982,
       "y": 170,
       "text": "Brainstorm",
       "fontSize": 14,
@@ -43,220 +45,14 @@
     "description": "Generate a wide range of ideas and solutions collaboratively with a human-centric approach.",
     "driveType": "human",
     "phase": "Develop",
-    "category": "Ideate"
+    "category": "Prepare (Develop)"
   },
   {
     "isSelected": false,
     "order": 2,
+    "isAddedToDiamond": false,
     "config": {
-      "x": 120,
-      "y": 330,
-      "radius": 12,
-      "fill": "#F5F0E5",
-      "stroke": "black",
-      "strokeWidth": 1
-    },
-    "labelConfig": {
-      "x": 140,
-      "y": 320,
-      "text": "Insight Scraping",
-      "fontSize": 14,
-      "fill": "#374151"
-    },
-    "description": "Automatically gather and analyze data from various online sources using AI to uncover actionable insights.",
-    "driveType": "ai",
-    "phase": "Discover",
-    "category": "Explore"
-  },
-  {
-    "isSelected": false,
-    "order": 12,
-    "config": {
-      "x": 760,
-      "y": 400,
-      "radius": 12,
-      "fill": "#F5F0E5",
-      "stroke": "black",
-      "strokeWidth": 1
-    },
-    "labelConfig": {
-      "x": 780,
-      "y": 390,
-      "text": "Automated Research",
-      "fontSize": 14,
-      "fill": "#374151"
-    },
-    "description": "Leverage AI to conduct research tasks like literature reviews, market analysis, or competitive analysis efficiently.",
-    "driveType": "ai",
-    "phase": "Discover",
-    "category": "Explore"
-  },
-  {
-    "isSelected": false,
-    "order": 8,
-    "config": {
-      "x": 500,
-      "y": 220,
-      "radius": 12,
-      "fill": "#F5F0E5",
-      "stroke": "black",
-      "strokeWidth": 1
-    },
-    "labelConfig": {
-      "x": 520,
-      "y": 210,
-      "text": "Data Analysis",
-      "fontSize": 14,
-      "fill": "#374151"
-    },
-    "description": "Employ AI algorithms, complemented by human expertise, to interpret complex datasets and identify significant patterns.",
-    "driveType": "human-ai",
-    "phase": "Define",
-    "category": "Synthesize"
-  },
-  {
-    "isSelected": false,
-    "order": 10,
-    "config": {
-      "x": 650,
-      "y": 250,
-      "radius": 12,
-      "fill": "#F5F0E5",
-      "stroke": "black",
-      "strokeWidth": 1
-    },
-    "labelConfig": {
-      "x": 670,
-      "y": 240,
-      "text": "Data Synthesis",
-      "fontSize": 14,
-      "fill": "#374151"
-    },
-    "description": "AI assists in finding connections across diverse data sources, while human designers synthesize these into a cohesive understanding.",
-    "driveType": "human-ai",
-    "phase": "Define",
-    "category": "Synthesize"
-  },
-  {
-    "isSelected": false,
-    "order": 13,
-    "config": {
-      "x": 880,
-      "y": 150,
-      "radius": 12,
-      "fill": "#F5F0E5",
-      "stroke": "black",
-      "strokeWidth": 1
-    },
-    "labelConfig": {
-      "x": 900,
-      "y": 140,
-      "text": "Data Visualization",
-      "fontSize": 14,
-      "fill": "#374151"
-    },
-    "description": "Create compelling visual representations of data, where AI can suggest optimal formats and humans refine for clarity and impact.",
-    "driveType": "human-ai",
-    "phase": "Define",
-    "category": "Synthesize"
-  },
-  {
-    "isSelected": false,
-    "order": 7,
-    "config": {
-      "x": 400,
-      "y": 450,
-      "radius": 12,
-      "fill": "#F5F0E5",
-      "stroke": "black",
-      "strokeWidth": 1
-    },
-    "labelConfig": {
-      "x": 420,
-      "y": 440,
-      "text": "Synthetic Personas",
-      "fontSize": 14,
-      "fill": "#374151"
-    },
-    "description": "AI-generated user personas based on aggregated data to represent target user segments, providing a quick understanding of user archetypes.",
-    "driveType": "ai",
-    "phase": "Define",
-    "category": "Frame"
-  },
-  {
-    "isSelected": false,
-    "order": 15,
-    "config": {
-      "x": 900,
-      "y": 580,
-      "radius": 12,
-      "fill": "#F5F0E5",
-      "stroke": "black",
-      "strokeWidth": 1
-    },
-    "labelConfig": {
-      "x": 920,
-      "y": 570,
-      "text": "AI-Powered Moodboarding",
-      "fontSize": 14,
-      "fill": "#374151"
-    },
-    "description": "Use AI to automatically curate images, color palettes, and typography based on keywords or visual styles for design inspiration.",
-    "driveType": "ai",
-    "phase": "Develop",
-    "category": "Ideate"
-  },
-  {
-    "isSelected": false,
-    "order": 3,
-    "config": {
-      "x": 150,
-      "y": 420,
-      "radius": 12,
-      "fill": "#F5F0E5",
-      "stroke": "black",
-      "strokeWidth": 1
-    },
-    "labelConfig": {
-      "x": 170,
-      "y": 410,
-      "text": "Generative Sketching",
-      "fontSize": 14,
-      "fill": "#374151"
-    },
-    "description": "Employ AI tools to transform rough sketches into more refined digital drawings or explore numerous design variations rapidly.",
-    "driveType": "human-ai",
-    "phase": "Develop",
-    "category": "Prototype"
-  },
-  {
-    "isSelected": false,
-    "order": 9,
-    "config": {
-      "x": 550,
-      "y": 300,
-      "radius": 12,
-      "fill": "#F5F0E5",
-      "stroke": "black",
-      "strokeWidth": 1
-    },
-    "labelConfig": {
-      "x": 570,
-      "y": 290,
-      "text": "Predictive UX Analytics",
-      "fontSize": 14,
-      "fill": "#374151"
-    },
-    "description": "Use AI to analyze user behavior data and predict future trends, potential usability issues, or user satisfaction.",
-    "driveType": "ai",
-    "phase": "Define",
-    "category": "Frame"
-  },
-  {
-    "isSelected": false,
-    "order": 14,
-    "config": {
-      "x": 890,
+      "x": 229,
       "y": 500,
       "radius": 12,
       "fill": "#F5F0E5",
@@ -264,7 +60,223 @@
       "strokeWidth": 1
     },
     "labelConfig": {
-      "x": 910,
+      "x": 249,
+      "y": 490,
+      "text": "Insight Scraping",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Automatically gather and analyze data from various online sources using AI to uncover actionable insights.",
+    "driveType": "ai",
+    "phase": "Discover",
+    "category": "Discover"
+  },
+  {
+    "isSelected": false,
+    "order": 12,
+    "isAddedToDiamond": false,
+    "config": {
+      "x": 262,
+      "y": 520,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 282,
+      "y": 510,
+      "text": "Automated Research",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Leverage AI to conduct research tasks like literature reviews, market analysis, or competitive analysis efficiently.",
+    "driveType": "ai",
+    "phase": "Discover",
+    "category": "Discover"
+  },
+  {
+    "isSelected": false,
+    "order": 8,
+    "isAddedToDiamond": false,
+    "config": {
+      "x": 388,
+      "y": 320,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 408,
+      "y": 310,
+      "text": "Data Analysis",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Employ AI algorithms, complemented by human expertise, to interpret complex datasets and identify significant patterns.",
+    "driveType": "human-ai",
+    "phase": "Define",
+    "category": "Define"
+  },
+  {
+    "isSelected": false,
+    "order": 10,
+    "isAddedToDiamond": false,
+    "config": {
+      "x": 438,
+      "y": 350,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 458,
+      "y": 340,
+      "text": "Data Synthesis",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "AI assists in finding connections across diverse data sources, while human designers Define these into a cohesive understanding.",
+    "driveType": "human-ai",
+    "phase": "Define",
+    "category": "Define"
+  },
+  {
+    "isSelected": false,
+    "order": 13,
+    "isAddedToDiamond": false,
+    "config": {
+      "x": 488,
+      "y": 380,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 508,
+      "y": 370,
+      "text": "Data Visualization",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Create compelling visual representations of data, where AI can suggest optimal formats and humans refine for clarity and impact.",
+    "driveType": "human-ai",
+    "phase": "Define",
+    "category": "Define"
+  },
+  {
+    "isSelected": false,
+    "order": 7,
+    "isAddedToDiamond": false,
+    "config": {
+      "x": 405,
+      "y": 500,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 425,
+      "y": 490,
+      "text": "Synthetic Personas",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "AI-generated user personas based on aggregated data to represent target user segments, providing a quick understanding of user archetypes.",
+    "driveType": "ai",
+    "phase": "Define",
+    "category": "Synthesise (Define)"
+  },
+  {
+    "isSelected": false,
+    "order": 15,
+    "isAddedToDiamond": false,
+    "config": {
+      "x": 995,
+      "y": 540,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 1015,
+      "y": 530,
+      "text": "AI-Powered Moodboarding",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Use AI to automatically curate images, color palettes, and typography based on keywords or visual styles for design inspiration.",
+    "driveType": "ai",
+    "phase": "Develop",
+    "category": "Prepare (Develop)"
+  },
+  {
+    "isSelected": false,
+    "order": 3,
+    "isAddedToDiamond": false,
+    "config": {
+      "x": 929,
+      "y": 330,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 949,
+      "y": 320,
+      "text": "Generative Sketching",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Employ AI tools to transform rough sketches into more refined digital drawings or Discover numerous design variations rapidly.",
+    "driveType": "human-ai",
+    "phase": "Develop",
+    "category": "Develop"
+  },
+  {
+    "isSelected": false,
+    "order": 9,
+    "isAddedToDiamond": false,
+    "config": {
+      "x": 472,
+      "y": 440,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 492,
+      "y": 430,
+      "text": "Predictive UX Analytics",
+      "fontSize": 14,
+      "fill": "#374151"
+    },
+    "description": "Use AI to analyze user behavior data and predict future trends, potential usability issues, or user satisfaction.",
+    "driveType": "ai",
+    "phase": "Define",
+    "category": "Synthesise (Define)"
+  },
+  {
+    "isSelected": false,
+    "order": 14,
+    "isAddedToDiamond": false,
+    "config": {
+      "x": 929,
+      "y": 500,
+      "radius": 12,
+      "fill": "#F5F0E5",
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "labelConfig": {
+      "x": 949,
       "y": 490,
       "text": "AI-Assisted Content Creation",
       "fontSize": 14,
@@ -273,22 +285,23 @@
     "description": "Leverage AI to generate draft copy, microcopy, or even image placeholders for design mockups, speeding up the content process.",
     "driveType": "ai",
     "phase": "Develop",
-    "category": "Ideate"
+    "category": "Prepare (Develop)"
   },
   {
     "isSelected": false,
     "order": 11,
+    "isAddedToDiamond": false,
     "config": {
-      "x": 700,
-      "y": 350,
+      "x": 995,
+      "y": 370,
       "radius": 12,
       "fill": "#F5F0E5",
       "stroke": "black",
       "strokeWidth": 1
     },
     "labelConfig": {
-      "x": 720,
-      "y": 340,
+      "x": 1015,
+      "y": 360,
       "text": "Human-AI Co-Ideation",
       "fontSize": 14,
       "fill": "#374151"
@@ -296,22 +309,23 @@
     "description": "A collaborative ideation process where designers and AI work together, with AI offering novel suggestions and augmenting human creativity.",
     "driveType": "human-ai",
     "phase": "Develop",
-    "category": "Ideate"
+    "category": "Prepare (Develop)"
   },
   {
     "isSelected": false,
     "order": 5,
+    "isAddedToDiamond": false,
     "config": {
-      "x": 250,
-      "y": 200,
+      "x": 438,
+      "y": 520,
       "radius": 12,
       "fill": "#F5F0E5",
       "stroke": "black",
       "strokeWidth": 1
     },
     "labelConfig": {
-      "x": 270,
-      "y": 190,
+      "x": 458,
+      "y": 510,
       "text": "Automated A/B Test Analysis",
       "fontSize": 14,
       "fill": "#374151"
@@ -319,22 +333,23 @@
     "description": "AI automatically analyzes results from A/B tests to quickly identify winning variations, statistical significance, and actionable insights.",
     "driveType": "ai",
     "phase": "Define",
-    "category": "Synthesize"
+    "category": "Define"
   },
   {
     "isSelected": false,
     "order": 1,
+    "isAddedToDiamond": false,
     "config": {
-      "x": 100,
-      "y": 250,
+      "x": 1138,
+      "y": 350,
       "radius": 12,
       "fill": "#F5F0E5",
       "stroke": "black",
       "strokeWidth": 1
     },
     "labelConfig": {
-      "x": 120,
-      "y": 240,
+      "x": 1158,
+      "y": 340,
       "text": "Ethical AI Impact Review",
       "fontSize": 14,
       "fill": "#374151"
@@ -342,22 +357,23 @@
     "description": "A structured review process, potentially AI-assisted, to evaluate the ethical implications, fairness, and potential biases of an AI-infused design before and after deployment.",
     "driveType": "human-ai",
     "phase": "Deliver",
-    "category": "Implement"
+    "category": "Synthesise (Develop)"
   },
   {
     "isSelected": false,
     "order": 18,
+    "isAddedToDiamond": false,
     "config": {
-      "x": 950,
-      "y": 310,
+      "x": 971,
+      "y": 540,
       "radius": 12,
       "fill": "#F5F0E5",
       "stroke": "black",
       "strokeWidth": 1
     },
     "labelConfig": {
-      "x": 970,
-      "y": 300,
+      "x": 991,
+      "y": 530,
       "text": "AI for Accessibility Audits",
       "fontSize": 14,
       "fill": "#374151"
@@ -365,22 +381,23 @@
     "description": "Use AI tools to automatically scan designs and code to identify potential accessibility issues (e.g., color contrast, ARIA tagging).",
     "driveType": "ai",
     "phase": "Deliver",
-    "category": "Test"
+    "category": "Deliver"
   },
   {
     "isSelected": false,
     "order": 0,
+    "isAddedToDiamond": false,
     "config": {
-      "x": 50,
-      "y": 290,
+      "x": 1105,
+      "y": 500,
       "radius": 12,
       "fill": "#F5F0E5",
       "stroke": "black",
       "strokeWidth": 1
     },
     "labelConfig": {
-      "x": 70,
-      "y": 280,
+      "x": 1125,
+      "y": 490,
       "text": "Dynamic UI Personalization",
       "fontSize": 14,
       "fill": "#374151"
@@ -388,22 +405,23 @@
     "description": "AI adapts user interface elements, content, and layouts in real-time based on individual user preferences, behavior, or context.",
     "driveType": "ai",
     "phase": "Deliver",
-    "category": "Implement"
+    "category": "Synthesise (Develop)"
   },
   {
     "isSelected": false,
     "order": 17,
+    "isAddedToDiamond": false,
     "config": {
-      "x": 950,
-      "y": 100,
+      "x": 295,
+      "y": 540,
       "radius": 12,
       "fill": "#F5F0E5",
       "stroke": "black",
       "strokeWidth": 1
     },
     "labelConfig": {
-      "x": 970,
-      "y": 90,
+      "x": 315,
+      "y": 530,
       "text": "AI Trend Spotting & Forecasting",
       "fontSize": 14,
       "fill": "#374151"
@@ -411,6 +429,6 @@
     "description": "AI analyzes vast datasets (social media, news, articles) to identify emerging design trends, technological shifts, or evolving user needs.",
     "driveType": "ai",
     "phase": "Discover",
-    "category": "Explore"
+    "category": "Discover"
   }
 ]

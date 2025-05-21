@@ -47,21 +47,23 @@
         <v-text :config="configAiAxisLabel" />
 
         <template v-for="(pin, i) in pins" :key="i">
-          <v-regular-polygon
-            v-if="pin.isSelected"
-            :config="{ ...pin.config, sides: 4, radius: pin.config.radius + 2 }"
-            @click="handlePinClick(i)"
-            @mouseenter="handleMouseEnter"
-            @mouseleave="handleMouseLeave"
-          />
-          <v-circle
-            v-else
-            :config="pin.config"
-            @click="handlePinClick(i)"
-            @mouseenter="handleMouseEnter"
-            @mouseleave="handleMouseLeave"
-          />
-          <v-text :config="pin.labelConfig" />
+          <template v-if="pin.isAddedToDiamond">
+            <v-regular-polygon
+              v-if="pin.isSelected"
+              :config="{ ...pin.config, sides: 4, radius: pin.config.radius + 2 }"
+              @click="handlePinClick(i)"
+              @mouseenter="handleMouseEnter"
+              @mouseleave="handleMouseLeave"
+            />
+            <v-circle
+              v-else
+              :config="pin.config"
+              @click="handlePinClick(i)"
+              @mouseenter="handleMouseEnter"
+              @mouseleave="handleMouseLeave"
+            />
+            <v-text :config="pin.labelConfig" />
+          </template>
         </template>
       </v-layer>
     </v-stage>
@@ -87,6 +89,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 const SELECTED_PINS_STORAGE_KEY = "selected-pins";
+const LOCAL_STORAGE_KEY_DIAMOND_EXERCISES = 'diamondExercises';
 
 interface SelectedPinInfo {
   name: string;
@@ -108,6 +111,7 @@ const stageRef = ref<Konva.Stage | null>(null);
 
 interface PinConfig {
   isSelected: boolean;
+  isAddedToDiamond: boolean;
   order: number;
   config: {
     x: number;
@@ -276,7 +280,15 @@ const configAiAxisLabel = computed(() => ({
 }));
 
 onMounted(() => {
-  // Load selected pins from localStorage (still stores indices)
+  // Load diamond exercises state from local storage to determine visibility
+  const savedDiamondExercises = localStorage.getItem(LOCAL_STORAGE_KEY_DIAMOND_EXERCISES);
+  const diamondExercisesMap = savedDiamondExercises ? JSON.parse(savedDiamondExercises) : {};
+
+  pins.value.forEach(pin => {
+    pin.isAddedToDiamond = diamondExercisesMap[pin.labelConfig.text] || false;
+  });
+
+  // Load selected pins for pipeline state from localStorage
   const savedPinIndices = localStorage.getItem(SELECTED_PINS_STORAGE_KEY);
   if (savedPinIndices) {
     const selectedIndices: number[] = JSON.parse(savedPinIndices);

@@ -78,7 +78,6 @@
 </template>
 
 <script setup lang="ts">
-import Header from "./components/Header.vue";
 import Sidebar from "./components/Sidebar.vue";
 import CurrentPipelineSection from "./components/CurrentPipelineSection.vue";
 import Tabs from "./components/Tabs.vue";
@@ -158,7 +157,7 @@ const handleButtonRefsUpdate = (refs: Record<string, HTMLButtonElement | null>) 
   buttonRefs.Develop.value = refs.Develop;
   buttonRefs.Deliver.value = refs.Deliver;
   nextTick(() => {
-    updateLayout(); // Update layout once button refs are available
+    updateLayout();
   });
 };
 

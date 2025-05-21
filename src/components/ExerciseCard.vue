@@ -14,18 +14,20 @@
     </div>
     <p class="text-[#4B5563] mb-4 flex-grow">{{ description }}</p>
     <button
-      class="flex items-center gap-2 text-[#F59E0C] mt-auto"
-      @click="$emit('addToDiamond')"
+      class="flex items-center gap-2 mt-auto cursor-pointer"
+      :class="props.isAddedToDiamond ? 'text-red-500' : 'text-[#F59E0C]'"
+      @click="$emit('addToDiamond', title)"
     >
-      <CirclePlus />
-      <p>Add to Diamond</p>
+      <CirclePlus v-if="!props.isAddedToDiamond" />
+      <CircleMinus v-else />
+      <p>{{ props.isAddedToDiamond ? 'Remove from Diamond' : 'Add to Diamond' }}</p>
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { UserRound, Bot, UserCog, CirclePlus } from "lucide-vue-next";
+import { UserRound, Bot, UserCog, CirclePlus, CircleMinus } from "lucide-vue-next";
 
 type DriveType = "human" | "human-ai" | "ai";
 
@@ -33,10 +35,11 @@ const props = defineProps<{
   title: string;
   description: string;
   driveType: DriveType;
+  isAddedToDiamond?: boolean;
 }>();
 
 defineEmits<{
-  (e: "addToDiamond"): void;
+  (e: "addToDiamond", title: string): void;
 }>();
 
 interface DriveTypeConfig {
