@@ -50,7 +50,11 @@
           <template v-if="pin.isAddedToDiamond">
             <v-regular-polygon
               v-if="pin.isSelected"
-              :config="{ ...pin.config, sides: 4, radius: pin.config.radius + 2 }"
+              :config="{
+                ...pin.config,
+                sides: 4,
+                radius: pin.config.radius + 2,
+              }"
               @click="handlePinClick(i)"
               @mouseenter="handleMouseEnter"
               @mouseleave="handleMouseLeave"
@@ -89,12 +93,17 @@ import {
 import { Button } from "@/components/ui/button";
 
 const SELECTED_PINS_STORAGE_KEY = "selected-pins";
-const LOCAL_STORAGE_KEY_DIAMOND_EXERCISES = 'diamondExercises';
+const LOCAL_STORAGE_KEY_DIAMOND_EXERCISES = "diamondExercises";
 
 interface SelectedPinInfo {
   name: string;
   originalIndex: number;
   order: number;
+  location: {
+    phase: string;
+    step: string;
+    human_ai_scale: number;
+  };
 }
 
 const emit = defineEmits<{
@@ -129,12 +138,54 @@ interface PinConfig {
     fill: string;
   };
   description: string;
-  driveType: string;
-  phase: string;
-  category: string;
+  location: {
+    phase: string;
+    step: string;
+    human_ai_scale: number;
+  };
 }
 
-const pins = ref<PinConfig[]>(pinsData as PinConfig[]);
+// Transform the exercise data into PinConfig format
+const transformExerciseToPin = (exercise: any, index: number): PinConfig => {
+  // Adjusting the spacing between pins based on the scale of the exercise
+  const x = 200 + index * 120;
+  const y =
+    200 +
+    (exercise.location.human_ai_scale === 3
+      ? 0
+      : exercise.location.human_ai_scale === 2
+      ? 100
+      : 200);
+
+  return {
+    isSelected: false,
+    isAddedToDiamond: false,
+    order: index,
+    config: {
+      x,
+      y,
+      radius: 12,
+      fill: "#F5F0E5",
+      stroke: "black",
+      strokeWidth: 1,
+    },
+    labelConfig: {
+      x: x + 20,
+      y: y - 10,
+      text: exercise.name,
+      fontSize: 14,
+      fill: "#374151",
+    },
+    description: exercise.description,
+    location: exercise.location,
+  };
+};
+
+const pins = ref<PinConfig[]>(
+  (pinsData.exercise || []).map((exercise, index) =>
+    transformExerciseToPin(exercise, index)
+  )
+);
 
 const selectedPinPopover = ref(false);
 const selectedPin = ref<PinConfig | null>(null);
@@ -167,13 +218,18 @@ function togglePinSelection(index: number | null) {
   pins.value[index].isSelected = !pins.value[index].isSelected;
 
   // Update selected pins data for parent
-  const selectedPinData: SelectedPinInfo[] = pins.value
+  const selectedPinData = pins.value
     .map((pin, idx) =>
       pin.isSelected
-        ? { name: pin.labelConfig.text, originalIndex: idx, order: pin.order }
+        ? {
+            name: pin.labelConfig.text,
+            originalIndex: idx,
+            order: pin.order,
+            location: pin.location,
+          }
         : null
     )
-    .filter((pinInfo): pinInfo is SelectedPinInfo => pinInfo !== null);
+    .filter((pin): pin is SelectedPinInfo => pin !== null);
   emit("selectedPinsChange", selectedPinData);
 
   // Save selected indices to localStorage
@@ -190,6 +246,8 @@ function togglePinSelection(index: number | null) {
       isSelected: pins.value[index].isSelected,
     };
   }
+
+  selectedPinPopover.value = false;
 }
 
 // Expose the togglePinSelected method for external use
@@ -281,11 +339,16 @@ const configAiAxisLabel = computed(() => ({
 
 onMounted(() => {
   // Load diamond exercises state from local storage to determine visibility
-  const savedDiamondExercises = localStorage.getItem(LOCAL_STORAGE_KEY_DIAMOND_EXERCISES);
-  const diamondExercisesMap = savedDiamondExercises ? JSON.parse(savedDiamondExercises) : {};
+  const savedDiamondExercises = localStorage.getItem(
+    LOCAL_STORAGE_KEY_DIAMOND_EXERCISES
+  );
+  const diamondExercisesMap = savedDiamondExercises
+    ? JSON.parse(savedDiamondExercises)
+    : {};
 
-  pins.value.forEach(pin => {
-    pin.isAddedToDiamond = diamondExercisesMap[pin.labelConfig.text] || false;
+  pins.value.forEach((pin) => {
+    // If the value is undefined or not explicitly false, make it true (so default is visible)
+    pin.isAddedToDiamond = diamondExercisesMap[pin.labelConfig.text] !== false;
   });
 
   // Load selected pins for pipeline state from localStorage
@@ -300,6 +363,7 @@ onMounted(() => {
           name: pins.value[index].labelConfig.text,
           originalIndex: index,
           order: pins.value[index].order,
+          location: pins.value[index].location,
         });
       }
     });

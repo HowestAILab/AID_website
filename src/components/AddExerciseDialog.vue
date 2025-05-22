@@ -13,15 +13,15 @@
       <div class="grid gap-4 py-4">
         <div class="grid grid-cols-4 items-center gap-4">
           <label
-            for="exerciseTitle"
+            for="exerciseName"
             class="text-right text-sm font-medium col-span-1"
-            >Title</label
+            >Name</label
           >
           <Input
-            id="exerciseTitle"
+            id="exerciseName"
             type="text"
-            v-model="exerciseData.title"
-            placeholder="Exercise title"
+            v-model="exerciseData.name"
+            placeholder="Exercise name"
             class="col-span-3"
           />
         </div>
@@ -36,56 +36,6 @@
             v-model="exerciseData.description"
             placeholder="Exercise description"
             class="col-span-3 min-h-[80px]"
-          />
-        </div>
-        <div class="grid grid-cols-4 items-center gap-4">
-          <label class="text-right text-sm font-medium col-span-1">Type</label>
-          <div class="col-span-3 w-full">
-            <Select v-model="exerciseData.driveType" class="w-full">
-              <SelectTrigger class="!w-full">
-                <SelectValue placeholder="Select exercise type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel class="font-semibold">Exercise Types</SelectLabel>
-                  <SelectItem value="human">Human</SelectItem>
-                  <SelectItem value="human-ai">Human + AI</SelectItem>
-                  <SelectItem value="ai">AI</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div class="grid grid-cols-4 items-center gap-4">
-          <label
-            for="exerciseX"
-            class="text-right text-sm font-medium col-span-1"
-            >X Position</label
-          >
-          <Input
-            id="exerciseX"
-            type="number"
-            v-model.number="exerciseData.x"
-            placeholder="0 - 1400"
-            min="0"
-            max="1400"
-            class="col-span-3"
-          />
-        </div>
-        <div class="grid grid-cols-4 items-center gap-4">
-          <label
-            for="exerciseY"
-            class="text-right text-sm font-medium col-span-1"
-            >Y Position</label
-          >
-          <Input
-            id="exerciseY"
-            type="number"
-            v-model.number="exerciseData.y"
-            placeholder="0 - 700"
-            min="0"
-            max="700"
-            class="col-span-3"
           />
         </div>
       </div>
@@ -123,16 +73,13 @@ import {
 import { toast } from "vue-sonner";
 
 interface ExerciseData {
-  title: string;
+  name: string;
   description: string;
-  driveType: "human" | "human-ai" | "ai";
-  x?: number;
-  y?: number;
-  id?: string;
-  phase?: string;
-  category?: string;
-  isCustom?: boolean;
-  isAddedToDiamond?: boolean;
+  location?: {
+    phase?: string;
+    step?: string;
+    human_ai_scale?: number;
+  };
 }
 
 const props = defineProps<{
@@ -151,11 +98,13 @@ const emit = defineEmits<{
 
 const isOpen = ref(props.open);
 const exerciseData = reactive<ExerciseData>({
-  title: "",
+  name: "",
   description: "",
-  driveType: "human",
-  x: undefined,
-  y: undefined,
+  location: {
+    phase: "",
+    step: "",
+    human_ai_scale: 3,
+  },
 });
 
 watch(
@@ -177,44 +126,18 @@ watch(isOpen, (newValue) => {
 });
 
 const resetForm = () => {
-  exerciseData.title = "";
+  exerciseData.name = "";
   exerciseData.description = "";
-  exerciseData.driveType = "human";
-  exerciseData.x = undefined;
-  exerciseData.y = undefined;
-  exerciseData.id = undefined;
+  exerciseData.location = { phase: "", step: "", human_ai_scale: 3 };
 };
 
 const validateForm = () => {
-  if (!exerciseData.title.trim()) {
-    toast.error("Exercise title is required.");
+  if (!exerciseData.name.trim()) {
+    toast.error("Exercise name is required.");
     return false;
   }
   if (!exerciseData.description.trim()) {
     toast.error("Exercise description is required.");
-    return false;
-  }
-  if (exerciseData.x === undefined || exerciseData.x === null) {
-    toast.error("X Position is required and must be a number.");
-    return false;
-  }
-  if (exerciseData.x < 0 || exerciseData.x > 1400) {
-    toast.error("X Position must be between 0 and 1400.");
-    return false;
-  }
-  if (exerciseData.y === undefined || exerciseData.y === null) {
-    toast.error("Y Position is required and must be a number.");
-    return false;
-  }
-  if (exerciseData.y < 0 || exerciseData.y > 700) {
-    toast.error("Y Position must be between 0 and 700.");
-    return false;
-  }
-  if (
-    typeof exerciseData.x !== "number" ||
-    typeof exerciseData.y !== "number"
-  ) {
-    toast.error("X and Y Positions must be valid numbers.");
     return false;
   }
   return true;
@@ -223,13 +146,14 @@ const validateForm = () => {
 const handleSubmit = () => {
   if (!validateForm()) return;
 
-  const exercisePayload = {
-    title: exerciseData.title,
+  const exercisePayload: ExerciseData = {
+    name: exerciseData.name,
     description: exerciseData.description,
-    driveType: exerciseData.driveType,
-    x: exerciseData.x,
-    y: exerciseData.y,
-    id: exerciseData.id,
+    location: {
+      phase: exerciseData.location?.phase || "",
+      step: exerciseData.location?.step || "",
+      human_ai_scale: exerciseData.location?.human_ai_scale ?? 3,
+    },
   };
 
   if (props.mode === 'edit') {

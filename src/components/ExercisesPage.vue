@@ -64,12 +64,19 @@
           >
             <div class="relative">
               <ExerciseCard
-                :title="exercise.title"
+                :title="exercise.name"
                 :description="exercise.description"
-                :driveType="exercise.driveType"
-                :isAddedToDiamond="exercise.isAddedToDiamond"
-                @add-to-diamond="handleAddToDiamond"
-              />
+                :driveType="exercise.location?.human_ai_scale === 3 ? 'human' : (exercise.location?.human_ai_scale === 2 ? 'human-ai' : 'ai')"
+              >
+                <template #action>
+                  <button
+                    class="btn btn-primary"
+                    style="margin-top:0.5rem"
+                  >
+                    Add to pipeline
+                  </button>
+                </template>
+              </ExerciseCard>
               <div
                 v-if="exercise.isCustom"
                 class="absolute bottom-4 right-4 flex gap-3"
@@ -115,17 +122,24 @@ import dummyData from "../../dummy.json";
 const tabNames = ["Discover", "Define", "Develop", "Deliver"];
 
 interface Exercise {
-  title: string;
+  name: string;
   description: string;
-  driveType: "human" | "human-ai" | "ai";
-  phase: string;
-  category: string;
-  isCustom?: boolean;
-  isAddedToDiamond?: boolean;
-  id?: string;
-  x?: number;
-  y?: number;
+  location: {
+    phase: string;
+    step: string;
+    human_ai_scale: number;
+  };
+  prompt_example: any[];
+  etchical: {
+    before: any[];
+    after: any[];
+  };
+  miro_board: string;
+  isCustom?: boolean; // Only for custom exercises
 }
+
+
+type ExerciseData = Exercise;
 
 const props = defineProps<{
   phase: string;
@@ -152,24 +166,11 @@ onMounted(() => {
     ? JSON.parse(savedDiamondExercises)
     : {};
 
-  // Load static exercises (from imported JSON), apply saved diamond state, AND update dummyData
-  allStaticExercises.value = dummyData.map((item: any, index: number) => {
-    const isAdded = diamondExercises[item.labelConfig.text] || false;
-    item.isAddedToDiamond = isAdded;
-
-    return {
-      id: `static-${index}`,
-      title: item.labelConfig.text,
-      description: item.description,
-      driveType: item.driveType as "human" | "human-ai" | "ai",
-      phase: item.phase,
-      category: item.category,
-      isCustom: false,
-      isAddedToDiamond: isAdded,
-      x: item.config?.x,
-      y: item.config?.y,
-    };
-  });
+  // Load static exercises (from imported JSON), apply saved diamond state
+  allStaticExercises.value = (dummyData.exercise || []).map((item: any) => ({
+    ...item,
+    isCustom: false,
+  }));
 
   // Load custom exercises from local storage and apply their diamond state
   const storedCustomExercises = localStorage.getItem(
@@ -180,7 +181,6 @@ onMounted(() => {
       const parsedExercises: Exercise[] = JSON.parse(storedCustomExercises);
       customExercises.value = parsedExercises.map((ex) => ({
         ...ex,
-        isAddedToDiamond: diamondExercises[ex.title] || false,
       }));
     } catch (e) {
       console.error("Error parsing custom exercises from local storage:", e);
@@ -203,11 +203,13 @@ const categoriesForCurrentPhase = computed(() => {
 });
 
 const getExercisesForCategory = (categoryName: string) => {
+  // For static exercises, filter using item.location.phase & location.step
   const staticFiltered = allStaticExercises.value.filter(
-    (ex) => ex.phase === props.phase && ex.category === categoryName
+    (ex) => ex.location.phase === props.phase && ex.location.step === categoryName
   );
+  // For custom, must mimic location shape as well
   const customFiltered = customExercises.value.filter(
-    (ex) => ex.phase === props.phase && ex.category === categoryName
+    (ex) => ex.location?.phase === props.phase && ex.location?.step === categoryName
   );
   return [...staticFiltered, ...customFiltered];
 };
@@ -215,120 +217,89 @@ const getExercisesForCategory = (categoryName: string) => {
 // Dialog state and handling
 const isAddExerciseDialogOpen = ref(false);
 const currentCategoryForDialog = ref<string | null>(null);
-const editingExercise = ref<Exercise | null>(null);
+const editingExercise = ref<Exercise | undefined>(undefined);
 
 const openDialogForCategory = (category: string) => {
   currentCategoryForDialog.value = category;
-  editingExercise.value = null;
+  editingExercise.value = undefined;
   isAddExerciseDialogOpen.value = true;
 };
 
 const handleEditExercise = (exercise: Exercise) => {
   editingExercise.value = exercise;
-  currentCategoryForDialog.value = exercise.category;
+  currentCategoryForDialog.value = exercise.location?.step || '';
   isAddExerciseDialogOpen.value = true;
 };
 
-const handleAddNewExercise = (exerciseData: {
-  title: string;
-  description: string;
-  driveType: "human" | "human-ai" | "ai";
-  x?: number;
-  y?: number;
-}) => {
-  if (currentCategoryForDialog.value) {
-    const newExercise: Exercise = {
-      title: exerciseData.title,
-      description: exerciseData.description,
-      driveType: exerciseData.driveType,
-      phase: props.phase,
-      category: currentCategoryForDialog.value,
-      isCustom: true,
-      id: `custom-${Date.now()}-${Math.random()}`,
-      x: exerciseData.x,
-      y: exerciseData.y,
-    };
-    customExercises.value.push(newExercise);
-    localStorage.setItem(
-      LOCAL_STORAGE_KEY_CUSTOM_EXERCISES,
-      JSON.stringify(customExercises.value)
-    );
-  }
-  isAddExerciseDialogOpen.value = false;
-  currentCategoryForDialog.value = null;
-};
-
-const handleEditExistingExercise = (exerciseData: Exercise) => {
-  const index = customExercises.value.findIndex(
-    (ex) => ex.id === exerciseData.id
-  );
-  if (index !== -1) {
-    customExercises.value[index] = {
-      ...exerciseData,
-      phase: props.phase,
-      category: currentCategoryForDialog.value!,
-      isCustom: true,
-    };
-    localStorage.setItem(
-      LOCAL_STORAGE_KEY_CUSTOM_EXERCISES,
-      JSON.stringify(customExercises.value)
-    );
-  }
-  isAddExerciseDialogOpen.value = false;
-  currentCategoryForDialog.value = null;
-  editingExercise.value = null;
-};
-
-const handleAddToDiamond = (title: string) => {
-  let exerciseToUpdate = allStaticExercises.value.find(
-    (ex) => ex.title === title
-  );
-  let isStaticExercise = true;
-
-  if (!exerciseToUpdate) {
-    exerciseToUpdate = customExercises.value.find((ex) => ex.title === title);
-    isStaticExercise = false;
-  }
-
-  if (exerciseToUpdate) {
-    // 1. Update reactive state for ExercisesPage.vue
-    exerciseToUpdate.isAddedToDiamond = !exerciseToUpdate.isAddedToDiamond;
-
-    // 2. Save to local storage
-    const diamondExercises = JSON.parse(
-      localStorage.getItem(LOCAL_STORAGE_KEY_DIAMOND_EXERCISES) || "{}"
-    );
-    diamondExercises[title] = exerciseToUpdate.isAddedToDiamond;
-    localStorage.setItem(
-      LOCAL_STORAGE_KEY_DIAMOND_EXERCISES,
-      JSON.stringify(diamondExercises)
-    );
-
-    // 3. If it's a static exercise, update the original dummyData object as well
-    if (isStaticExercise) {
-      const staticExerciseInDummyData = dummyData.find(
-        (item: any) => item.labelConfig.text === title
-      );
-      if (staticExerciseInDummyData) {
-        staticExerciseInDummyData.isAddedToDiamond =
-          exerciseToUpdate.isAddedToDiamond;
-      }
-    }
-  } else {
-    console.warn(
-      `Exercise with title "${title}" not found to add/remove from diamond.`
-    );
-  }
-};
-
-const handleDeleteExercise = (exerciseToDelete: Exercise) => {
-  customExercises.value = customExercises.value.filter(
-    (ex) => ex.id !== exerciseToDelete.id
-  );
+const handleAddNewExercise = (exerciseData: { name: string; description: string; location?: { phase?: string; step?: string; human_ai_scale?: number } }) => {
+  const location = {
+    phase: props.phase,
+    step: currentCategoryForDialog.value ?? "",
+    human_ai_scale: exerciseData.location?.human_ai_scale ?? 3,
+  };
+  const newExercise: Exercise = {
+    name: exerciseData.name,
+    description: exerciseData.description,
+    location,
+    prompt_example: [],
+    etchical: { before: [], after: [] },
+    miro_board: "",
+    isCustom: true,
+  };
+  customExercises.value.push(newExercise);
   localStorage.setItem(
     LOCAL_STORAGE_KEY_CUSTOM_EXERCISES,
     JSON.stringify(customExercises.value)
   );
+  isAddExerciseDialogOpen.value = false;
+  currentCategoryForDialog.value = null;
+};
+
+const handleEditExistingExercise = (exerciseData: { name: string; description: string; location?: { phase?: string; step?: string; human_ai_scale?: number } }) => {
+  // Use name+step as key for finding custom exercise
+  const index = customExercises.value.findIndex(
+    (ex) => ex.name === exerciseData.name && ex.location?.step === exerciseData.location?.step
+  );
+  if (index !== -1) {
+    customExercises.value[index] = {
+      name: exerciseData.name,
+      description: exerciseData.description,
+      location: {
+        phase: props.phase,
+        step: currentCategoryForDialog.value ?? "",
+        human_ai_scale: exerciseData.location?.human_ai_scale ?? 3,
+      },
+      prompt_example: [],
+      etchical: { before: [], after: [] },
+      miro_board: "",
+      isCustom: true,
+    };
+    localStorage.setItem(
+      LOCAL_STORAGE_KEY_CUSTOM_EXERCISES,
+      JSON.stringify(customExercises.value)
+    );
+  }
+  isAddExerciseDialogOpen.value = false;
+  currentCategoryForDialog.value = null;
+  editingExercise.value = undefined;
+};
+
+const handleAddToDiamond = () => {
+  // Disabled for now – this would add to pipeline
+};
+
+const handleDeleteExercise = (exerciseToDelete: Exercise) => {
+  // Use index for safety since id no longer exists
+  const index = customExercises.value.findIndex(
+    (ex) => ex.name === exerciseToDelete.name && ex.location?.step === exerciseToDelete.location?.step
+  );
+  if (index !== -1) {
+    customExercises.value.splice(index, 1);
+    localStorage.setItem(
+      LOCAL_STORAGE_KEY_CUSTOM_EXERCISES,
+      JSON.stringify(customExercises.value)
+    );
+  }
 };
 
 // Tab handling
