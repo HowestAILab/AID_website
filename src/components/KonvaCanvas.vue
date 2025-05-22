@@ -1,6 +1,6 @@
 <template>
   <div class="py-6 flex-1">
-    <Popover v-model:open="selectedPinPopover">
+    <Popover v-model:open="selectedPinPopover" :key="selectedPinIndex ?? -1">
       <PopoverTrigger as-child>
         <div
           ref="pinTriggerRef"
