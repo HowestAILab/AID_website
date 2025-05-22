@@ -21,16 +21,29 @@
         top: HORIZONTAL_LINE_TOP_STYLE,
       }"
     ></div>
-    <template v-for="item in pinDisplayData" :key="item.key">
+    <template v-for="(item, idx) in pinDisplayData" :key="item.key">
       <div
         class="relative"
         @mouseenter="hoveredPinOriginalIndex = item.originalIndex"
         @mouseleave="hoveredPinOriginalIndex = null"
       >
         <div
-          class="absolute w-4 h-4 transform rotate-45 bg-[#F5F0E5] border border-black"
+          class="absolute w-5 h-5 transform rotate-45 bg-[#F5F0E5] border border-black"
           :style="item.diamondStyle"
         ></div>
+        <div
+          class="absolute w-5 h-5 flex items-center justify-center pointer-events-none"
+          :style="{
+            left: item.diamondStyle.left,
+            top: item.diamondStyle.top,
+            fontWeight: '600',
+            fontSize: '13px',
+            color: '#374151',
+            zIndex: 2
+          }"
+        >
+          {{ item.originalIndex + 1 }}
+        </div>
         <button
           v-if="hoveredPinOriginalIndex === item.originalIndex"
           @click="requestUnselect(item.originalIndex)"
@@ -48,24 +61,6 @@
         >
           <X class="w-4 h-4" />
         </button>
-        <div
-          class="absolute transform bg-[#F5F0E5] border border-black px-2 py-0.5 rounded-sm"
-          :style="item.labelStyle"
-        >
-          <p
-            class="text-center text-xs"
-            style="
-              display: -webkit-box;
-              -webkit-box-orient: vertical;
-              -webkit-line-clamp: 2;
-              line-clamp: 2;
-              overflow: hidden;
-              text-overflow: ellipsis;
-            "
-          >
-            {{ item.pinName }}
-          </p>
-        </div>
       </div>
     </template>
     <Network class="w-5 h-5 mr-3 text-gray-500" />
@@ -82,9 +77,9 @@ import { computed, ref } from "vue";
 import { Network, ChevronUp, X } from "lucide-vue-next";
 
 const DIAMOND_HALF_WIDTH_PX = 7;
-const DIAMOND_TOP_STYLE = "calc(50% - 27px)";
+const DIAMOND_TOP_STYLE = "calc(50% - 10px)";
 const LABEL_TOP_STYLE = "calc(50% - 10px)";
-const HORIZONTAL_LINE_TOP_STYLE = "calc(50% - 20px)";
+const HORIZONTAL_LINE_TOP_STYLE = "50%";
 const DEFAULT_LABEL_MAX_WIDTH_PX = 120;
 const LABEL_MARGIN_BETWEEN_PX = 10;
 const MIN_LABEL_WIDTH_PX = 50;
@@ -121,8 +116,8 @@ const horizontalLineWidth = computed(() => {
 const pinDisplayData = computed(() => {
   // Return empty if no pins are selected
   if (!props.selectedPins?.length) return [];
-  // Sort pins by their order for consistent display
-  const pins = [...props.selectedPins].sort((a, b) => a.order - b.order);
+  // Display pins in the order selected (no sorting)
+  const pins = props.selectedPins ?? [];
   const numPins = pins.length;
   // Fallback: if no rendering line offsets, place all pins at mainContentScreenLeft
   if (!props.allRenderingLineOffsets?.length) {

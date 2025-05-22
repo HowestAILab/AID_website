@@ -66,6 +66,18 @@
               @mouseenter="handleMouseEnter"
               @mouseleave="handleMouseLeave"
             />
+            <v-text
+              :config="{
+                x: pin.config.x - 4,
+                y: pin.config.y - 7,
+                text: String(i + 1),
+                fontSize: 16,
+                fill: '#374151',
+                align: 'center',
+                verticalAlign: 'middle',
+              }"
+              :listening="false"
+            />
             <v-text :config="pin.labelConfig" />
           </template>
         </template>
@@ -211,29 +223,38 @@ function handlePinClick(index: number) {
   selectedPinPopover.value = true;
 }
 
+let selectedIndices: number[] = [];
 function togglePinSelection(index: number | null) {
   if (index === null) return;
+
+  // Load current selected order from localStorage to preserve order
+  const loaded = localStorage.getItem(SELECTED_PINS_STORAGE_KEY);
+  selectedIndices = loaded ? JSON.parse(loaded) : [];
 
   // Toggle pin selection
   pins.value[index].isSelected = !pins.value[index].isSelected;
 
-  // Update selected pins data for parent
-  const selectedPinData = pins.value
-    .map((pin, idx) =>
-      pin.isSelected
-        ? {
-            name: pin.labelConfig.text,
-            originalIndex: idx,
-            order: pin.order,
-            location: pin.location,
-          }
-        : null
-    )
-    .filter((pin): pin is SelectedPinInfo => pin !== null);
+  if (pins.value[index].isSelected) {
+    // Add to end if selected
+    if (!selectedIndices.includes(index)) {
+      selectedIndices.push(index);
+    }
+  } else {
+    // Remove if deselected
+    selectedIndices = selectedIndices.filter((i) => i !== index);
+  }
+
+  // Build selectedPinData in the order of selectedIndices
+  const selectedPinData = selectedIndices.map((idx) => ({
+    name: pins.value[idx].labelConfig.text,
+    originalIndex: idx,
+    order: pins.value[idx].order,
+    location: pins.value[idx].location,
+  }));
+
   emit("selectedPinsChange", selectedPinData);
 
-  // Save selected indices to localStorage
-  const selectedIndices = selectedPinData.map((p) => p.originalIndex);
+  // Save selectedIndices to localStorage for persistence
   localStorage.setItem(
     SELECTED_PINS_STORAGE_KEY,
     JSON.stringify(selectedIndices)
