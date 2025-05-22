@@ -56,14 +56,14 @@
                 radius: pin.config.radius + 2,
               }"
               @click="handlePinClick(i)"
-              @mouseenter="handleMouseEnter"
+              @mouseenter="() => handleMouseEnter(i)"
               @mouseleave="handleMouseLeave"
             />
             <v-circle
               v-else
               :config="pin.config"
               @click="handlePinClick(i)"
-              @mouseenter="handleMouseEnter"
+              @mouseenter="() => handleMouseEnter(i)"
               @mouseleave="handleMouseLeave"
             />
             <v-text
@@ -78,7 +78,10 @@
               }"
               :listening="false"
             />
-            <v-text :config="pin.labelConfig" />
+            <v-text 
+              v-if="hoveredPinIndex === i"
+              :config="pin.labelConfig" 
+            />
           </template>
         </template>
       </v-layer>
@@ -204,6 +207,7 @@ const selectedPin = ref<PinConfig | null>(null);
 const selectedPinIndex = ref<number | null>(null);
 const pinTriggerRef = ref<HTMLElement | null>(null);
 const selectedPinPosition = ref({ x: 0, y: 0 });
+const hoveredPinIndex = ref<number | null>(null);
 
 function handlePinClick(index: number) {
   selectedPin.value = pins.value[index];
@@ -276,7 +280,8 @@ defineExpose({
   togglePinSelected: togglePinSelection,
 });
 
-const handleMouseEnter = () => {
+const handleMouseEnter = (index: number) => {
+  hoveredPinIndex.value = index;
   if (stageRef.value) {
     const stage = stageRef.value.getStage();
     if (stage && stage.container()) {
@@ -286,6 +291,7 @@ const handleMouseEnter = () => {
 };
 
 const handleMouseLeave = () => {
+  hoveredPinIndex.value = null;
   if (stageRef.value) {
     const stage = stageRef.value.getStage();
     if (stage && stage.container()) {
