@@ -65,6 +65,7 @@
           :phase="currentPhase"
           @close="handleExercisesClose"
           @update:phase="phase => currentPhase = phase"
+          @selected-pins-change="handleSelectedPinsChange"
         />
       </main>
     </div>

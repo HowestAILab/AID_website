@@ -67,16 +67,10 @@
                 :title="exercise.name"
                 :description="exercise.description"
                 :driveType="exercise.location?.human_ai_scale === 3 ? 'human' : (exercise.location?.human_ai_scale === 2 ? 'human-ai' : 'ai')"
-              >
-                <template #action>
-                  <button
-                    class="btn btn-primary"
-                    style="margin-top:0.5rem"
-                  >
-                    Add to pipeline
-                  </button>
-                </template>
-              </ExerciseCard>
+                :originalIndex="getOriginalExerciseIndex(exercise)"
+                :isInPipeline="isExerciseInPipeline(exercise)"
+                @togglePipeline="togglePipelineSelection"
+              />
               <div
                 v-if="exercise.isCustom"
                 class="absolute bottom-4 right-4 flex gap-3"
@@ -119,6 +113,8 @@ import AddExerciseDialog from "./AddExerciseDialog.vue";
 import { ArrowLeft, CirclePlus, Trash2, SquarePen } from "lucide-vue-next";
 import dummyData from "../../dummy.json";
 
+const SELECTED_PINS_STORAGE_KEY = "selected-pins";
+
 const tabNames = ["Discover", "Define", "Develop", "Deliver"];
 
 interface Exercise {
@@ -135,9 +131,19 @@ interface Exercise {
     after: any[];
   };
   miro_board: string;
-  isCustom?: boolean; // Only for custom exercises
+  isCustom?: boolean;
 }
 
+interface SelectedPinInfo {
+  name: string;
+  originalIndex: number;
+  order: number;
+  location: {
+    phase: string;
+    step: string;
+    human_ai_scale: number;
+  };
+}
 
 type ExerciseData = Exercise;
 
@@ -148,10 +154,12 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "close"): void;
   (e: "update:phase", phase: string): void;
+  (e: "selectedPinsChange", selectedPins: SelectedPinInfo[]): void;
 }>();
 
 const allStaticExercises = ref<Exercise[]>([]);
 const customExercises = ref<Exercise[]>([]);
+const selectedPinIndices = ref<number[]>([]);
 
 const LOCAL_STORAGE_KEY_CUSTOM_EXERCISES = "customDesignExercises";
 const LOCAL_STORAGE_KEY_DIAMOND_EXERCISES = "diamondExercises";
@@ -187,6 +195,24 @@ onMounted(() => {
       // Optionally clear corrupted data
       localStorage.removeItem(LOCAL_STORAGE_KEY_CUSTOM_EXERCISES);
     }
+  }
+
+  // Load selected pins for pipeline state from localStorage
+  const savedPinIndices = localStorage.getItem(SELECTED_PINS_STORAGE_KEY);
+  if (savedPinIndices) {
+    selectedPinIndices.value = JSON.parse(savedPinIndices);
+    
+    // Emit the current selected pins to parent component
+    const currentSelectedPinData = selectedPinIndices.value.map((idx) => {
+      const exercise = allStaticExercises.value[idx];
+      return {
+        name: exercise.name,
+        originalIndex: idx,
+        order: idx,
+        location: exercise.location,
+      };
+    });
+    emit("selectedPinsChange", currentSelectedPinData);
   }
 });
 
@@ -284,9 +310,7 @@ const handleEditExistingExercise = (exerciseData: { name: string; description: s
   editingExercise.value = undefined;
 };
 
-const handleAddToDiamond = () => {
-  // Disabled for now – this would add to pipeline
-};
+
 
 const handleDeleteExercise = (exerciseToDelete: Exercise) => {
   // Use index for safety since id no longer exists
@@ -311,5 +335,55 @@ const handleButtonRefsUpdate = (
   refs: Record<string, HTMLButtonElement | null>
 ) => {
   // Placeholder for future use
+};
+
+// Pipeline selection logic
+const togglePipelineSelection = (originalIndex: number) => {
+  const isCurrentlySelected = selectedPinIndices.value.includes(originalIndex);
+  
+  if (isCurrentlySelected) {
+    // Remove from selection
+    selectedPinIndices.value = selectedPinIndices.value.filter(idx => idx !== originalIndex);
+  } else {
+    // Add to selection
+    selectedPinIndices.value.push(originalIndex);
+  }
+  
+  // Build selectedPinData in the order of selectedIndices
+  const selectedPinData = selectedPinIndices.value.map((idx) => {
+    const exercise = allStaticExercises.value[idx];
+    return {
+      name: exercise.name,
+      originalIndex: idx,
+      order: idx,
+      location: exercise.location,
+    };
+  });
+
+  // Emit the change to parent component
+  emit("selectedPinsChange", selectedPinData);
+  
+  // Save to localStorage
+  localStorage.setItem(SELECTED_PINS_STORAGE_KEY, JSON.stringify(selectedPinIndices.value));
+};
+
+// Get original index for an exercise
+const getOriginalExerciseIndex = (exercise: Exercise): number => {
+  // For static exercises, find index in the original dummy data
+  if (!exercise.isCustom) {
+    return allStaticExercises.value.findIndex(ex => 
+      ex.name === exercise.name && 
+      ex.location.phase === exercise.location.phase &&
+      ex.location.step === exercise.location.step
+    );
+  }
+  // For custom exercises, we'll use a negative index or a different approach. Since custom exercises don't exist in the original array, we'll need to handle them differently
+  return -1; // Custom exercises won't be compatible with the canvas for now, probably fix when connected to backend
+};
+
+// Check if exercise is in pipeline
+const isExerciseInPipeline = (exercise: Exercise): boolean => {
+  const originalIndex = getOriginalExerciseIndex(exercise);
+  return originalIndex >= 0 && selectedPinIndices.value.includes(originalIndex);
 };
 </script>

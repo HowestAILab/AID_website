@@ -15,12 +15,12 @@
     <p class="text-[#4B5563] mb-4 flex-grow">{{ description }}</p>
     <button
       class="flex items-center gap-2 mt-auto cursor-pointer"
-      :class="props.isAddedToDiamond ? 'text-red-500' : 'text-[#F59E0C]'"
-      @click="$emit('addToDiamond', title)"
+      :class="props.isInPipeline ? 'text-red-500' : 'text-[#F59E0C]'"
+      @click="$emit('togglePipeline', originalIndex)"
     >
-      <CirclePlus v-if="!props.isAddedToDiamond" />
+      <CirclePlus v-if="!props.isInPipeline" />
       <CircleMinus v-else />
-      <p>{{ props.isAddedToDiamond ? 'Remove from Diamond' : 'Add to Diamond' }}</p>
+      <p>{{ props.isInPipeline ? 'Remove from pipeline' : 'Add to pipeline' }}</p>
     </button>
   </div>
 </template>
@@ -35,11 +35,12 @@ const props = defineProps<{
   title: string;
   description: string;
   driveType: DriveType;
-  isAddedToDiamond?: boolean;
+  isInPipeline?: boolean;
+  originalIndex: number;
 }>();
 
 defineEmits<{
-  (e: "addToDiamond", title: string): void;
+  (e: "togglePipeline", index: number): void;
 }>();
 
 interface DriveTypeConfig {
