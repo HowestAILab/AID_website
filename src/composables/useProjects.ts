@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 export interface SelectedPinInfo {
   name: string;
@@ -19,8 +19,59 @@ export interface Project {
   selectedPins: SelectedPinInfo[];
 }
 
-const projects = ref<Project[]>([]);
-const currentProjectId = ref<string | null>(null);
+const PROJECTS_STORAGE_KEY = 'aid-projects';
+const CURRENT_PROJECT_STORAGE_KEY = 'aid-current-project';
+
+const saveProjectsToStorage = (projectsData: Project[]) => {
+  try {
+    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projectsData));
+  } catch (error) {
+    console.error('Failed to save projects to localStorage:', error);
+  }
+};
+
+const loadProjectsFromStorage = (): Project[] => {
+  try {
+    const stored = localStorage.getItem(PROJECTS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error('Failed to load projects from localStorage:', error);
+    return [];
+  }
+};
+
+const saveCurrentProjectIdToStorage = (projectId: string | null) => {
+  try {
+    if (projectId) {
+      localStorage.setItem(CURRENT_PROJECT_STORAGE_KEY, projectId);
+    } else {
+      localStorage.removeItem(CURRENT_PROJECT_STORAGE_KEY);
+    }
+  } catch (error) {
+    console.error('Failed to save current project ID to localStorage:', error);
+  }
+};
+
+const loadCurrentProjectIdFromStorage = (): string | null => {
+  try {
+    return localStorage.getItem(CURRENT_PROJECT_STORAGE_KEY);
+  } catch (error) {
+    console.error('Failed to load current project ID from localStorage:', error);
+    return null;
+  }
+};
+
+const projects = ref<Project[]>(loadProjectsFromStorage());
+const currentProjectId = ref<string | null>(loadCurrentProjectIdFromStorage());
+
+// Watch for changes and save to localStorage
+watch(projects, (newProjects) => {
+  saveProjectsToStorage(newProjects);
+}, { deep: true });
+
+watch(currentProjectId, (newCurrentProjectId) => {
+  saveCurrentProjectIdToStorage(newCurrentProjectId);
+});
 
 export function useProjects() {
   const currentProject = computed(() => 

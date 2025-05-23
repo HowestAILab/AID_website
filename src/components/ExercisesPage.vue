@@ -106,14 +106,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import Tabs from "./Tabs.vue";
 import ExerciseCard from "./ExerciseCard.vue";
 import AddExerciseDialog from "./AddExerciseDialog.vue";
 import { ArrowLeft, CirclePlus, Trash2, SquarePen } from "lucide-vue-next";
 import dummyData from "../../dummy.json";
-
-const SELECTED_PINS_STORAGE_KEY = "selected-pins";
 
 const tabNames = ["Discover", "Define", "Develop", "Deliver"];
 
@@ -149,6 +147,7 @@ type ExerciseData = Exercise;
 
 const props = defineProps<{
   phase: string;
+  selectedPins: SelectedPinInfo[];
 }>();
 
 const emit = defineEmits<{
@@ -197,24 +196,18 @@ onMounted(() => {
     }
   }
 
-  // Load selected pins for pipeline state from localStorage
-  const savedPinIndices = localStorage.getItem(SELECTED_PINS_STORAGE_KEY);
-  if (savedPinIndices) {
-    selectedPinIndices.value = JSON.parse(savedPinIndices);
-    
-    // Emit the current selected pins to parent component
-    const currentSelectedPinData = selectedPinIndices.value.map((idx) => {
-      const exercise = allStaticExercises.value[idx];
-      return {
-        name: exercise.name,
-        originalIndex: idx,
-        order: idx,
-        location: exercise.location,
-      };
-    });
-    emit("selectedPinsChange", currentSelectedPinData);
-  }
+  updateSelectedPinsFromProp();
 });
+
+// Watch for changes in the selectedPins prop and update local state
+watch(() => props.selectedPins, () => {
+  updateSelectedPinsFromProp();
+}, { deep: true });
+
+// Helper function to update local selected pins from the prop
+const updateSelectedPinsFromProp = () => {
+  selectedPinIndices.value = props.selectedPins.map(pin => pin.originalIndex);
+};
 
 // Defines the categories for each phase and their order
 const phaseCategoryMapping: Record<string, string[]> = {
@@ -310,8 +303,6 @@ const handleEditExistingExercise = (exerciseData: { name: string; description: s
   editingExercise.value = undefined;
 };
 
-
-
 const handleDeleteExercise = (exerciseToDelete: Exercise) => {
   // Use index for safety since id no longer exists
   const index = customExercises.value.findIndex(
@@ -349,7 +340,6 @@ const togglePipelineSelection = (originalIndex: number) => {
     selectedPinIndices.value.push(originalIndex);
   }
   
-  // Build selectedPinData in the order of selectedIndices
   const selectedPinData = selectedPinIndices.value.map((idx) => {
     const exercise = allStaticExercises.value[idx];
     return {
@@ -360,11 +350,7 @@ const togglePipelineSelection = (originalIndex: number) => {
     };
   });
 
-  // Emit the change to parent component
   emit("selectedPinsChange", selectedPinData);
-  
-  // Save to localStorage
-  localStorage.setItem(SELECTED_PINS_STORAGE_KEY, JSON.stringify(selectedPinIndices.value));
 };
 
 // Get original index for an exercise

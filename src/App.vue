@@ -63,6 +63,7 @@
         <ExercisesPage
           v-else-if="currentPage === 'exercises'"
           :phase="currentPhase"
+          :selected-pins="selectedPins"
           @close="handleExercisesClose"
           @update:phase="phase => currentPhase = phase"
           @selected-pins-change="handleSelectedPinsChange"
@@ -222,7 +223,7 @@ watch(currentProject, (project) => {
     selectedPins.value = getCurrentProjectSelectedPins();
     // Update the canvas with the project's selected pins
     nextTick(() => {
-      if (konvaCanvasRef.value && selectedPins.value.length > 0) {
+      if (konvaCanvasRef.value) {
         konvaCanvasRef.value.loadSelectedPins(selectedPins.value);
       }
     });
@@ -235,10 +236,8 @@ watch(currentProject, (project) => {
 watch(konvaCanvasRef, (canvas) => {
   if (canvas && currentProject.value) {
     const projectSelectedPins = getCurrentProjectSelectedPins();
-    if (projectSelectedPins.length > 0) {
-      selectedPins.value = projectSelectedPins;
-      canvas.loadSelectedPins(projectSelectedPins);
-    }
+    selectedPins.value = projectSelectedPins;
+    canvas.loadSelectedPins(projectSelectedPins);
   }
 });
 
