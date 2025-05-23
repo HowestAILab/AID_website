@@ -17,7 +17,7 @@
               class="absolute bottom-0 bg-gray-300 w-px"
               :style="{
                 left: offset + 'px',
-                top: fullHeightLineIndices.includes(index)
+                top: fullHeightLineIndices.includes(index as 0 | 2 | 4 | 6 | 8)
                   ? '0px'
                   : labelBarCalculatedTop + 'px',
                 bottom: '0px',
@@ -26,13 +26,13 @@
           </template>
 
           <Tabs 
-            :tabs="tabs"
+            :tabs="tabs as unknown as string[]"
             :active-tab="activeTab"
             @update:active-tab="setActiveTab"
             @button-refs-updated="handleButtonRefsUpdate"
           />
           <div ref="labelBarRef" class="relative h-10 border-t border-[#A1824A]">
-            <template v-for="(label) in sectionLabels" :key="'label-' + index">
+            <template v-for="(label) in sectionLabels" :key="'label-' + label.text">
               <div
                 class="pt-1 absolute flex items-center justify-center text-center text-sm font-medium text-[#1C170D]"
                 :style="{
@@ -65,7 +65,7 @@
           :phase="currentPhase"
           :selected-pins="selectedPins"
           @close="handleExercisesClose"
-          @update:phase="phase => currentPhase = phase"
+          @update:phase="(phase: string) => currentPhase = phase"
           @selected-pins-change="handleSelectedPinsChange"
         />
         <OverviewPage
@@ -94,371 +94,81 @@ import KonvaCanvas from "./components/KonvaCanvas.vue";
 import AddExercisesButtons from "./components/AddExercisesButtons.vue";
 import ExercisesPage from "./components/ExercisesPage.vue";
 import OverviewPage from "./components/OverviewPage.vue";
-import { useProjects, type SelectedPinInfo } from "@/composables/useProjects";
-import {
-  ref,
-  onMounted,
-  nextTick,
-  shallowRef,
-  onUnmounted,
-  computed,
-  watch,
-} from "vue";
-import DoubleDiamond from "./assets/DoubleDiamond.svg";
-import { Toaster } from '@/components/ui/sonner'
+import { Toaster } from '@/components/ui/sonner';
+import { nextTick } from "vue";
+import { TABS } from "@/constants/app";
 
-const { currentProject, hasProjects, setCurrentProject, updateProjectSelectedPins, getCurrentProjectSelectedPins } = useProjects();
+// Composables
+import { useNavigation } from "@/composables/useNavigation";
+import { useTabs } from "@/composables/useTabs";
+import { useCanvas } from "@/composables/useCanvas";
+import { useLayout } from "@/composables/useLayout";
 
-const konvaCanvasRef = ref<InstanceType<typeof KonvaCanvas> | null>(null);
+// Initialize composables
+const {
+  currentPage,
+  currentPhase,
+  handleNavigate,
+  handleNavigateToProject,
+  handleExerciseButtonClick,
+  handleExercisesClose,
+} = useNavigation();
 
-const tabs = ["Discover", "Define", "Develop", "Deliver"];
-const activeTab = ref("Discover");
+const {
+  tabs,
+  activeTab,
+  buttonRefs,
+  setActiveTab: setActiveTabBase,
+  handleButtonRefsUpdate: handleButtonRefsUpdateBase,
+} = useTabs();
 
-const setActiveTab = (tabName: string) => {
-  activeTab.value = tabName;
-  nextTick(() => updateLayout());
+const {
+  configKonva,
+  imageObj,
+  configImage,
+  selectedPins,
+  konvaCanvasRef,
+  handleSelectedPinsChange,
+  handleUnselectPin,
+  loadImage,
+} = useCanvas();
+
+const {
+  mainElementRef,
+  labelBarRef,
+  allRenderingLineOffsets,
+  sectionLabels,
+  labelBarCalculatedTop,
+  mainContentScreenLeft,
+  addExercisesButtonCenterOffsets,
+  fullHeightLineIndices,
+  updateLayout,
+  setupResizeListener,
+} = useLayout();
+
+// Wrapper functions that include layout updates
+const updateLayoutWithConfigs = () => {
+  updateLayout(buttonRefs, configKonva, configImage);
 };
 
-const configKonva = ref({
-  width: 834,
-  height: 420,
-  x: 0,
-  y: 0,
-});
-
-const imageObj = ref<HTMLImageElement | null>(null);
-const configImage = ref({
-  image: null as HTMLImageElement | null,
-  width: 834,
-  height: 420,
-  x: 0,
-});
-
-const mainElementRef = shallowRef<HTMLElement | null>(null);
-const verticalLineOffsets = ref<number[]>([]);
-const allRenderingLineOffsets = ref<number[]>([]);
-const sectionLabels = ref<{ text: string; left: number; width: number }[]>([]);
-const sectionLabelTexts = [
-  "prepare",
-  "discover",
-  "define",
-  "synthesise",
-  "prepare",
-  "develop",
-  "deliver",
-  "synthesise",
-];
-const labelBarRef = shallowRef<HTMLElement | null>(null);
-const labelBarCalculatedTop = ref<number>(0);
-const fullHeightLineIndices = [0, 2, 4, 6, 8];
-
-const buttonRefs = {
-  Discover: shallowRef<HTMLButtonElement | null>(null),
-  Define: shallowRef<HTMLButtonElement | null>(null),
-  Develop: shallowRef<HTMLButtonElement | null>(null),
-  Deliver: shallowRef<HTMLButtonElement | null>(null),
+const setActiveTab = (tabName: string) => {
+  if (TABS.includes(tabName as any)) {
+    setActiveTabBase(tabName as typeof TABS[number], updateLayoutWithConfigs);
+  }
 };
 
 const handleButtonRefsUpdate = (refs: Record<string, HTMLButtonElement | null>) => {
-  buttonRefs.Discover.value = refs.Discover;
-  buttonRefs.Define.value = refs.Define;
-  buttonRefs.Develop.value = refs.Develop;
-  buttonRefs.Deliver.value = refs.Deliver;
+  handleButtonRefsUpdateBase(refs, updateLayoutWithConfigs);
+};
+
+// Setup resize listener
+setupResizeListener(updateLayoutWithConfigs);
+
+// Load image and setup initial layout
+loadImage().then(() => {
   nextTick(() => {
-    updateLayout();
+    updateLayoutWithConfigs();
   });
-};
-
-const mainContentScreenLeft = ref(0);
-
-const addExercisesButtonCenterOffsets = computed(() => {
-  if (
-    allRenderingLineOffsets.value &&
-    allRenderingLineOffsets.value.length >= 8
-  ) {
-    // These correspond to the midpoints of the Discover, Define, Develop, and Deliver tab sections
-    return [
-      allRenderingLineOffsets.value[1],
-      allRenderingLineOffsets.value[3],
-      allRenderingLineOffsets.value[5],
-      allRenderingLineOffsets.value[7],
-    ];
-  }
-  return [];
-});
-
-const selectedPins = ref<SelectedPinInfo[]>([]);
-
-const handleSelectedPinsChange = (pins: SelectedPinInfo[]) => {
-  selectedPins.value = pins;
-  // Save the selected pins to the current project
-  updateProjectSelectedPins(pins);
-};
-
-const handleUnselectPin = (originalPinIndex: number) => {
-  if (konvaCanvasRef.value) {
-    konvaCanvasRef.value.togglePinSelected(originalPinIndex);
-  }
-};
-
-const currentPage = ref('overview');
-const currentPhase = ref('Discover');
-
-// Watch for project changes - if no projects exist, stay on overview
-watch(hasProjects, (hasProjectsValue) => {
-  if (!hasProjectsValue && currentPage.value !== 'overview') {
-    currentPage.value = 'overview';
-  }
-});
-
-// Watch for current project changes - if no current project, go to overview
-// Also load the project's selected pins when switching projects
-watch(currentProject, (project) => {
-  if (!project && currentPage.value !== 'overview') {
-    currentPage.value = 'overview';
-  }
-  
-  // Load the selected pins for the current project
-  if (project) {
-    selectedPins.value = getCurrentProjectSelectedPins();
-    // Update the canvas with the project's selected pins
-    nextTick(() => {
-      if (konvaCanvasRef.value) {
-        konvaCanvasRef.value.loadSelectedPins(selectedPins.value);
-      }
-    });
-  } else {
-    selectedPins.value = [];
-  }
-});
-
-// Watch for konvaCanvasRef to become available and load selected pins
-watch(konvaCanvasRef, (canvas) => {
-  if (canvas && currentProject.value) {
-    const projectSelectedPins = getCurrentProjectSelectedPins();
-    selectedPins.value = projectSelectedPins;
-    canvas.loadSelectedPins(projectSelectedPins);
-  }
-});
-
-const handleNavigate = (page: string) => {
-  // If trying to navigate to diamond/exercises but no current project, stay on overview
-  if ((page === 'diamond' || page === 'exercises') && !currentProject.value) {
-    currentPage.value = 'overview';
-    return;
-  }
-  
-  currentPage.value = page;
-  
-  // If navigating to exercises but no phase selected, default to Discover
-  if (page === 'exercises' && !currentPhase.value) {
-    currentPhase.value = 'Discover';
-  }
-};
-
-const handleNavigateToProject = (projectId: string) => {
-  // Project is already set as current in OverviewPage
-  currentPage.value = 'diamond';
-};
-
-const handleExerciseButtonClick = (phase: string) => {
-  currentPage.value = 'exercises';
-  currentPhase.value = phase;
-};
-
-const handleExercisesClose = () => {
-  currentPage.value = 'diamond';
-  currentPhase.value = '';
-};
-
-const updateLayout = () => {
-  // Use the mainElement's width for the canvas
-  if (mainElementRef.value) {
-    const mainWidth = mainElementRef.value.clientWidth;
-    configKonva.value.x = 0; // Start from the left edge
-    configKonva.value.width = mainWidth; // Use full container width
-    const aspectRatio = 420 / 834; // Original SVG aspect ratio
-    configKonva.value.height = mainWidth * aspectRatio;
-
-    configImage.value.width = mainWidth;
-    configImage.value.height = mainWidth * aspectRatio;
-    configImage.value.x = 0; // Image should also start at x=0 by default
-
-    // Proceed to calculate overlays if other refs are available
-    if (
-      buttonRefs.Discover.value &&
-      buttonRefs.Define.value &&
-      buttonRefs.Develop.value &&
-      buttonRefs.Deliver.value
-    ) {
-      const mainRect = mainElementRef.value.getBoundingClientRect();
-      mainContentScreenLeft.value = mainRect.left;
-
-      const discoverRect = buttonRefs.Discover.value.getBoundingClientRect();
-      const defineRect = buttonRefs.Define.value.getBoundingClientRect();
-      const developRect = buttonRefs.Develop.value.getBoundingClientRect();
-      const deliverRect = buttonRefs.Deliver.value.getBoundingClientRect();
-
-      const offsets: number[] = [];
-      // Ensure rects are valid before calculating offsets from them
-      if (discoverRect && mainRect) {
-        // mainRect is implied by mainElementRef.value but good to be explicit if using its properties
-        offsets.push(discoverRect.left - mainRect.left);
-        offsets.push(discoverRect.right - mainRect.left);
-      }
-      if (defineRect && mainRect) {
-        offsets.push(defineRect.right - mainRect.left);
-      }
-      if (developRect && mainRect) {
-        offsets.push(developRect.right - mainRect.left);
-      }
-      if (deliverRect && mainRect) {
-        offsets.push(deliverRect.right - mainRect.left);
-      }
-      verticalLineOffsets.value = offsets;
-
-      if (verticalLineOffsets.value.length === 5) {
-        const o = verticalLineOffsets.value;
-
-        const m: number[] = [];
-        m[0] = (o[0] + o[1]) / 2;
-        m[1] = (o[1] + o[2]) / 2;
-        m[2] = (o[2] + o[3]) / 2;
-        m[3] = (o[3] + o[4]) / 2;
-
-        allRenderingLineOffsets.value = [
-          o[0],
-          m[0],
-          o[1],
-          m[1],
-          o[2],
-          m[2],
-          o[3],
-          m[3],
-          o[4],
-        ];
-
-        // Use the full width between the first and last rendering lines
-        if (
-          allRenderingLineOffsets.value &&
-          allRenderingLineOffsets.value.length >= 9
-        ) {
-          const canvasStartX = allRenderingLineOffsets.value[0];
-          const newCanvasWidth = mainWidth - canvasStartX; // Extends from first line to edge of main container
-
-          if (newCanvasWidth > 0) {
-            configKonva.value.x = canvasStartX;
-            configKonva.value.width = newCanvasWidth;
-            configKonva.value.height = newCanvasWidth * (420 / 834); // Konva stage height
-
-            // ADJUST THIS FACTOR (e.g., 0.95 for 95%, 1.0 for 100%) to scale the image
-            const imageWidthScaleFactor = 0.892; // Example: Image uses 98% of the Konva stage width
-
-            configImage.value.width =
-              configKonva.value.width * imageWidthScaleFactor;
-            configImage.value.height = configImage.value.width * (420 / 834); // Maintain image's aspect ratio
-
-            // Align the image to the left of the Konva stage
-            configImage.value.x = 0;
-            // configImage.value.y could be similarly centered if needed:
-            // (configKonva.value.height - configImage.value.height) / 2;
-            // It defaults to 0 if not set, which is usually fine for y.
-
-            const labelsData: { text: string; left: number; width: number }[] =
-              [];
-            const sectionPoints = allRenderingLineOffsets.value;
-
-            for (let i = 0; i < 8; i++) {
-              const sectionStart = sectionPoints[i];
-              const sectionEnd = sectionPoints[i + 1];
-              labelsData.push({
-                text: sectionLabelTexts[i],
-                left: sectionStart,
-                width: sectionEnd - sectionStart,
-              });
-            }
-            sectionLabels.value = labelsData;
-
-            if (labelBarRef.value) {
-              labelBarCalculatedTop.value = labelBarRef.value.offsetTop;
-            }
-          } else {
-            console.warn(
-              "Calculated newCanvasWidth (mainWidth - canvasStartX) is not positive. " +
-                "Canvas will use full mainWidth starting at x=0."
-            );
-            // Fallback to canvas filling the entire main element, as set at the start of updateLayout
-            configKonva.value.x = 0;
-            configKonva.value.width = mainWidth;
-            configKonva.value.height = mainWidth * (420 / 834);
-            configImage.value.width = mainWidth;
-            configImage.value.height = mainWidth * (420 / 834);
-            configImage.value.x = 0;
-          }
-        } else {
-          console.warn(
-            "allRenderingLineOffsets not populated sufficiently. Canvas will use mainWidth-based size or previous valid size."
-          );
-          // If offsets are not sufficient, the Konva/Image dimensions set earlier (from mainWidth) will remain.
-        }
-      } else {
-        console.warn(
-          "Base vertical line offsets not fully calculated (expected 5). Visual line/label rendering might be incomplete."
-        );
-        allRenderingLineOffsets.value = [];
-        sectionLabels.value = [];
-        // Konva settings already handled by user's logic if mainElementRef.value is true
-      }
-    } else {
-      // mainElementRef.value is true, but one or more button refs are missing.
-      console.warn(
-        "One or more button elements (Discover, Define, Develop, Deliver) not found. Vertical lines/labels will not be rendered or will be cleared."
-      );
-      verticalLineOffsets.value = [];
-      allRenderingLineOffsets.value = [];
-      sectionLabels.value = [];
-      labelBarCalculatedTop.value = 0;
-      // Konva settings already handled by user's logic
-    }
-  } else {
-    // mainElementRef.value is null. This is the original fallback logic.
-    console.warn(
-      "Main element not found for layout calculation. Using default dimensions for Konva and no vertical lines/labels."
-    );
-    verticalLineOffsets.value = [];
-    allRenderingLineOffsets.value = [];
-    sectionLabels.value = [];
-    labelBarCalculatedTop.value = 0;
-    // Clear button refs as they are not valid if main element is not found or other issues occur
-    buttonRefs.Discover.value = null;
-    buttonRefs.Define.value = null;
-    buttonRefs.Develop.value = null;
-    buttonRefs.Deliver.value = null;
-
-    configKonva.value.x = 0;
-    configKonva.value.width = 834;
-    configKonva.value.height = 420;
-    configImage.value.width = 834;
-    configImage.value.height = 420;
-  }
-};
-
-onMounted(() => {
-  const img = new Image();
-  img.src = DoubleDiamond;
-  img.onload = () => {
-    imageObj.value = img;
-    configImage.value.image = img;
-
-    nextTick(() => {
-      updateLayout();
-    });
-  };
-  window.addEventListener("resize", updateLayout);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("resize", updateLayout);
 });
 </script>
 
