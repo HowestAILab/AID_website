@@ -4,7 +4,6 @@
       :tabs="tabNames"
       :active-tab="phase"
       @update:active-tab="handleTabChange"
-      @button-refs-updated="handleButtonRefsUpdate"
     />
     <div class="flex items-center p-4">
       <button
@@ -60,7 +59,7 @@
         <div class="grid grid-cols-3 gap-4 w-full">
           <template
             v-for="(exercise, index) in getExercisesForCategory(categoryName)"
-            :key="exercise.title + '-' + index"
+            :key="exercise.name + '-' + index"
           >
             <div class="relative">
               <ExerciseCard
@@ -68,7 +67,7 @@
                 :description="exercise.description"
                 :driveType="exercise.location?.human_ai_scale === 3 ? 'human' : (exercise.location?.human_ai_scale === 2 ? 'human-ai' : 'ai')"
                 :originalIndex="getOriginalExerciseIndex(exercise)"
-                :isInPipeline="isExerciseInPipeline(exercise)"
+                :isInPipeline="isExerciseInPipeline(exercise, getOriginalExerciseIndex)"
                 @togglePipeline="togglePipelineSelection"
               />
               <div
@@ -106,44 +105,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
+import { computed, onMounted } from "vue";
 import Tabs from "./Tabs.vue";
 import ExerciseCard from "./ExerciseCard.vue";
 import AddExerciseDialog from "./AddExerciseDialog.vue";
 import { ArrowLeft, CirclePlus, Trash2, SquarePen } from "lucide-vue-next";
-import dummyData from "../../dummy.json";
 
-const tabNames = ["Discover", "Define", "Develop", "Deliver"];
+// Import types
+import type { SelectedPinInfo, Exercise } from "../types/exercise";
 
-interface Exercise {
-  name: string;
-  description: string;
-  location: {
-    phase: string;
-    step: string;
-    human_ai_scale: number;
-  };
-  prompt_example: any[];
-  etchical: {
-    before: any[];
-    after: any[];
-  };
-  miro_board: string;
-  isCustom?: boolean;
-}
+// Import constants
+import { TAB_NAMES, PHASE_CATEGORY_MAPPING } from "../constants/exercises";
 
-interface SelectedPinInfo {
-  name: string;
-  originalIndex: number;
-  order: number;
-  location: {
-    phase: string;
-    step: string;
-    human_ai_scale: number;
-  };
-}
+// Import composables
+import { useExercises } from "../composables/useExercises";
+import { usePipeline } from "../composables/usePipeline";
+import { useExerciseDialog } from "../composables/useExerciseDialog";
 
-type ExerciseData = Exercise;
+const tabNames = TAB_NAMES;
 
 const props = defineProps<{
   phase: string;
@@ -156,220 +135,69 @@ const emit = defineEmits<{
   (e: "selectedPinsChange", selectedPins: SelectedPinInfo[]): void;
 }>();
 
-const allStaticExercises = ref<Exercise[]>([]);
-const customExercises = ref<Exercise[]>([]);
-const selectedPinIndices = ref<number[]>([]);
+// Use composables
+const {
+  allStaticExercises,
+  customExercises,
+  loadExercises,
+  getExercisesForCategory: getExercisesForCategoryBase,
+  addNewExercise,
+  editExistingExercise,
+  deleteExercise,
+  getOriginalExerciseIndex,
+} = useExercises();
 
-const LOCAL_STORAGE_KEY_CUSTOM_EXERCISES = "customDesignExercises";
-const LOCAL_STORAGE_KEY_DIAMOND_EXERCISES = "diamondExercises";
+const {
+  selectedPinIndices,
+  updateSelectedPinsFromProp,
+  togglePipelineSelection,
+  isExerciseInPipeline,
+} = usePipeline(props, allStaticExercises, emit);
 
-// --- Load exercises ---
-onMounted(() => {
-  // Load diamond exercises state from local storage
-  const savedDiamondExercises = localStorage.getItem(
-    LOCAL_STORAGE_KEY_DIAMOND_EXERCISES
-  );
-  const diamondExercises = savedDiamondExercises
-    ? JSON.parse(savedDiamondExercises)
-    : {};
+const {
+  isAddExerciseDialogOpen,
+  currentCategoryForDialog,
+  editingExercise,
+  openDialogForCategory,
+  openEditDialog,
+  closeDialog,
+} = useExerciseDialog();
 
-  // Load static exercises (from imported JSON), apply saved diamond state
-  allStaticExercises.value = (dummyData.exercise || []).map((item: any) => ({
-    ...item,
-    isCustom: false,
-  }));
-
-  // Load custom exercises from local storage and apply their diamond state
-  const storedCustomExercises = localStorage.getItem(
-    LOCAL_STORAGE_KEY_CUSTOM_EXERCISES
-  );
-  if (storedCustomExercises) {
-    try {
-      const parsedExercises: Exercise[] = JSON.parse(storedCustomExercises);
-      customExercises.value = parsedExercises.map((ex) => ({
-        ...ex,
-      }));
-    } catch (e) {
-      console.error("Error parsing custom exercises from local storage:", e);
-      // Optionally clear corrupted data
-      localStorage.removeItem(LOCAL_STORAGE_KEY_CUSTOM_EXERCISES);
-    }
-  }
-
-  updateSelectedPinsFromProp();
-});
-
-// Watch for changes in the selectedPins prop and update local state
-watch(() => props.selectedPins, () => {
-  updateSelectedPinsFromProp();
-}, { deep: true });
-
-// Helper function to update local selected pins from the prop
-const updateSelectedPinsFromProp = () => {
-  selectedPinIndices.value = props.selectedPins.map(pin => pin.originalIndex);
-};
-
-// Defines the categories for each phase and their order
-const phaseCategoryMapping: Record<string, string[]> = {
-  Discover: ["Prepare (Discover)", "Discover"],
-  Define: ["Define", "Synthesise (Define)"],
-  Develop: ["Prepare (Develop)", "Develop"],
-  Deliver: ["Deliver", "Synthesise (Develop)"],
-};
-
+// Computed properties
 const categoriesForCurrentPhase = computed(() => {
-  return phaseCategoryMapping[props.phase] || [];
+  return PHASE_CATEGORY_MAPPING[props.phase] || [];
 });
 
 const getExercisesForCategory = (categoryName: string) => {
-  // For static exercises, filter using item.location.phase & location.step
-  const staticFiltered = allStaticExercises.value.filter(
-    (ex) => ex.location.phase === props.phase && ex.location.step === categoryName
-  );
-  // For custom, must mimic location shape as well
-  const customFiltered = customExercises.value.filter(
-    (ex) => ex.location?.phase === props.phase && ex.location?.step === categoryName
-  );
-  return [...staticFiltered, ...customFiltered];
+  return getExercisesForCategoryBase(categoryName, props.phase);
 };
 
-// Dialog state and handling
-const isAddExerciseDialogOpen = ref(false);
-const currentCategoryForDialog = ref<string | null>(null);
-const editingExercise = ref<Exercise | undefined>(undefined);
-
-const openDialogForCategory = (category: string) => {
-  currentCategoryForDialog.value = category;
-  editingExercise.value = undefined;
-  isAddExerciseDialogOpen.value = true;
-};
-
-const handleEditExercise = (exercise: Exercise) => {
-  editingExercise.value = exercise;
-  currentCategoryForDialog.value = exercise.location?.step || '';
-  isAddExerciseDialogOpen.value = true;
-};
-
-const handleAddNewExercise = (exerciseData: { name: string; description: string; location?: { phase?: string; step?: string; human_ai_scale?: number } }) => {
-  const location = {
-    phase: props.phase,
-    step: currentCategoryForDialog.value ?? "",
-    human_ai_scale: exerciseData.location?.human_ai_scale ?? 3,
-  };
-  const newExercise: Exercise = {
-    name: exerciseData.name,
-    description: exerciseData.description,
-    location,
-    prompt_example: [],
-    etchical: { before: [], after: [] },
-    miro_board: "",
-    isCustom: true,
-  };
-  customExercises.value.push(newExercise);
-  localStorage.setItem(
-    LOCAL_STORAGE_KEY_CUSTOM_EXERCISES,
-    JSON.stringify(customExercises.value)
-  );
-  isAddExerciseDialogOpen.value = false;
-  currentCategoryForDialog.value = null;
-};
-
-const handleEditExistingExercise = (exerciseData: { name: string; description: string; location?: { phase?: string; step?: string; human_ai_scale?: number } }) => {
-  // Use name+step as key for finding custom exercise
-  const index = customExercises.value.findIndex(
-    (ex) => ex.name === exerciseData.name && ex.location?.step === exerciseData.location?.step
-  );
-  if (index !== -1) {
-    customExercises.value[index] = {
-      name: exerciseData.name,
-      description: exerciseData.description,
-      location: {
-        phase: props.phase,
-        step: currentCategoryForDialog.value ?? "",
-        human_ai_scale: exerciseData.location?.human_ai_scale ?? 3,
-      },
-      prompt_example: [],
-      etchical: { before: [], after: [] },
-      miro_board: "",
-      isCustom: true,
-    };
-    localStorage.setItem(
-      LOCAL_STORAGE_KEY_CUSTOM_EXERCISES,
-      JSON.stringify(customExercises.value)
-    );
-  }
-  isAddExerciseDialogOpen.value = false;
-  currentCategoryForDialog.value = null;
-  editingExercise.value = undefined;
-};
-
-const handleDeleteExercise = (exerciseToDelete: Exercise) => {
-  // Use index for safety since id no longer exists
-  const index = customExercises.value.findIndex(
-    (ex) => ex.name === exerciseToDelete.name && ex.location?.step === exerciseToDelete.location?.step
-  );
-  if (index !== -1) {
-    customExercises.value.splice(index, 1);
-    localStorage.setItem(
-      LOCAL_STORAGE_KEY_CUSTOM_EXERCISES,
-      JSON.stringify(customExercises.value)
-    );
-  }
-};
-
-// Tab handling
+// Event handlers
 const handleTabChange = (tab: string) => {
   emit("update:phase", tab);
 };
 
-const handleButtonRefsUpdate = (
-  refs: Record<string, HTMLButtonElement | null>
-) => {
-  // Placeholder for future use
+const handleEditExercise = (exercise: Exercise) => {
+  openEditDialog(exercise);
 };
 
-// Pipeline selection logic
-const togglePipelineSelection = (originalIndex: number) => {
-  const isCurrentlySelected = selectedPinIndices.value.includes(originalIndex);
-  
-  if (isCurrentlySelected) {
-    // Remove from selection
-    selectedPinIndices.value = selectedPinIndices.value.filter(idx => idx !== originalIndex);
-  } else {
-    // Add to selection
-    selectedPinIndices.value.push(originalIndex);
-  }
-  
-  const selectedPinData = selectedPinIndices.value.map((idx) => {
-    const exercise = allStaticExercises.value[idx];
-    return {
-      name: exercise.name,
-      originalIndex: idx,
-      order: idx,
-      location: exercise.location,
-    };
-  });
-
-  emit("selectedPinsChange", selectedPinData);
+const handleAddNewExercise = (exerciseData: { name: string; description: string; location?: { phase?: string; step?: string; human_ai_scale?: number } }) => {
+  addNewExercise(exerciseData, props.phase, currentCategoryForDialog.value ?? "");
+  closeDialog();
 };
 
-// Get original index for an exercise
-const getOriginalExerciseIndex = (exercise: Exercise): number => {
-  // For static exercises, find index in the original dummy data
-  if (!exercise.isCustom) {
-    return allStaticExercises.value.findIndex(ex => 
-      ex.name === exercise.name && 
-      ex.location.phase === exercise.location.phase &&
-      ex.location.step === exercise.location.step
-    );
-  }
-  // For custom exercises, we'll use a negative index or a different approach. Since custom exercises don't exist in the original array, we'll need to handle them differently
-  return -1; // Custom exercises won't be compatible with the canvas for now, probably fix when connected to backend
+const handleEditExistingExercise = (exerciseData: { name: string; description: string; location?: { phase?: string; step?: string; human_ai_scale?: number } }) => {
+  editExistingExercise(exerciseData, props.phase, currentCategoryForDialog.value ?? "");
+  closeDialog();
 };
 
-// Check if exercise is in pipeline
-const isExerciseInPipeline = (exercise: Exercise): boolean => {
-  const originalIndex = getOriginalExerciseIndex(exercise);
-  return originalIndex >= 0 && selectedPinIndices.value.includes(originalIndex);
+const handleDeleteExercise = (exerciseToDelete: Exercise) => {
+  deleteExercise(exerciseToDelete);
 };
+
+// Lifecycle
+onMounted(() => {
+  loadExercises();
+  updateSelectedPinsFromProp();
+});
 </script>
