@@ -331,6 +331,9 @@ watch(
     } else if (newPage === "exercises") {
       activeItem.value = "diamond-exercises";
       isDiamondExpanded.value = true;
+    } else if (newPage === "pipeline") {
+      activeItem.value = "diamond-pipeline";
+      isDiamondExpanded.value = true;
     } else if (newPage === "overview") {
       activeItem.value = "overview";
       isDiamondExpanded.value = false;
@@ -363,7 +366,7 @@ const setActive = (item: ActiveItem) => {
       emit("navigate", "diamond");
       break;
     case "diamond-pipeline":
-      emit("navigate", "diamond");
+      emit("navigate", "pipeline");
       break;
     case "diamond-reflexion":
       emit("navigate", "diamond");

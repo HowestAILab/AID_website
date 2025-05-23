@@ -22,8 +22,8 @@ export function useNavigation() {
   });
 
   const handleNavigate = (page: string) => {
-    // If trying to navigate to diamond/exercises but no current project, stay on overview
-    if ((page === 'diamond' || page === 'exercises') && !currentProject.value) {
+    // If no project is selected, stay on overview
+    if ((page === 'diamond' || page === 'exercises' || page === 'pipeline') && !currentProject.value) {
       currentPage.value = 'overview';
       return;
     }
@@ -51,6 +51,10 @@ export function useNavigation() {
     currentPhase.value = '';
   };
 
+  const handlePipelineClose = () => {
+    currentPage.value = 'diamond';
+  };
+
   return {
     currentPage,
     currentPhase,
@@ -58,5 +62,6 @@ export function useNavigation() {
     handleNavigateToProject,
     handleExerciseButtonClick,
     handleExercisesClose,
+    handlePipelineClose,
   };
 } 

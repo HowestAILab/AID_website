@@ -72,6 +72,11 @@
           v-else-if="currentPage === 'overview'"
           @navigate-to-project="handleNavigateToProject"
         />
+        <PipelinePage
+          v-else-if="currentPage === 'pipeline'"
+          :selected-pins="selectedPins"
+          @close="handlePipelineClose"
+        />
         <div v-else-if="currentPage === 'tools'" class="flex-1 flex items-center justify-center">
           <p class="text-gray-500">Tools page</p> <!-- Todo tools page -->
         </div>
@@ -94,6 +99,7 @@ import KonvaCanvas from "./components/KonvaCanvas.vue";
 import AddExercisesButtons from "./components/AddExercisesButtons.vue";
 import ExercisesPage from "./components/ExercisesPage.vue";
 import OverviewPage from "./components/OverviewPage.vue";
+import PipelinePage from "./components/PipelinePage.vue";
 import { Toaster } from '@/components/ui/sonner';
 import { nextTick } from "vue";
 import { TABS } from "@/constants/app";
@@ -112,6 +118,7 @@ const {
   handleNavigateToProject,
   handleExerciseButtonClick,
   handleExercisesClose,
+  handlePipelineClose,
 } = useNavigation();
 
 const {
