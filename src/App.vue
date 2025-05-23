@@ -2,12 +2,12 @@
   <Toaster />
   <div class="flex flex-col h-screen">
     <div class="flex flex-1 overflow-hidden">
-      <Sidebar />
+      <Sidebar @navigate="handleNavigate" :current-page="currentPage" />
       <main
         ref="mainElementRef"
         class="flex-1 flex flex-col overflow-y-auto relative"
       >
-        <template v-if="!showExercisesPage">
+        <template v-if="currentPage === 'diamond'">
           <!-- Vertical Grey Lines -->
           <template
             v-for="(offset, index) in allRenderingLineOffsets"
@@ -61,12 +61,18 @@
           />
         </template>
         <ExercisesPage
-          v-else
+          v-else-if="currentPage === 'exercises'"
           :phase="currentPhase"
           @close="handleExercisesClose"
           @update:phase="phase => currentPhase = phase"
           @selected-pins-change="handleSelectedPinsChange"
         />
+        <div v-else-if="currentPage === 'overview'" class="flex-1 flex items-center justify-center">
+          <p class="text-gray-500">Overview page</p> <!-- Todo overview page -->
+        </div>
+        <div v-else-if="currentPage === 'tools'" class="flex-1 flex items-center justify-center">
+          <p class="text-gray-500">Tools page</p> <!-- Todo tools page -->
+        </div>
       </main>
     </div>
     <CurrentPipelineSection
@@ -192,16 +198,25 @@ const handleUnselectPin = (originalPinIndex: number) => {
   }
 };
 
-const showExercisesPage = ref(false);
-const currentPhase = ref('');
+const currentPage = ref('diamond');
+const currentPhase = ref('Discover');
+
+const handleNavigate = (page: string) => {
+  currentPage.value = page;
+  
+  // If navigating to exercises but no phase selected, default to Discover
+  if (page === 'exercises' && !currentPhase.value) {
+    currentPhase.value = 'Discover';
+  }
+};
 
 const handleExerciseButtonClick = (phase: string) => {
-  showExercisesPage.value = true;
+  currentPage.value = 'exercises';
   currentPhase.value = phase;
 };
 
 const handleExercisesClose = () => {
-  showExercisesPage.value = false;
+  currentPage.value = 'diamond';
   currentPhase.value = '';
 };
 
