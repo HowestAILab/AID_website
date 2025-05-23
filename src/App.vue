@@ -67,9 +67,10 @@
           @update:phase="phase => currentPhase = phase"
           @selected-pins-change="handleSelectedPinsChange"
         />
-        <div v-else-if="currentPage === 'overview'" class="flex-1 flex items-center justify-center">
-          <p class="text-gray-500">Overview page</p> <!-- Todo overview page -->
-        </div>
+        <OverviewPage
+          v-else-if="currentPage === 'overview'"
+          @navigate-to-project="handleNavigateToProject"
+        />
         <div v-else-if="currentPage === 'tools'" class="flex-1 flex items-center justify-center">
           <p class="text-gray-500">Tools page</p> <!-- Todo tools page -->
         </div>
@@ -91,6 +92,8 @@ import Tabs from "./components/Tabs.vue";
 import KonvaCanvas from "./components/KonvaCanvas.vue";
 import AddExercisesButtons from "./components/AddExercisesButtons.vue";
 import ExercisesPage from "./components/ExercisesPage.vue";
+import OverviewPage from "./components/OverviewPage.vue";
+import { useProjects, type SelectedPinInfo } from "@/composables/useProjects";
 import {
   ref,
   onMounted,
@@ -98,15 +101,12 @@ import {
   shallowRef,
   onUnmounted,
   computed,
+  watch,
 } from "vue";
 import DoubleDiamond from "./assets/DoubleDiamond.svg";
 import { Toaster } from '@/components/ui/sonner'
 
-interface SelectedPinInfo {
-  name: string;
-  originalIndex: number;
-  order: number; 
-}
+const { currentProject, hasProjects, setCurrentProject, updateProjectSelectedPins, getCurrentProjectSelectedPins } = useProjects();
 
 const konvaCanvasRef = ref<InstanceType<typeof KonvaCanvas> | null>(null);
 
@@ -190,6 +190,8 @@ const selectedPins = ref<SelectedPinInfo[]>([]);
 
 const handleSelectedPinsChange = (pins: SelectedPinInfo[]) => {
   selectedPins.value = pins;
+  // Save the selected pins to the current project
+  updateProjectSelectedPins(pins);
 };
 
 const handleUnselectPin = (originalPinIndex: number) => {
@@ -198,16 +200,66 @@ const handleUnselectPin = (originalPinIndex: number) => {
   }
 };
 
-const currentPage = ref('diamond');
+const currentPage = ref('overview');
 const currentPhase = ref('Discover');
 
+// Watch for project changes - if no projects exist, stay on overview
+watch(hasProjects, (hasProjectsValue) => {
+  if (!hasProjectsValue && currentPage.value !== 'overview') {
+    currentPage.value = 'overview';
+  }
+});
+
+// Watch for current project changes - if no current project, go to overview
+// Also load the project's selected pins when switching projects
+watch(currentProject, (project) => {
+  if (!project && currentPage.value !== 'overview') {
+    currentPage.value = 'overview';
+  }
+  
+  // Load the selected pins for the current project
+  if (project) {
+    selectedPins.value = getCurrentProjectSelectedPins();
+    // Update the canvas with the project's selected pins
+    nextTick(() => {
+      if (konvaCanvasRef.value && selectedPins.value.length > 0) {
+        konvaCanvasRef.value.loadSelectedPins(selectedPins.value);
+      }
+    });
+  } else {
+    selectedPins.value = [];
+  }
+});
+
+// Watch for konvaCanvasRef to become available and load selected pins
+watch(konvaCanvasRef, (canvas) => {
+  if (canvas && currentProject.value) {
+    const projectSelectedPins = getCurrentProjectSelectedPins();
+    if (projectSelectedPins.length > 0) {
+      selectedPins.value = projectSelectedPins;
+      canvas.loadSelectedPins(projectSelectedPins);
+    }
+  }
+});
+
 const handleNavigate = (page: string) => {
+  // If trying to navigate to diamond/exercises but no current project, stay on overview
+  if ((page === 'diamond' || page === 'exercises') && !currentProject.value) {
+    currentPage.value = 'overview';
+    return;
+  }
+  
   currentPage.value = page;
   
   // If navigating to exercises but no phase selected, default to Discover
   if (page === 'exercises' && !currentPhase.value) {
     currentPhase.value = 'Discover';
   }
+};
+
+const handleNavigateToProject = (projectId: string) => {
+  // Project is already set as current in OverviewPage
+  currentPage.value = 'diamond';
 };
 
 const handleExerciseButtonClick = (phase: string) => {

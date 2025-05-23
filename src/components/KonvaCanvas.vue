@@ -231,10 +231,6 @@ let selectedIndices: number[] = [];
 function togglePinSelection(index: number | null) {
   if (index === null) return;
 
-  // Load current selected order from localStorage to preserve order
-  const loaded = localStorage.getItem(SELECTED_PINS_STORAGE_KEY);
-  selectedIndices = loaded ? JSON.parse(loaded) : [];
-
   // Toggle pin selection
   pins.value[index].isSelected = !pins.value[index].isSelected;
 
@@ -258,12 +254,6 @@ function togglePinSelection(index: number | null) {
 
   emit("selectedPinsChange", selectedPinData);
 
-  // Save selectedIndices to localStorage for persistence
-  localStorage.setItem(
-    SELECTED_PINS_STORAGE_KEY,
-    JSON.stringify(selectedIndices)
-  );
-
   // Update the selectedPin ref to reflect the new state
   if (selectedPin.value) {
     selectedPin.value = {
@@ -278,6 +268,23 @@ function togglePinSelection(index: number | null) {
 // Expose the togglePinSelected method for external use
 defineExpose({
   togglePinSelected: togglePinSelection,
+  loadSelectedPins: (projectSelectedPins: SelectedPinInfo[]) => {
+    // Clear current selections
+    pins.value.forEach(pin => {
+      pin.isSelected = false;
+    });
+    
+    // Set selected pins based on project state
+    const projectSelectedIndices: number[] = [];
+    projectSelectedPins.forEach(pinInfo => {
+      if (pinInfo.originalIndex >= 0 && pinInfo.originalIndex < pins.value.length) {
+        pins.value[pinInfo.originalIndex].isSelected = true;
+        projectSelectedIndices.push(pinInfo.originalIndex);
+      }
+    });
+    
+    selectedIndices = projectSelectedIndices;
+  }
 });
 
 const handleMouseEnter = (index: number) => {
@@ -377,24 +384,5 @@ onMounted(() => {
     // If the value is undefined or not explicitly false, make it true (so default is visible)
     pin.isAddedToDiamond = diamondExercisesMap[pin.labelConfig.text] !== false;
   });
-
-  // Load selected pins for pipeline state from localStorage
-  const savedPinIndices = localStorage.getItem(SELECTED_PINS_STORAGE_KEY);
-  if (savedPinIndices) {
-    const selectedIndices: number[] = JSON.parse(savedPinIndices);
-    const currentSelectedPinData: SelectedPinInfo[] = [];
-    selectedIndices.forEach((index: number) => {
-      if (index >= 0 && index < pins.value.length) {
-        pins.value[index].isSelected = true;
-        currentSelectedPinData.push({
-          name: pins.value[index].labelConfig.text,
-          originalIndex: index,
-          order: pins.value[index].order,
-          location: pins.value[index].location,
-        });
-      }
-    });
-    emit("selectedPinsChange", currentSelectedPinData);
-  }
 });
 </script>

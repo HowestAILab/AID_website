@@ -23,6 +23,12 @@
             <p class="text-xs text-[#A1824A]">UX designer</p>
           </div>
         </div>
+        <div v-if="currentProject && !isCollapsed" class="mt-3 w-full">
+          <div class="bg-[#F5F0E5] rounded-lg p-3">
+            <p class="text-xs font-medium text-[#A1824A] mb-1">Current Project</p>
+            <p class="text-sm font-semibold text-[#1C170D] truncate">{{ currentProject.name }}</p>
+          </div>
+        </div>
       </div>
       <nav class="flex-grow space-y-1">
         <a
@@ -289,10 +295,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useProjects } from "@/composables/useProjects";
 
 const props = defineProps<{
   currentPage?: string;
 }>();
+
+const { currentProject } = useProjects();
 
 type ActiveItem =
   | "overview"
@@ -306,9 +315,9 @@ const emit = defineEmits<{
   (e: "navigate", page: string): void;
 }>();
 
-const activeItem = ref<ActiveItem>("diamond");
+const activeItem = ref<ActiveItem>("overview");
 const isCollapsed = ref(false);
-const isDiamondExpanded = ref(true);
+const isDiamondExpanded = ref(false);
 const showDiamondPopover = ref(false);
 let popoverTimeout: ReturnType<typeof setTimeout> | null = null;
 
