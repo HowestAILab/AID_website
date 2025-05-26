@@ -30,7 +30,9 @@
                 size="icon"
                 class="size-10 rounded-full shrink-0"
                 :class="[
-                  index + 1 <= currentStep ? 'bg-[#F59E0C] text-white hover:bg-[#F59E0C]/90' : 'text-muted-foreground'
+                  index + 1 <= currentStep
+                    ? 'bg-[#F59E0C] text-white hover:bg-[#F59E0C]/90'
+                    : 'text-muted-foreground',
                 ]"
               >
                 <Check v-if="index + 1 < currentStep" class="size-5" />
@@ -51,13 +53,30 @@
           </StepperItem>
         </Stepper>
       </div>
+      <div>
+        <div class="border p-4 rounded-lg shadow-md">
+          <div>
+            <p class="text-[#D97704] mb-4 text-xl">Discover Phase</p>
+          </div>
+          <PipelineExercisesCard
+            title="Stakeholder Mapping"
+            stage="Prepare"
+            description="Identify and map all stakeholders involved in the ProjectCard. Helps to understand relationships and influence."
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { ArrowLeft, Check } from 'lucide-vue-next';
+import { ref } from "vue";
+import {
+  ArrowLeft,
+  Check,
+  SquareArrowOutUpRight,
+  Information,
+} from "lucide-vue-next";
 import {
   Stepper,
   StepperDescription,
@@ -66,11 +85,12 @@ import {
   StepperSeparator,
   StepperTitle,
   StepperTrigger,
-} from '@/components/ui/stepper';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/stepper";
+import { Button } from "@/components/ui/button";
+import PipelineExercisesCard from "./PipelineExercisesCard.vue";
 
 const emit = defineEmits<{
-  (e: 'close'): void;
+  (e: "close"): void;
 }>();
 
 const currentStep = ref(1);
@@ -78,24 +98,24 @@ const currentStep = ref(1);
 const steps = [
   {
     id: 1,
-    title: 'Discover',
-    description: 'Research and understand the problem space'
+    title: "Discover",
+    description: "Research and understand the problem space",
   },
   {
     id: 2,
-    title: 'Define',
-    description: 'Synthesize insights and define the challenge'
+    title: "Define",
+    description: "Synthesize insights and define the challenge",
   },
   {
     id: 3,
-    title: 'Develop',
-    description: 'Ideate and create potential solutions'
+    title: "Develop",
+    description: "Ideate and create potential solutions",
   },
   {
     id: 4,
-    title: 'Deliver',
-    description: 'Test, refine, and implement the solution'
-  }
+    title: "Deliver",
+    description: "Test, refine, and implement the solution",
+  },
 ];
 
 const setCurrentStep = (step: number | undefined) => {
@@ -115,4 +135,4 @@ const previousStep = () => {
     currentStep.value--;
   }
 };
-</script> 
+</script>
