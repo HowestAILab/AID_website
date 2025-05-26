@@ -9,5 +9,5 @@ export const PHASE_CATEGORY_MAPPING: Record<string, string[]> = {
   Discover: ["Prepare (Discover)", "Discover"],
   Define: ["Define", "Synthesise (Define)"],
   Develop: ["Prepare (Develop)", "Develop"],
-  Deliver: ["Deliver", "Synthesise (Develop)"],
+  Deliver: ["Deliver", "Synthesise (Deliver)"],
 }; 

@@ -59,6 +59,36 @@
         "after": []
       },
       "miro_board": "https://miro.com/app/board/xyz123"
+    },
+    {
+      "name": "User Testing",
+      "description": "Conduct structured testing sessions with real users to validate design decisions and gather feedback on the final product.",
+      "location": {
+        "phase": "Deliver",
+        "step": "Deliver",
+        "human_ai_scale": 4
+      },
+      "prompt_example": [],
+      "etchical": {
+        "before": [],
+        "after": []
+      },
+      "miro_board": "https://miro.com/app/board/xyz123"
+    },
+    {
+      "name": "Performance Analytics",
+      "description": "Use AI-powered analytics tools to synthesize user behavior data, performance metrics, and feedback into actionable insights for product improvement.",
+      "location": {
+        "phase": "Deliver",
+        "step": "Synthesise (Deliver)",
+        "human_ai_scale": 2
+      },
+      "prompt_example": [],
+      "etchical": {
+        "before": [],
+        "after": []
+      },
+      "miro_board": "https://miro.com/app/board/xyz123"
     }
   ],
   "project": [

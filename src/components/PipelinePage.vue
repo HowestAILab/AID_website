@@ -54,15 +54,23 @@
         </Stepper>
       </div>
       <div>
-        <div class="border p-4 rounded-lg shadow-md">
-          <div>
-            <p class="text-[#D97704] mb-4 text-xl">Discover Phase</p>
+        <div v-for="(phaseItem, index) in phaseExercises" :key="index">
+          <div v-if="phaseItem.exercises.length > 0" class="border p-4 rounded-lg shadow-md mb-4">
+            <div>
+              <p class="text-[#D97704] mb-4 text-xl">{{ phaseItem.phase }} Phase</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <PipelineExercisesCard
+                v-for="exercise in phaseItem.exercises"
+                :key="exercise.originalIndex"
+                :title="exercise.name"
+                :stage="exercise.location.step"
+                :description="exercise.description"
+                :originalIndex="exercise.originalIndex"
+                @open-exercise="$emit('open-exercise-detail', exercise.name)"
+              />
+            </div>
           </div>
-          <PipelineExercisesCard
-            title="Stakeholder Mapping"
-            stage="Prepare"
-            description="Identify and map all stakeholders involved in the ProjectCard. Helps to understand relationships and influence."
-          />
         </div>
       </div>
     </div>
@@ -70,12 +78,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import {
   ArrowLeft,
   Check,
   SquareArrowOutUpRight,
-  Information,
+  Info,
 } from "lucide-vue-next";
 import {
   Stepper,
@@ -89,8 +97,26 @@ import {
 import { Button } from "@/components/ui/button";
 import PipelineExercisesCard from "./PipelineExercisesCard.vue";
 
+// Define the structure of a selected pin
+interface SelectedPin {
+  name: string;
+  originalIndex: number;
+  order: number;
+  description: string;
+  location: {
+    phase: string;
+    step: string;
+    human_ai_scale: number;
+  };
+}
+
+const props = defineProps<{
+  selectedPins: SelectedPin[]; // Prop to receive selected pins
+}>();
+
 const emit = defineEmits<{
   (e: "close"): void;
+  (e: "open-exercise-detail", exerciseName: string): void;
 }>();
 
 const currentStep = ref(1);
@@ -117,6 +143,27 @@ const steps = [
     description: "Test, refine, and implement the solution",
   },
 ];
+
+// Computed properties to filter exercises by phase
+const discoverExercises = computed(() =>
+  props.selectedPins.filter((pin) => pin.location.phase === "Discover")
+);
+const defineExercises = computed(() =>
+  props.selectedPins.filter((pin) => pin.location.phase === "Define")
+);
+const developExercises = computed(() =>
+  props.selectedPins.filter((pin) => pin.location.phase === "Develop")
+);
+const deliverExercises = computed(() =>
+  props.selectedPins.filter((pin) => pin.location.phase === "Deliver")
+);
+
+const phaseExercises = computed(() => [
+  { phase: "Discover", exercises: discoverExercises.value },
+  { phase: "Define", exercises: defineExercises.value },
+  { phase: "Develop", exercises: developExercises.value },
+  { phase: "Deliver", exercises: deliverExercises.value },
+]);
 
 const setCurrentStep = (step: number | undefined) => {
   if (step !== undefined) {

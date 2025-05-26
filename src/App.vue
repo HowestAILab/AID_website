@@ -67,6 +67,7 @@
           @close="handleExercisesClose"
           @update:phase="(phase: string) => currentPhase = phase"
           @selected-pins-change="handleSelectedPinsChange"
+          @open-exercise-detail="handleOpenExerciseDetail"
         />
         <OverviewPage
           v-else-if="currentPage === 'overview'"
@@ -76,6 +77,12 @@
           v-else-if="currentPage === 'pipeline'"
           :selected-pins="selectedPins"
           @close="handlePipelineClose"
+          @open-exercise-detail="handleOpenExerciseDetail"
+        />
+        <ExerciseDetail 
+          v-else-if="currentPage === 'exerciseDetail'"
+          :exercise-title="currentExerciseTitle" 
+          @back="handleBackToPipeline" 
         />
         <div v-else-if="currentPage === 'tools'" class="flex-1 flex items-center justify-center">
           <p class="text-gray-500">Tools page</p> <!-- Todo tools page -->
@@ -100,6 +107,7 @@ import AddExercisesButtons from "./components/AddExercisesButtons.vue";
 import ExercisesPage from "./components/ExercisesPage.vue";
 import OverviewPage from "./components/OverviewPage.vue";
 import PipelinePage from "./components/PipelinePage.vue";
+import ExerciseDetail from "./components/ExerciseDetail.vue";
 import { Toaster } from '@/components/ui/sonner';
 import { nextTick } from "vue";
 import { TABS } from "@/constants/app";
@@ -114,11 +122,14 @@ import { useLayout } from "@/composables/useLayout";
 const {
   currentPage,
   currentPhase,
+  currentExerciseTitle,
   handleNavigate,
   handleNavigateToProject,
   handleExerciseButtonClick,
   handleExercisesClose,
   handlePipelineClose,
+  handleOpenExerciseDetail,
+  handleBackToPipeline,
 } = useNavigation();
 
 const {

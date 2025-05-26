@@ -6,6 +6,7 @@ export function useNavigation() {
   
   const currentPage = ref('overview');
   const currentPhase = ref('Discover');
+  const currentExerciseTitle = ref('');
 
   // Watch for project changes - if no projects exist, stay on overview
   watch(hasProjects, (hasProjectsValue) => {
@@ -55,13 +56,25 @@ export function useNavigation() {
     currentPage.value = 'diamond';
   };
 
+  const handleOpenExerciseDetail = (exerciseName: string) => {
+    currentPage.value = 'exerciseDetail';
+    currentExerciseTitle.value = exerciseName;
+  };
+
+  const handleBackToPipeline = () => {
+    currentPage.value = 'pipeline';
+  };
+
   return {
     currentPage,
     currentPhase,
+    currentExerciseTitle,
     handleNavigate,
     handleNavigateToProject,
     handleExerciseButtonClick,
     handleExercisesClose,
     handlePipelineClose,
+    handleOpenExerciseDetail,
+    handleBackToPipeline,
   };
 } 

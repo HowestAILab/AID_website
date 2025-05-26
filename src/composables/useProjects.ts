@@ -4,6 +4,7 @@ export interface SelectedPinInfo {
   name: string;
   originalIndex: number;
   order: number;
+  description: string;
   location: {
     phase: string;
     step: string;

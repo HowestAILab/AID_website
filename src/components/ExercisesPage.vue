@@ -69,6 +69,7 @@
                 :originalIndex="getOriginalExerciseIndex(exercise)"
                 :isInPipeline="isExerciseInPipeline(exercise, getOriginalExerciseIndex)"
                 @togglePipeline="togglePipelineSelection"
+                @open-exercise="handleOpenExerciseDetail(exercise.name)"
               />
               <div
                 v-if="exercise.isCustom"
@@ -133,6 +134,7 @@ const emit = defineEmits<{
   (e: "close"): void;
   (e: "update:phase", phase: string): void;
   (e: "selectedPinsChange", selectedPins: SelectedPinInfo[]): void;
+  (e: "open-exercise-detail", exerciseName: string): void;
 }>();
 
 // Use composables
@@ -176,6 +178,10 @@ const getExercisesForCategory = (categoryName: string) => {
 const handleTabChange = (tab: string) => {
   emit("update:phase", tab);
 };
+
+const handleOpenExerciseDetail = (exerciseName: string) => {
+  emit("open-exercise-detail", exerciseName);
+}
 
 const handleEditExercise = (exercise: Exercise) => {
   openEditDialog(exercise);

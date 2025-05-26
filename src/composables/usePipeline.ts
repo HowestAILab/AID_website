@@ -36,6 +36,7 @@ export function usePipeline(
         name: exercise.name,
         originalIndex: idx,
         order: idx,
+        description: exercise.description,
         location: exercise.location,
       };
     });

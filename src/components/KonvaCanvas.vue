@@ -114,6 +114,7 @@ interface SelectedPinInfo {
   name: string;
   originalIndex: number;
   order: number;
+  description: string;
   location: {
     phase: string;
     step: string;
@@ -249,6 +250,7 @@ function togglePinSelection(index: number | null) {
     name: pins.value[idx].labelConfig.text,
     originalIndex: idx,
     order: pins.value[idx].order,
+    description: pins.value[idx].description,
     location: pins.value[idx].location,
   }));
 
