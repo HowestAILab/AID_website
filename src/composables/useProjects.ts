@@ -119,6 +119,14 @@ export function useProjects() {
     }
   };
 
+  const updateProject = (projectId: string, updatedData: { name: string; description: string }) => {
+    const project = projects.value.find(p => p.id === projectId);
+    if (project) {
+      project.name = updatedData.name;
+      project.description = updatedData.description;
+    }
+  };
+
   const updateProjectSelectedPins = (pins: SelectedPinInfo[]) => {
     if (currentProject.value) {
       const projectIndex = projects.value.findIndex(p => p.id === currentProject.value!.id);
@@ -140,6 +148,7 @@ export function useProjects() {
     setCurrentProject,
     deleteProject,
     updateProjectSelectedPins,
-    getCurrentProjectSelectedPins
+    getCurrentProjectSelectedPins,
+    updateProject
   };
 } 

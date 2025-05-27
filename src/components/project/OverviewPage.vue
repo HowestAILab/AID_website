@@ -47,6 +47,7 @@
           :created-date="project.createdDate"
           @open-project="() => handleOpenProject(project.id)"
           @delete-project="() => handleDeleteProject(project.id)"
+          @edit-project="() => handleEditProject(project)"
         />
       </div>
 
@@ -74,6 +75,13 @@
     <NewProjectDialog
       v-model:open="showNewProjectDialog"
       @create-project="handleCreateProject"
+    />
+
+    <!-- Edit Project Dialog -->
+    <EditProjectDialog
+      v-model:open="showEditProjectDialog"
+      :project-data="projectToEdit"
+      @update-project="handleUpdateProject"
     />
 
     <!-- Delete Confirmation Alert Dialog -->
@@ -109,6 +117,7 @@ import { Plus, Gem, ArrowDownToLine } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import ProjectCard from "./ProjectCard.vue";
 import NewProjectDialog from "./NewProjectDialog.vue";
+import EditProjectDialog from "./EditProjectDialog.vue";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -126,12 +135,14 @@ const emit = defineEmits<{
   (e: "navigate-to-project", projectId: string): void;
 }>();
 
-const { projects, createProject, setCurrentProject, deleteProject } =
+const { projects, createProject, setCurrentProject, deleteProject, updateProject } =
   useProjects();
 
 const showNewProjectDialog = ref(false);
+const showEditProjectDialog = ref(false);
 const showDeleteDialog = ref(false);
 const projectToDelete = ref<Project | null>(null);
+const projectToEdit = ref<Project | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const triggerFileInput = () => {
@@ -214,6 +225,21 @@ const handleDeleteProject = (projectId: string) => {
     projectToDelete.value = project;
     showDeleteDialog.value = true;
   }
+};
+
+const handleEditProject = (project: Project) => {
+  projectToEdit.value = { ...project }; // Use a copy to avoid modifying the original object directly but should check with this later
+  showEditProjectDialog.value = true;
+};
+
+const handleUpdateProject = (updatedProjectData: { id: string; name: string; description: string }) => {
+  updateProject(updatedProjectData.id, {
+    name: updatedProjectData.name,
+    description: updatedProjectData.description,
+  });
+  toast.success(`Project "${updatedProjectData.name}" updated successfully!`);
+  showEditProjectDialog.value = false;
+  projectToEdit.value = null;
 };
 
 const confirmDeleteProject = () => {

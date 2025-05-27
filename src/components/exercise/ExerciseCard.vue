@@ -1,5 +1,7 @@
 <template>
-  <div class="p-4 border border-[#E5E7EB] rounded-lg shadow-sm h-full flex flex-col">
+  <div
+    class="p-4 border border-[#E5E7EB] rounded-lg shadow-sm h-full flex flex-col"
+  >
     <div class="flex items-center justify-between mb-1">
       <p class="text-lg font-medium mb-1">{{ title }}</p>
       <div
@@ -20,14 +22,22 @@
     >
       <CirclePlus v-if="!props.isInPipeline" />
       <CircleMinus v-else />
-      <p>{{ props.isInPipeline ? 'Remove from pipeline' : 'Add to pipeline' }}</p>
+      <p>
+        {{ props.isInPipeline ? "Remove from pipeline" : "Add to pipeline" }}
+      </p>
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { UserRound, Bot, UserCog, CirclePlus, CircleMinus } from "lucide-vue-next";
+import {
+  UserRound,
+  Bot,
+  UserCog,
+  CirclePlus,
+  CircleMinus,
+} from "lucide-vue-next";
 
 type DriveType = "human" | "human-ai" | "ai";
 
@@ -72,4 +82,4 @@ const driveTypeConfig = computed<DriveTypeConfig>(() => {
       };
   }
 });
-</script> 
+</script>

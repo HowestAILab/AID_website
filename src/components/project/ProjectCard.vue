@@ -1,11 +1,16 @@
 <template>
   <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-200 relative group h-full flex flex-col">
-    <!-- Delete Button -->
     <button
       @click="$emit('delete-project')"
       class="absolute top-3 right-3 p-1.5 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-200 opacity-0 group-hover:opacity-100"
     >
       <Trash2 class="w-4 h-4" />
+    </button>
+    <button
+      @click="$emit('edit-project')"
+      class="absolute top-3 right-10 p-1.5 rounded-full text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors duration-200 opacity-0 group-hover:opacity-100"
+    >
+      <Pencil class="w-4 h-4" />
     </button>
     <div class="flex-grow space-y-4">
       <h3 class="text-lg font-semibold text-gray-900 pr-8">{{ title }}</h3>
@@ -30,7 +35,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Trash2 } from 'lucide-vue-next';
+import { Trash2, Pencil } from 'lucide-vue-next';
 
 const props = defineProps<{
   title: string;
@@ -41,6 +46,7 @@ const props = defineProps<{
 defineEmits<{
   (e: 'open-project'): void;
   (e: 'delete-project'): void;
+  (e: 'edit-project'): void;
 }>();
 
 const formattedCreatedDate = computed(() => {
