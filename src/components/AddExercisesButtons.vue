@@ -7,7 +7,7 @@
     <button
       v-for="(offset, index) in addExercisesButtonCenterOffsets"
       :key="'add-exercises-button-' + index"
-      class="absolute bg-white hover:cursor-pointer text-black border font-medium py-3 px-10 rounded text-sm"
+      class="absolute bg-white hover:cursor-pointer text-black border font-medium py-3 px-10 rounded text-sm pointer-events-auto"
       :style="{
         left: offset + 'px',
         transform: 'translateX(-50%)',

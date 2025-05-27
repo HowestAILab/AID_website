@@ -53,18 +53,22 @@
               </template>
             </div>
 
-            <KonvaCanvas
-              ref="konvaCanvasRef"
-              :config-konva="configKonva"
-              :config-image="configImage"
-              :image-obj="imageObj"
-              @selected-pins-change="handleSelectedPinsChange"
-            />
+            <div class="relative flex-1">
+              <KonvaCanvas
+                ref="konvaCanvasRef"
+                :config-konva="configKonva"
+                :config-image="configImage"
+                :image-obj="imageObj"
+                @selected-pins-change="handleSelectedPinsChange"
+              />
 
-            <AddExercisesButtons 
-              :add-exercises-button-center-offsets="addExercisesButtonCenterOffsets" 
-              @exercise-button-click="handleExerciseButtonClick"
-            />
+              <AddExercisesButtons 
+                :add-exercises-button-center-offsets="addExercisesButtonCenterOffsets" 
+                @exercise-button-click="handleExerciseButtonClick"
+                class="absolute inset-x-0 pointer-events-none"
+                style="bottom: 145px;"
+              />
+            </div>
           </template>
           <ExercisesPage
             v-else-if="currentPage === 'exercises'"
