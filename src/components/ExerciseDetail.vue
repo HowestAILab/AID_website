@@ -1,22 +1,22 @@
 <template>
   <ResizablePanelGroup direction="horizontal" class="h-screen w-full">
     <ResizablePanel>
-      <div class="flex-1 p-6 h-full overflow-y-auto">
-        <button
-          @click="goBack"
-          class="flex items-center gap-2 text-gray-600 hover:text-gray-900 cursor-pointer"
-        >
-          <ArrowLeft />
-          <h1 class="ml-2 text-lg font-medium">Back to Pipeline</h1>
-        </button>
-        <div class="mt-8">
-          <div>
-            <h2 class="text-2xl font-semibold mb-2">{{ exerciseTitle }}</h2>
-            <div
-              class="bg-gray-200 h-[calc(100vh-220px)] rounded flex items-center justify-center"
-            >
-              <p>Miro Board Area</p>
-            </div>
+      <div class="flex flex-col h-full">
+        <div class="p-6 pb-4">
+          <button
+            @click="goBack"
+            class="flex items-center gap-2 text-gray-600 hover:text-gray-900 cursor-pointer"
+          >
+            <ArrowLeft />
+            <h1 class="ml-2 text-lg font-medium">Back to Pipeline</h1>
+          </button>
+        </div>
+        <div class="px-6">
+          <h2 class="text-2xl font-semibold mb-2">{{ exerciseTitle }}</h2>
+        </div>
+        <div class="flex-1 min-h-0">
+          <div class="bg-gray-200 h-full flex items-center justify-center">
+            <p>Miro Board Area</p>
           </div>
         </div>
       </div>
