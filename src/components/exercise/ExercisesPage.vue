@@ -107,21 +107,21 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
-import Tabs from "./Tabs.vue";
+import Tabs from "../layout/Tabs.vue";
 import ExerciseCard from "./ExerciseCard.vue";
 import AddExerciseDialog from "./AddExerciseDialog.vue";
 import { ArrowLeft, CirclePlus, Trash2, SquarePen } from "lucide-vue-next";
 
 // Import types
-import type { SelectedPinInfo, Exercise } from "../types/exercise";
+import type { SelectedPinInfo, Exercise } from "../../types/exercise";
 
 // Import constants
-import { TAB_NAMES, PHASE_CATEGORY_MAPPING } from "../constants/exercises";
+import { TAB_NAMES, PHASE_CATEGORY_MAPPING } from "../../constants/exercises";
 
 // Import composables
-import { useExercises } from "../composables/useExercises";
-import { usePipeline } from "../composables/usePipeline";
-import { useExerciseDialog } from "../composables/useExerciseDialog";
+import { useExercises } from "../../composables/useExercises";
+import { usePipeline } from "../../composables/usePipeline";
+import { useExerciseDialog } from "../../composables/useExerciseDialog";
 
 const tabNames = TAB_NAMES;
 
@@ -206,4 +206,4 @@ onMounted(() => {
   loadExercises();
   updateSelectedPinsFromProp();
 });
-</script>
+</script> 

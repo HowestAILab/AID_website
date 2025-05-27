@@ -39,4 +39,4 @@ const getPhaseForIndex = (index: number): string => {
 const handleClick = (phase: string) => {
   emit("exercise-button-click", phase);
 };
-</script>
+</script> 

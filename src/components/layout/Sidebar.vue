@@ -421,4 +421,4 @@ const toggleCollapse = () => {
 const handleLogout = () => {
   logout();
 };
-</script>
+</script> 

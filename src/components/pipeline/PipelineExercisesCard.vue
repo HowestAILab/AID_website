@@ -46,4 +46,4 @@ const openExercise = () => {
   emit('open-exercise');
 };
 
-</script>
+</script> 

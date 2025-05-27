@@ -107,7 +107,6 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 
-const SELECTED_PINS_STORAGE_KEY = "selected-pins";
 const LOCAL_STORAGE_KEY_DIAMOND_EXERCISES = "diamondExercises";
 
 interface SelectedPinInfo {
@@ -387,4 +386,4 @@ onMounted(() => {
     pin.isAddedToDiamond = diamondExercisesMap[pin.labelConfig.text] !== false;
   });
 });
-</script>
+</script> 

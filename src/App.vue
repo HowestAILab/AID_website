@@ -111,16 +111,16 @@
 
 <script setup lang="ts">
 import { onMounted, nextTick, watch } from "vue";
-import Sidebar from "./components/Sidebar.vue";
-import CurrentPipelineSection from "./components/CurrentPipelineSection.vue";
-import Tabs from "./components/Tabs.vue";
-import KonvaCanvas from "./components/KonvaCanvas.vue";
-import AddExercisesButtons from "./components/AddExercisesButtons.vue";
-import ExercisesPage from "./components/ExercisesPage.vue";
-import OverviewPage from "./components/OverviewPage.vue";
-import PipelinePage from "./components/PipelinePage.vue";
-import ExerciseDetail from "./components/ExerciseDetail.vue";
-import LoginPage from "./components/LoginPage.vue";
+import Sidebar from "./components/layout/Sidebar.vue";
+import CurrentPipelineSection from "./components/pipeline/CurrentPipelineSection.vue";
+import Tabs from "./components/layout/Tabs.vue";
+import KonvaCanvas from "./components/diamond/KonvaCanvas.vue";
+import AddExercisesButtons from "./components/diamond/AddExercisesButtons.vue";
+import ExercisesPage from "./components/exercise/ExercisesPage.vue";
+import OverviewPage from "./components/project/OverviewPage.vue";
+import PipelinePage from "./components/pipeline/PipelinePage.vue";
+import ExerciseDetail from "./components/exercise/ExerciseDetail.vue";
+import LoginPage from "./components/layout/LoginPage.vue";
 import { Toaster } from '@/components/ui/sonner';
 import { TABS } from "@/constants/app";
 

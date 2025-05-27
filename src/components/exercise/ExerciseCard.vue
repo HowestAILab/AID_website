@@ -72,4 +72,4 @@ const driveTypeConfig = computed<DriveTypeConfig>(() => {
       };
   }
 });
-</script>
+</script> 

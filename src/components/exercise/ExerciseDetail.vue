@@ -77,13 +77,13 @@
 <script setup lang="ts">
 import { ref, nextTick } from "vue";
 import { Send, ArrowLeft } from "lucide-vue-next";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { Textarea } from "../ui/textarea";
+import { Button } from "../ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable";
+} from "../ui/resizable";
 
 interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -190,4 +190,4 @@ const sendMessage = async () => {
     scrollToBottom();
   }
 };
-</script>
+</script> 

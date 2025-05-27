@@ -81,9 +81,7 @@
 import { ref, computed } from "vue";
 import {
   ArrowLeft,
-  Check,
-  SquareArrowOutUpRight,
-  Info,
+  Check
 } from "lucide-vue-next";
 import {
   Stepper,
@@ -182,4 +180,4 @@ const previousStep = () => {
     currentStep.value--;
   }
 };
-</script>
+</script> 
