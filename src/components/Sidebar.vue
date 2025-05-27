@@ -240,6 +240,7 @@
           <Tooltip>
             <TooltipTrigger asChild>
               <button
+                @click="handleLogout"
                 class="flex items-center gap-2 cursor-pointer p-2 rounded-full hover:bg-gray-100"
               >
                 <LogOut :class="[isCollapsed ? 'w-6 h-6' : 'w-5 h-5']" />
@@ -296,12 +297,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useProjects } from "@/composables/useProjects";
+import { useAuth } from "@/composables/useAuth";
 
 const props = defineProps<{
   currentPage?: string;
 }>();
 
 const { currentProject } = useProjects();
+const { logout } = useAuth();
 
 type ActiveItem =
   | "overview"
@@ -413,5 +416,9 @@ const toggleCollapse = () => {
       isDiamondExpanded.value = true;
     }
   }
+};
+
+const handleLogout = () => {
+  logout();
 };
 </script>
