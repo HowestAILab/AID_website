@@ -25,8 +25,19 @@
         </div>
         <div v-if="currentProject && !isCollapsed" class="mt-3 w-full">
           <div class="bg-[#F5F0E5] rounded-lg p-3">
-            <p class="text-xs font-medium text-[#A1824A] mb-1">Current Project</p>
-            <p class="text-sm font-semibold text-[#1C170D] truncate">{{ currentProject.name }}</p>
+            <p class="text-xs font-medium text-[#A1824A] mb-1">
+              Current Project
+            </p>
+            <p class="text-sm font-semibold text-[#1C170D] truncate">
+              {{ currentProject.name }}
+            </p>
+            <Button
+              class="w-full mt-2 bg-white rounded border text-sm py-1 text-[#1C170D] cursor-pointer flex items-center justify-center gap-2"
+              @click="handleExportProject"
+            >
+              <ArrowUpFromLine class="w-4 h-4" />
+              Export project
+            </Button>
           </div>
         </div>
       </div>
@@ -284,6 +295,7 @@ import {
   FileText,
   ChartLine,
   RectangleHorizontal,
+  ArrowUpFromLine,
 } from "lucide-vue-next";
 import {
   Tooltip,
@@ -298,6 +310,7 @@ import {
 } from "@/components/ui/popover";
 import { useProjects } from "@/composables/useProjects";
 import { useAuth } from "@/composables/useAuth";
+import { toast } from "vue-sonner";
 
 const props = defineProps<{
   currentPage?: string;
@@ -418,7 +431,38 @@ const toggleCollapse = () => {
   }
 };
 
+const handleExportProject = () => {
+  if (
+    currentProject.value &&
+    currentProject.value.selectedPins &&
+    currentProject.value.selectedPins.length > 0
+  ) {
+    const projectData = {
+      name: currentProject.value.name,
+      description: currentProject.value.description,
+      createdDate: currentProject.value.createdDate,
+      selectedPins: currentProject.value.selectedPins,
+    };
+    const jsonString = JSON.stringify(projectData, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${currentProject.value.name || "project"}-export.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } else {
+    toast.error("Export Error", {
+      description:
+        "No exercises selected to export. Please select exercise to the pipeline.",
+    });
+    console.warn("No project data or selected pins to export.");
+  }
+};
+
 const handleLogout = () => {
   logout();
 };
-</script> 
+</script>
