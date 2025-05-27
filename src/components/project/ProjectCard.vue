@@ -14,7 +14,7 @@
     <div class="mt-auto space-y-4 pt-4">
       <div class="flex items-center space-x-2">
         <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-        <span class="text-sm text-gray-500">Created: {{ createdDate }}</span>
+        <span class="text-sm text-gray-500">Created: {{ formattedCreatedDate }}</span>
       </div>
       <div>
         <button 
@@ -29,9 +29,10 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Trash2 } from 'lucide-vue-next';
 
-defineProps<{
+const props = defineProps<{
   title: string;
   description: string;
   createdDate: string;
@@ -41,4 +42,26 @@ defineEmits<{
   (e: 'open-project'): void;
   (e: 'delete-project'): void;
 }>();
+
+const formattedCreatedDate = computed(() => {
+  const date = new Date(props.createdDate);
+  if (isNaN(date.getTime())) {
+    const parts = props.createdDate.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const year = parseInt(parts[2], 10);
+      const parsedDate = new Date(year, month, day);
+      if (!isNaN(parsedDate.getTime())) {
+        return `${parsedDate.getDate().toString().padStart(2, '0')}/${(parsedDate.getMonth() + 1).toString().padStart(2, '0')}/${parsedDate.getFullYear()}`;
+      }
+    }
+    return props.createdDate;
+  }
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+});
+
 </script> 

@@ -81,15 +81,18 @@ export function useProjects() {
 
   const hasProjects = computed(() => projects.value.length > 0);
 
-  const createProject = (projectData: { 
-    name: string; 
-    description: string; 
-    createdDate: string 
-  }): Project => {
+  const createProject = (
+    projectData: { 
+      name: string; 
+      description: string; 
+      createdDate: string 
+    },
+    importedSelectedPins?: SelectedPinInfo[]
+  ): Project => {
     const newProject: Project = {
       id: `project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       ...projectData,
-      selectedPins: []
+      selectedPins: importedSelectedPins || []
     };
     
     projects.value.push(newProject);
