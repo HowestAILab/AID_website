@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue';
 import { useProjects } from './useProjects';
+import type { DriveType } from '@/types/exercise';
 
 const CURRENT_PAGE_STORAGE_KEY = 'aid-current-page';
 
@@ -9,6 +10,7 @@ export function useNavigation() {
   const currentPage = ref('overview');
   const currentPhase = ref('Discover');
   const currentExerciseTitle = ref('');
+  const currentExerciseDriveType = ref<DriveType | undefined>(undefined);
 
   const initializeNavigation = () => {
     try {
@@ -100,9 +102,10 @@ export function useNavigation() {
     currentPage.value = 'diamond';
   };
 
-  const handleOpenExerciseDetail = (exerciseName: string) => {
+  const handleOpenExerciseDetail = (exerciseName: string, driveType?: DriveType) => {
     currentPage.value = 'exerciseDetail';
     currentExerciseTitle.value = exerciseName;
+    currentExerciseDriveType.value = driveType;
   };
 
   const handleBackToPipeline = () => {
@@ -113,6 +116,7 @@ export function useNavigation() {
     currentPage,
     currentPhase,
     currentExerciseTitle,
+    currentExerciseDriveType,
     handleNavigate,
     handleNavigateToProject,
     handleExerciseButtonClick,

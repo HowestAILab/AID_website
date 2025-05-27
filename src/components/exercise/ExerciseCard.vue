@@ -38,8 +38,7 @@ import {
   CirclePlus,
   CircleMinus,
 } from "lucide-vue-next";
-
-type DriveType = "human" | "human-ai" | "ai";
+import type { DriveType } from "@/types/exercise";
 
 const props = defineProps<{
   title: string;

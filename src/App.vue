@@ -90,8 +90,9 @@
             @open-exercise-detail="handleOpenExerciseDetail"
           />
           <ExerciseDetail 
-            v-else-if="currentPage === 'exerciseDetail'"
+            v-if="currentPage === 'exerciseDetail' && currentExerciseDriveType"
             :exercise-title="currentExerciseTitle" 
+            :driveType="currentExerciseDriveType"
             @back="handleBackToPipeline" 
           />
           <div v-else-if="currentPage === 'tools'" class="flex-1 flex items-center justify-center">
@@ -136,6 +137,7 @@ const {
   currentPage,
   currentPhase,
   currentExerciseTitle,
+  currentExerciseDriveType,
   handleNavigate,
   handleNavigateToProject,
   handleExerciseButtonClick,

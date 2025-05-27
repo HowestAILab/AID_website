@@ -15,6 +15,8 @@ export interface Exercise {
   isCustom?: boolean;
 }
 
+export type DriveType = "human" | "human-ai" | "ai";
+
 export interface SelectedPinInfo {
   name: string;
   originalIndex: number;

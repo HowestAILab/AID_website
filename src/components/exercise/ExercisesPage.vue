@@ -69,7 +69,7 @@
                 :originalIndex="getOriginalExerciseIndex(exercise)"
                 :isInPipeline="isExerciseInPipeline(exercise, getOriginalExerciseIndex)"
                 @togglePipeline="togglePipelineSelection"
-                @open-exercise="handleOpenExerciseDetail(exercise.name)"
+                @open-exercise="handleOpenExerciseDetail(exercise)"
               />
               <div
                 v-if="exercise.isCustom"
@@ -113,7 +113,7 @@ import AddExerciseDialog from "./AddExerciseDialog.vue";
 import { ArrowLeft, CirclePlus, Trash2, SquarePen } from "lucide-vue-next";
 
 // Import types
-import type { SelectedPinInfo, Exercise } from "../../types/exercise";
+import type { SelectedPinInfo, Exercise, DriveType } from "../../types/exercise";
 
 // Import constants
 import { TAB_NAMES, PHASE_CATEGORY_MAPPING } from "../../constants/exercises";
@@ -134,7 +134,7 @@ const emit = defineEmits<{
   (e: "close"): void;
   (e: "update:phase", phase: string): void;
   (e: "selectedPinsChange", selectedPins: SelectedPinInfo[]): void;
-  (e: "open-exercise-detail", exerciseName: string): void;
+  (e: "open-exercise-detail", exerciseName: string, driveType: DriveType): void;
 }>();
 
 // Use composables
@@ -179,8 +179,9 @@ const handleTabChange = (tab: string) => {
   emit("update:phase", tab);
 };
 
-const handleOpenExerciseDetail = (exerciseName: string) => {
-  emit("open-exercise-detail", exerciseName);
+const handleOpenExerciseDetail = (exercise: Exercise) => {
+  const driveType: DriveType = exercise.location?.human_ai_scale === 3 ? 'human' : (exercise.location?.human_ai_scale === 2 ? 'human-ai' : 'ai');
+  emit("open-exercise-detail", exercise.name, driveType);
 }
 
 const handleEditExercise = (exercise: Exercise) => {

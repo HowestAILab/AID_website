@@ -67,7 +67,7 @@
                 :stage="exercise.location.step"
                 :description="exercise.description"
                 :originalIndex="exercise.originalIndex"
-                @open-exercise="$emit('open-exercise-detail', exercise.name)"
+                @open-exercise="$emit('open-exercise-detail', exercise.name, exercise.location?.human_ai_scale === 3 ? 'human' : (exercise.location?.human_ai_scale === 2 ? 'human-ai' : 'ai'))"
               />
             </div>
           </div>
@@ -94,6 +94,7 @@ import {
 } from "@/components/ui/stepper";
 import { Button } from "@/components/ui/button";
 import PipelineExercisesCard from "./PipelineExercisesCard.vue";
+import type { DriveType } from "@/types/exercise";
 
 // Define the structure of a selected pin
 interface SelectedPin {
@@ -114,7 +115,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "close"): void;
-  (e: "open-exercise-detail", exerciseName: string): void;
+  (e: "open-exercise-detail", exerciseName: string, driveType: DriveType): void;
 }>();
 
 const currentStep = ref(1);
