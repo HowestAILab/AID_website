@@ -50,7 +50,7 @@ export function useCanvas() {
     } else {
       selectedPins.value = [];
     }
-  });
+  }, { immediate: true });
 
   // Watch for konvaCanvasRef to become available and load selected pins
   watch(konvaCanvasRef, (canvas) => {
