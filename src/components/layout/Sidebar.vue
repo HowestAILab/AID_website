@@ -69,7 +69,9 @@
                 :class="[
                   'flex items-center text-sm font-medium rounded-full text-[#1C170D]',
                   'p-2 justify-center',
-                  activeItem === 'diamond' || activeItem.startsWith('diamond-')
+                  activeItem === 'diamond-exercises' || activeItem === 'diamond-pipeline'
+                    ? 'bg-white border border-[#A1824A]'
+                    : activeItem === 'diamond' || activeItem.startsWith('diamond-')
                     ? 'bg-[#F5F0E5]'
                     : 'hover:bg-gray-100',
                 ]"
@@ -152,7 +154,9 @@
             :class="[
               'flex items-center text-sm font-medium rounded-full text-[#1C170D]',
               isCollapsed ? 'p-2 justify-center' : 'px-3 py-2.5',
-              activeItem === 'diamond' || activeItem.startsWith('diamond-')
+              activeItem === 'diamond-exercises' || activeItem === 'diamond-pipeline'
+                ? 'bg-white border border-[#A1824A]'
+                : activeItem === 'diamond' || activeItem.startsWith('diamond-')
                 ? 'bg-[#F5F0E5]'
                 : 'hover:bg-gray-100',
             ]"
