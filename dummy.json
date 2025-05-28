@@ -6,7 +6,7 @@
       "location": {
         "phase": "Discover",
         "step": "Prepare (Discover)",
-        "human_ai_scale": 1
+        "human_ai_scale": 0
       },
       "prompt_example": [],
       "etchical": {

@@ -97,6 +97,7 @@ import {
   ref,
   onMounted,
   defineExpose,
+  watch,
 } from "vue";
 import Konva from "konva";
 import pinsData from "@/../dummy.json";
@@ -160,49 +161,35 @@ interface PinConfig {
   };
 }
 
-// Transform the exercise data into PinConfig format
-const transformExerciseToPin = (exercise: any, index: number): PinConfig => {
-  // Adjusting the spacing between pins based on the scale of the exercise
-  const x = 200 + index * 120;
-  const scale = exercise.location.human_ai_scale;
-  let yOffset;
-  if (scale >= 0 && scale <= 3) { // Human
-    yOffset = 0;
-  } else if (scale >= 4 && scale <= 7) { // Human+AI
-    yOffset = 100;
-  } else { // AI
-    yOffset = 200;
-  }
-  const y = 200 + yOffset;
-
-  return {
-    isSelected: false,
-    isAddedToDiamond: false,
-    order: index,
-    config: {
-      x,
-      y,
-      radius: 12,
-      fill: "#F5F0E5",
-      stroke: "black",
-      strokeWidth: 1,
-    },
-    labelConfig: {
-      x: x + 20,
-      y: y - 10,
-      text: exercise.name,
-      fontSize: 14,
-      fill: "#374151",
-    },
-    description: exercise.description,
-    location: exercise.location,
-  };
-};
-
+// Initialize pins ref with static data and placeholder Y values
 const pins = ref<PinConfig[]>(
-  (pinsData.exercise || []).map((exercise, index) =>
-    transformExerciseToPin(exercise, index)
-  )
+  (pinsData.exercise || []).map((exercise: any, index: number): PinConfig => {
+    const x = 200 + index * 120;
+    const initialY = 200;
+
+    return {
+      isSelected: false,
+      isAddedToDiamond: false,
+      order: index,
+      config: {
+        x,
+        y: initialY,
+        radius: 12,
+        fill: "#F5F0E5",
+        stroke: "black",
+        strokeWidth: 1,
+      },
+      labelConfig: {
+        x: x + 20,
+        y: initialY - 10,
+        text: exercise.name,
+        fontSize: 14,
+        fill: "#374151",
+      },
+      description: exercise.description,
+      location: exercise.location,
+    };
+  })
 );
 
 const selectedPinPopover = ref(false);
@@ -314,6 +301,38 @@ const handleMouseLeave = () => {
 const horizontalLineYFraction1 = 9 / 40;
 const horizontalLineYFraction2 = 17.9 / 40;
 const horizontalLineYFraction3 = 26.7 / 40;
+
+// Add a watcher to update pin Y positions reactively
+watch(() => props.configKonva?.height, (newHeight) => {
+  if (typeof newHeight !== 'number' || newHeight <= 0) {
+    return;
+  }
+
+  const yHuman = newHeight * horizontalLineYFraction1;
+  const yHumanAi = newHeight * horizontalLineYFraction2;
+  const yAi = newHeight * horizontalLineYFraction3;
+
+  pins.value.forEach(pin => {
+    const scale = pin.location.human_ai_scale;
+    let newPinY;
+
+    if (scale <= 0) {
+      newPinY = yHuman;
+    } else if (scale > 0 && scale < 5) {
+      const t = scale / 5;
+      newPinY = yHuman * (1 - t) + yHumanAi * t;
+    } else if (scale === 5) {
+      newPinY = yHumanAi;
+    } else if (scale > 5 && scale < 10) {
+      const t = (scale - 5) / 5;
+      newPinY = yHumanAi * (1 - t) + yAi * t;
+    } else {
+      newPinY = yAi;
+    }
+    pin.config.y = newPinY;
+    pin.labelConfig.y = newPinY - 10;
+  });
+}, { immediate: true });
 
 const configHorizontalLine1 = computed(() => ({
   points: [
