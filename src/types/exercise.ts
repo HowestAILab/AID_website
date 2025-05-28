@@ -7,12 +7,13 @@ export interface Exercise {
     human_ai_scale: number;
   };
   prompt_example: any[];
-  etchical: {
+  ethical: {
     before: any[];
     after: any[];
   };
   miro_board: string;
   isCustom?: boolean;
+  originalIndex?: number;
 }
 
 export type DriveType = "human" | "human-ai" | "ai";

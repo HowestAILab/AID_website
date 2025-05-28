@@ -71,7 +71,7 @@ export function useExercises() {
       description: exerciseData.description,
       location,
       prompt_example: [],
-      etchical: { before: [], after: [] },
+      ethical: { before: [], after: [] },
       miro_board: "",
       isCustom: true,
     };
@@ -105,7 +105,7 @@ export function useExercises() {
           human_ai_scale: exerciseData.location?.human_ai_scale ?? 3,
         },
         prompt_example: [],
-        etchical: { before: [], after: [] },
+        ethical: { before: [], after: [] },
         miro_board: "",
         isCustom: true,
       };

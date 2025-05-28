@@ -134,7 +134,7 @@ const emit = defineEmits<{
   (e: "close"): void;
   (e: "update:phase", phase: string): void;
   (e: "selectedPinsChange", selectedPins: SelectedPinInfo[]): void;
-  (e: "open-exercise-detail", exerciseName: string, driveType: DriveType): void;
+  (e: "open-exercise-detail", exercise: Exercise): void;
 }>();
 
 // Use composables
@@ -187,8 +187,7 @@ const handleTabChange = (tab: string) => {
 };
 
 const handleOpenExerciseDetail = (exercise: Exercise) => {
-  const driveType: DriveType = getDriveType(exercise.location?.human_ai_scale);
-  emit("open-exercise-detail", exercise.name, driveType);
+  emit("open-exercise-detail", exercise);
 }
 
 const handleEditExercise = (exercise: Exercise) => {

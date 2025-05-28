@@ -1,6 +1,18 @@
 import { ref, watch } from 'vue';
 import { useProjects } from './useProjects';
-import type { DriveType } from '@/types/exercise';
+import type { DriveType, Exercise } from '@/types/exercise';
+
+interface SelectedPin {
+  name: string;
+  originalIndex: number;
+  order: number;
+  description: string;
+  location: {
+    phase: string;
+    step: string;
+    human_ai_scale: number;
+  };
+}
 
 const CURRENT_PAGE_STORAGE_KEY = 'aid-current-page';
 
@@ -9,8 +21,7 @@ export function useNavigation() {
   
   const currentPage = ref('overview');
   const currentPhase = ref('Discover');
-  const currentExerciseTitle = ref('');
-  const currentExerciseDriveType = ref<DriveType | undefined>(undefined);
+  const currentExercise = ref<Exercise | null>(null);
 
   const initializeNavigation = () => {
     try {
@@ -102,10 +113,24 @@ export function useNavigation() {
     currentPage.value = 'diamond';
   };
 
-  const handleOpenExerciseDetail = (exerciseName: string, driveType?: DriveType) => {
+  const handleOpenExerciseDetail = (exercise: Exercise | SelectedPin) => {
     currentPage.value = 'exerciseDetail';
-    currentExerciseTitle.value = exerciseName;
-    currentExerciseDriveType.value = driveType;
+    
+    // Convert SelectedPin to Exercise format if needed
+    if ('originalIndex' in exercise) {
+      const convertedExercise: Exercise = {
+        name: exercise.name,
+        description: exercise.description,
+        location: exercise.location,
+        prompt_example: [],
+        ethical: { before: [], after: [] },
+        miro_board: '',
+        originalIndex: exercise.originalIndex
+      };
+      currentExercise.value = convertedExercise;
+    } else {
+      currentExercise.value = exercise;
+    }
   };
 
   const handleBackToPipeline = () => {
@@ -115,8 +140,7 @@ export function useNavigation() {
   return {
     currentPage,
     currentPhase,
-    currentExerciseTitle,
-    currentExerciseDriveType,
+    currentExercise,
     handleNavigate,
     handleNavigateToProject,
     handleExerciseButtonClick,
