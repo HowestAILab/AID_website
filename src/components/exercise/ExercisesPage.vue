@@ -65,7 +65,7 @@
               <ExerciseCard
                 :title="exercise.name"
                 :description="exercise.description"
-                :driveType="exercise.location?.human_ai_scale === 3 ? 'human' : (exercise.location?.human_ai_scale === 2 ? 'human-ai' : 'ai')"
+                :driveType="getDriveType(exercise.location?.human_ai_scale)"
                 :originalIndex="getOriginalExerciseIndex(exercise)"
                 :isInPipeline="isExerciseInPipeline(exercise, getOriginalExerciseIndex)"
                 @togglePipeline="togglePipelineSelection"
@@ -174,13 +174,20 @@ const getExercisesForCategory = (categoryName: string) => {
   return getExercisesForCategoryBase(categoryName, props.phase);
 };
 
+const getDriveType = (scale: number | undefined): DriveType => {
+  if (scale === undefined) return 'human';
+  if (scale >= 0 && scale <= 3) return 'human';
+  if (scale >= 4 && scale <= 7) return 'human-ai';
+  return 'ai';
+};
+
 // Event handlers
 const handleTabChange = (tab: string) => {
   emit("update:phase", tab);
 };
 
 const handleOpenExerciseDetail = (exercise: Exercise) => {
-  const driveType: DriveType = exercise.location?.human_ai_scale === 3 ? 'human' : (exercise.location?.human_ai_scale === 2 ? 'human-ai' : 'ai');
+  const driveType: DriveType = getDriveType(exercise.location?.human_ai_scale);
   emit("open-exercise-detail", exercise.name, driveType);
 }
 

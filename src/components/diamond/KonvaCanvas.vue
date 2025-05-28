@@ -164,13 +164,16 @@ interface PinConfig {
 const transformExerciseToPin = (exercise: any, index: number): PinConfig => {
   // Adjusting the spacing between pins based on the scale of the exercise
   const x = 200 + index * 120;
-  const y =
-    200 +
-    (exercise.location.human_ai_scale === 3
-      ? 0
-      : exercise.location.human_ai_scale === 2
-      ? 100
-      : 200);
+  const scale = exercise.location.human_ai_scale;
+  let yOffset;
+  if (scale >= 0 && scale <= 3) { // Human
+    yOffset = 0;
+  } else if (scale >= 4 && scale <= 7) { // Human+AI
+    yOffset = 100;
+  } else { // AI
+    yOffset = 200;
+  }
+  const y = 200 + yOffset;
 
   return {
     isSelected: false,

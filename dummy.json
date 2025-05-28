@@ -6,7 +6,7 @@
       "location": {
         "phase": "Discover",
         "step": "Prepare (Discover)",
-        "human_ai_scale": 3
+        "human_ai_scale": 1
       },
       "prompt_example": [],
       "etchical": {
@@ -36,7 +36,7 @@
       "location": {
         "phase": "Define",
         "step": "Synthesise (Define)",
-        "human_ai_scale": 1
+        "human_ai_scale": 9
       },
       "prompt_example": [],
       "etchical": {
@@ -51,7 +51,7 @@
       "location": {
         "phase": "Discover",
         "step": "Discover",
-        "human_ai_scale": 2
+        "human_ai_scale": 7
       },
       "prompt_example": [],
       "etchical": {
@@ -66,7 +66,7 @@
       "location": {
         "phase": "Deliver",
         "step": "Deliver",
-        "human_ai_scale": 4
+        "human_ai_scale": 1
       },
       "prompt_example": [],
       "etchical": {
@@ -81,7 +81,7 @@
       "location": {
         "phase": "Deliver",
         "step": "Synthesise (Deliver)",
-        "human_ai_scale": 2
+        "human_ai_scale": 7
       },
       "prompt_example": [],
       "etchical": {

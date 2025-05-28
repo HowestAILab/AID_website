@@ -67,7 +67,7 @@
                 :stage="exercise.location.step"
                 :description="exercise.description"
                 :originalIndex="exercise.originalIndex"
-                @open-exercise="$emit('open-exercise-detail', exercise.name, exercise.location?.human_ai_scale === 3 ? 'human' : (exercise.location?.human_ai_scale === 2 ? 'human-ai' : 'ai'))"
+                @open-exercise="$emit('open-exercise-detail', exercise.name, getDriveType(exercise.location?.human_ai_scale))"
               />
             </div>
           </div>
@@ -117,6 +117,13 @@ const emit = defineEmits<{
   (e: "close"): void;
   (e: "open-exercise-detail", exerciseName: string, driveType: DriveType): void;
 }>();
+
+const getDriveType = (scale: number | undefined): DriveType => {
+  if (scale === undefined) return 'human';
+  if (scale >= 0 && scale <= 3) return 'human';
+  if (scale >= 4 && scale <= 7) return 'human-ai';
+  return 'ai';
+};
 
 const currentStep = ref(1);
 
