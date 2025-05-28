@@ -90,9 +90,8 @@
             @open-exercise-detail="handleOpenExerciseDetail"
           />
           <ExerciseDetail 
-            v-if="currentPage === 'exerciseDetail' && currentExerciseDriveType"
-            :exercise-title="currentExerciseTitle" 
-            :driveType="currentExerciseDriveType"
+            v-if="currentPage === 'exerciseDetail' && currentExercise"
+            :exercise="currentExercise" 
             @back="handleBackToPipeline" 
           />
           <div v-else-if="currentPage === 'tools'" class="flex-1 flex items-center justify-center">
@@ -136,8 +135,7 @@ const { isLoggedIn, initializeAuth } = useAuth();
 const {
   currentPage,
   currentPhase,
-  currentExerciseTitle,
-  currentExerciseDriveType,
+  currentExercise,
   handleNavigate,
   handleNavigateToProject,
   handleExerciseButtonClick,

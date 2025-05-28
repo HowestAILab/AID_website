@@ -11,14 +11,14 @@
     <div class="my-4"></div>
     <div class="flex flex-col gap-2">
       <button
-        class="w-full border border-[#F59E0C] bg-[#F59E0C]/10 text-[#D97704] p-2 rounded-sm items-center flex justify-center gap-2"
+        class="w-full border border-[#F59E0C] bg-[#F59E0C]/10 text-[#D97704] p-2 rounded-sm items-center flex justify-center gap-2 cursor-pointer"
         @click="openExercise"
       >
         <SquareArrowOutUpRight class="w-5" />
         Open Exercise Workspace
       </button>
       <button
-        class="w-full border border-[#F59E0C] bg-[#F59E0C]/10 text-[#D97704] p-2 rounded-sm items-center flex justify-center gap-2"
+        class="w-full border border-[#F59E0C] bg-[#F59E0C]/10 text-[#D97704] p-2 rounded-sm items-center flex justify-center gap-2 cursor-pointer"
       >
         <Info class="w-5" />
         Perform Ethics Check

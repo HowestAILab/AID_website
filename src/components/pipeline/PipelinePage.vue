@@ -28,7 +28,7 @@
               <Button
                 :variant="index + 1 <= currentStep ? 'default' : 'outline'"
                 size="icon"
-                class="size-10 rounded-full shrink-0"
+                class="size-10 rounded-full shrink-0 cursor-pointer"
                 :class="[
                   index + 1 <= currentStep
                     ? 'bg-[#F59E0C] text-white hover:bg-[#F59E0C]/90'
@@ -67,7 +67,7 @@
                 :stage="exercise.location.step"
                 :description="exercise.description"
                 :originalIndex="exercise.originalIndex"
-                @open-exercise="$emit('open-exercise-detail', exercise.name, getDriveType(exercise.location?.human_ai_scale))"
+                @open-exercise="$emit('open-exercise-detail', exercise)"
               />
             </div>
           </div>
@@ -115,7 +115,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "close"): void;
-  (e: "open-exercise-detail", exerciseName: string, driveType: DriveType): void;
+  (e: "open-exercise-detail", exercise: SelectedPin): void;
 }>();
 
 const getDriveType = (scale: number | undefined): DriveType => {

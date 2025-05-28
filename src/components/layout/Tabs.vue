@@ -17,6 +17,7 @@
           'text-sm',
           'font-bold',
           'focus:outline-none',
+          'cursor-pointer',
           activeTab === tab
             ? ['border-b-2', 'border-b-[#A1824A]', 'text-[#A1824A]', '']
             : ['border-b', 'border-b-[#A1824A]', '', 'text-[#1C170D]'],

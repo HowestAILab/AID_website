@@ -23,6 +23,7 @@
           </div>
           <div class="flex justify-end">
             <Button
+              class="cursor-pointer"
               :variant="selectedPin.isSelected ? 'destructive' : 'default'"
               @click="togglePinSelection(selectedPinIndex)"
             >

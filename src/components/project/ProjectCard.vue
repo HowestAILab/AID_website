@@ -2,13 +2,13 @@
   <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-200 relative group h-full flex flex-col">
     <button
       @click="$emit('delete-project')"
-      class="absolute top-3 right-3 p-1.5 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-200 opacity-0 group-hover:opacity-100"
+      class="absolute top-3 right-3 p-1.5 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-200 opacity-0 group-hover:opacity-100 cursor-pointer"
     >
       <Trash2 class="w-4 h-4" />
     </button>
     <button
       @click="$emit('edit-project')"
-      class="absolute top-3 right-10 p-1.5 rounded-full text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors duration-200 opacity-0 group-hover:opacity-100"
+      class="absolute top-3 right-10 p-1.5 rounded-full text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors duration-200 opacity-0 group-hover:opacity-100 cursor-pointer"
     >
       <Pencil class="w-4 h-4" />
     </button>
@@ -24,7 +24,7 @@
       <div>
         <button 
           @click="$emit('open-project')"
-          class="w-full bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors duration-200"
+          class="w-full bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
         >
           Open Project
         </button>

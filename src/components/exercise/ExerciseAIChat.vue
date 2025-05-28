@@ -91,6 +91,7 @@
             @keydown.enter.prevent="handleEnter"
           />
           <Button
+            class="cursor-pointer"
             @click="sendMessage"
             :disabled="isLoading || !userInput.trim()"
           >
