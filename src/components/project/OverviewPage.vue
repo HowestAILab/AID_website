@@ -108,6 +108,12 @@
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    <RenameProjectDialog
+      v-model:open="showRenameProjectDialog"
+      :project-data="projectToRenameData"
+      @confirm-rename-and-import="handleConfirmRenameAndImport"
+    />
   </div>
 </template>
 
@@ -118,6 +124,7 @@ import { toast } from "vue-sonner";
 import ProjectCard from "./ProjectCard.vue";
 import NewProjectDialog from "./NewProjectDialog.vue";
 import EditProjectDialog from "./EditProjectDialog.vue";
+import RenameProjectDialog from "./RenameProjectDialog.vue";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -141,8 +148,10 @@ const { projects, createProject, setCurrentProject, deleteProject, updateProject
 const showNewProjectDialog = ref(false);
 const showEditProjectDialog = ref(false);
 const showDeleteDialog = ref(false);
+const showRenameProjectDialog = ref(false);
 const projectToDelete = ref<Project | null>(null);
 const projectToEdit = ref<Project | null>(null);
+const projectToRenameData = ref<any | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const triggerFileInput = () => {
@@ -166,17 +175,24 @@ const handleProjectImport = async (event: Event) => {
           typeof importedProjectData.createdDate === "string" &&
           Array.isArray(importedProjectData.selectedPins)
         ) {
-          const newProject = createProject(
-            {
-              name: importedProjectData.name,
-              description: importedProjectData.description,
-              createdDate: importedProjectData.createdDate,
-            },
-            importedProjectData.selectedPins
-          );
+          // Check if project with the same name already exists
+          const existingProject = projects.value.find(p => p.name === importedProjectData.name);
+          if (existingProject) {
+            projectToRenameData.value = importedProjectData;
+            showRenameProjectDialog.value = true;
+          } else {
+            const newProject = createProject(
+              {
+                name: importedProjectData.name,
+                description: importedProjectData.description,
+                createdDate: importedProjectData.createdDate,
+              },
+              importedProjectData.selectedPins
+            );
 
-          toast.success(`Project "${newProject.name}" imported successfully!`);
-          emit("navigate-to-project", newProject.id);
+            toast.success(`Project "${newProject.name}" imported successfully!`);
+            emit("navigate-to-project", newProject.id);
+          }
         } else {
           toast.error("Invalid Project File", {
             description:
@@ -211,6 +227,23 @@ const handleCreateProject = (projectData: {
   toast.success(`Project "${newProject.name}" created successfully!`);
   // Navigate to diamond view with the new project
   emit("navigate-to-project", newProject.id);
+};
+
+const handleConfirmRenameAndImport = (newName: string) => {
+  if (projectToRenameData.value) {
+    const newProject = createProject(
+      {
+        name: newName,
+        description: projectToRenameData.value.description,
+        createdDate: projectToRenameData.value.createdDate,
+      },
+      projectToRenameData.value.selectedPins
+    );
+    toast.success(`Project "${newProject.name}" imported successfully with new name!`);
+    emit("navigate-to-project", newProject.id);
+    showRenameProjectDialog.value = false;
+    projectToRenameData.value = null;
+  }
 };
 
 const handleOpenProject = (projectId: string) => {
