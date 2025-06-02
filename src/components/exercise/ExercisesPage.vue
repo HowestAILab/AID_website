@@ -3,6 +3,7 @@
     <Tabs
       :tabs="tabNames"
       :active-tab="phase"
+      :clickable="true"
       @update:active-tab="handleTabChange"
     />
     <div class="flex items-center p-4">

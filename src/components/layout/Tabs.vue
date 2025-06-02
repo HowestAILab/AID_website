@@ -6,7 +6,7 @@
         v-for="tab in tabs"
         :key="tab"
         :ref="(el) => assignButtonRef(el, tab)"
-        @click="setActiveTab(tab)"
+        @click="clickable ? setActiveTab(tab) : undefined"
         :class="[
           'grow-2',
           'shrink',
@@ -17,8 +17,8 @@
           'text-sm',
           'font-bold',
           'focus:outline-none',
-          'cursor-pointer',
-          activeTab === tab
+          clickable ? 'cursor-pointer' : 'cursor-default',
+          clickable && activeTab === tab
             ? ['border-b-2', 'border-b-[#A1824A]', 'text-[#A1824A]', '']
             : ['border-b', 'border-b-[#A1824A]', '', 'text-[#1C170D]'],
         ]"
@@ -31,11 +31,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, shallowRef, defineProps, defineEmits, onMounted, nextTick } from "vue";
+import { shallowRef, defineProps, defineEmits, onMounted, nextTick } from "vue";
 
 const props = defineProps<{
   tabs: string[];
   activeTab: string;
+  clickable?: boolean;
 }>();
 
 const emit = defineEmits<{
