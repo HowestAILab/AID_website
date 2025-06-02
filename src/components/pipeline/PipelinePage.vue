@@ -1,6 +1,6 @@
 <template>
   <div class="flex-1 bg-white flex flex-col">
-    <div class="flex items-center p-4">
+    <div v-if="showBackButton" class="flex items-center p-4">
       <button
         @click="$emit('close')"
         class="flex items-center gap-2 text-gray-600 hover:text-gray-900 cursor-pointer"
@@ -55,9 +55,14 @@
       </div>
       <div>
         <div v-for="(phaseItem, index) in phaseExercises" :key="index">
-          <div v-if="phaseItem.exercises.length > 0" class="border p-4 rounded-lg shadow-md mb-4">
+          <div
+            v-if="phaseItem.exercises.length > 0"
+            class="border p-4 rounded-lg shadow-md mb-4"
+          >
             <div>
-              <p class="text-[#D97704] mb-4 text-xl">{{ phaseItem.phase }} Phase</p>
+              <p class="text-[#D97704] mb-4 text-xl">
+                {{ phaseItem.phase }} Phase
+              </p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <PipelineExercisesCard
@@ -79,10 +84,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import {
-  ArrowLeft,
-  Check
-} from "lucide-vue-next";
+import { ArrowLeft, Check } from "lucide-vue-next";
 import {
   Stepper,
   StepperDescription,
@@ -111,6 +113,7 @@ interface SelectedPin {
 
 const props = defineProps<{
   selectedPins: SelectedPin[]; // Prop to receive selected pins
+  showBackButton: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -119,10 +122,10 @@ const emit = defineEmits<{
 }>();
 
 const getDriveType = (scale: number | undefined): DriveType => {
-  if (scale === undefined) return 'human';
-  if (scale >= 0 && scale <= 3) return 'human';
-  if (scale >= 4 && scale <= 7) return 'human-ai';
-  return 'ai';
+  if (scale === undefined) return "human";
+  if (scale >= 0 && scale <= 3) return "human";
+  if (scale >= 4 && scale <= 7) return "human-ai";
+  return "ai";
 };
 
 const currentStep = ref(1);
@@ -188,4 +191,4 @@ const previousStep = () => {
     currentStep.value--;
   }
 };
-</script> 
+</script>

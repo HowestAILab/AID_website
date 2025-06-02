@@ -27,11 +27,12 @@
         </div>
       </div>
     </div>
-    <div
-      class="border border-[#A1824A] p-2 ml-20 rounded-xs bg-[#F5F0E5] cursor-pointer"
+    <button
+      @click="$emit('expandPipeline')"
+      class="border border-[#A1824A] p-2 ml-20 rounded-xs bg-[#F5F0E5] cursor-pointer hover:bg-[#F5F0E5]/80 transition-colors"
     >
       <ChevronUp class="w-5 h-5 text-[#A1824A]" />
-    </div>
+    </button>
   </div>
 </template>
 
@@ -47,5 +48,6 @@ defineProps<{
 
 defineEmits<{
   (e: "unselectExerciseRequested", originalIndex: number): void;
+  (e: "expandPipeline"): void;
 }>();
 </script>
