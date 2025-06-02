@@ -13,11 +13,21 @@
         <div
           v-for="exercise in selectedPins"
           :key="exercise.originalIndex"
-          class="w-6 h-6 bg-[#F5F0E5] border border-black transform rotate-45 flex items-center justify-center"
+          class="relative group"
         >
-          <span class="text-black text-xs transform -rotate-45">
-            {{ exercise.originalIndex + 1 }}
-          </span>
+          <div
+            class="w-6 h-6 bg-[#F5F0E5] border border-black transform rotate-45 flex items-center justify-center"
+          >
+            <span class="text-black text-xs transform -rotate-45">
+              {{ exercise.originalIndex + 1 }}
+            </span>
+          </div>
+          <button
+            @click="$emit('unselectPinRequested', exercise.originalIndex)"
+            class="absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
+          >
+            <X class="w-3 h-3" />
+          </button>
         </div>
         <div
           v-if="selectedPins.length === 0"
@@ -37,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { Network, ChevronUp } from "lucide-vue-next";
+import { Network, ChevronUp, X } from "lucide-vue-next";
 import type { SelectedPinInfo } from "@/types/exercise";
 
 defineProps<{
@@ -47,7 +57,7 @@ defineProps<{
 }>();
 
 defineEmits<{
-  (e: "unselectExerciseRequested", originalIndex: number): void;
+  (e: "unselectPinRequested", originalIndex: number): void;
   (e: "expandPipeline"): void;
 }>();
 </script>
