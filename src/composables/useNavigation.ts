@@ -22,6 +22,8 @@ export function useNavigation() {
   const currentPage = ref('overview');
   const currentPhase = ref('Discover');
   const currentExercise = ref<Exercise | null>(null);
+  const currentExerciseIndex = ref(0);
+  const allExercises = ref<Exercise[]>([]);
 
   const initializeNavigation = () => {
     try {
@@ -133,6 +135,41 @@ export function useNavigation() {
     }
   };
 
+  const handleOpenExerciseDetailWithContext = (exercise: Exercise | SelectedPin, exercises: Exercise[] | SelectedPin[]) => {
+    // Convert all exercises to Exercise format
+    const convertedExercises: Exercise[] = exercises.map(ex => {
+      if ('originalIndex' in ex) {
+        return {
+          name: ex.name,
+          description: ex.description,
+          location: ex.location,
+          prompt_example: [],
+          ethical: { before: [], after: [] },
+          miro_board: '',
+          originalIndex: ex.originalIndex
+        };
+      }
+      return ex;
+    });
+    
+    allExercises.value = convertedExercises;
+    
+    // Find the index of the current exercise
+    const exerciseIndex = convertedExercises.findIndex(ex => 
+      ex.originalIndex === exercise.originalIndex
+    );
+    currentExerciseIndex.value = exerciseIndex >= 0 ? exerciseIndex : 0;
+    
+    handleOpenExerciseDetail(exercise);
+  };
+
+  const handleNavigateToExercise = (exerciseIndex: number) => {
+    if (exerciseIndex >= 0 && exerciseIndex < allExercises.value.length) {
+      currentExerciseIndex.value = exerciseIndex;
+      currentExercise.value = allExercises.value[exerciseIndex];
+    }
+  };
+
   const handleBackToPipeline = () => {
     currentPage.value = 'pipeline';
   };
@@ -141,12 +178,16 @@ export function useNavigation() {
     currentPage,
     currentPhase,
     currentExercise,
+    currentExerciseIndex,
+    allExercises,
     handleNavigate,
     handleNavigateToProject,
     handleExerciseButtonClick,
     handleExercisesClose,
     handlePipelineClose,
     handleOpenExerciseDetail,
+    handleOpenExerciseDetailWithContext,
+    handleNavigateToExercise,
     handleBackToPipeline,
   };
 } 

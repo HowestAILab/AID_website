@@ -85,7 +85,7 @@
               @close="handleExercisesClose"
               @update:phase="(phase: string) => currentPhase = phase"
               @selected-pins-change="handleSelectedPinsChange"
-              @open-exercise-detail="handleOpenExerciseDetail"
+              @open-exercise-detail="handleOpenExerciseDetailWrapper"
             />
             <OverviewPage
               v-else-if="currentPage === 'overview'"
@@ -96,13 +96,16 @@
               :selected-pins="selectedPins"
               :showBackButton="true"
               @close="handlePipelineClose"
-              @open-exercise-detail="handleOpenExerciseDetail"
+              @open-exercise-detail="handleOpenExerciseDetailWrapper"
               class="overflow-y-auto"
             />
             <ExerciseDetail
               v-if="currentPage === 'exerciseDetail' && currentExercise"
               :exercise="currentExercise"
+              :all-exercises="allExercises"
+              :current-exercise-index="currentExerciseIndex"
               @back="handleBackToPipeline"
+              @navigate-to-exercise="handleNavigateToExercise"
             />
             <div
               v-else-if="currentPage === 'tools'"
@@ -196,7 +199,7 @@
                   @close="handleExercisesClose"
                   @update:phase="(phase: string) => currentPhase = phase"
                   @selected-pins-change="handleSelectedPinsChange"
-                  @open-exercise-detail="handleOpenExerciseDetail"
+                  @open-exercise-detail="handleOpenExerciseDetailWrapper"
                 />
                 <OverviewPage
                   v-else-if="currentPage === 'overview'"
@@ -207,12 +210,15 @@
                   :selected-pins="selectedPins"
                   :showBackButton="true"
                   @close="handlePipelineClose"
-                  @open-exercise-detail="handleOpenExerciseDetail"
+                  @open-exercise-detail="handleOpenExerciseDetailWrapper"
                 />
                 <ExerciseDetail
                   v-if="currentPage === 'exerciseDetail' && currentExercise"
                   :exercise="currentExercise"
+                  :all-exercises="allExercises"
+                  :current-exercise-index="currentExerciseIndex"
                   @back="handleBackToPipeline"
+                  @navigate-to-exercise="handleNavigateToExercise"
                 />
                 <div
                   v-else-if="currentPage === 'tools'"
@@ -233,7 +239,7 @@
               <PipelinePage
                 :selected-pins="selectedPins"
                 :showBackButton="false"
-                @open-exercise-detail="handleOpenExerciseDetail"
+                @open-exercise-detail="handleOpenExerciseDetailWrapper"
                 class="overflow-y-auto h-full"
               />
               <div class="absolute bottom-4 right-4">
@@ -295,12 +301,16 @@ const {
   currentPage,
   currentPhase,
   currentExercise,
+  currentExerciseIndex,
+  allExercises,
   handleNavigate,
   handleNavigateToProject,
   handleExerciseButtonClick,
   handleExercisesClose,
   handlePipelineClose,
   handleOpenExerciseDetail,
+  handleOpenExerciseDetailWithContext,
+  handleNavigateToExercise,
   handleBackToPipeline,
 } = useNavigation();
 
@@ -376,6 +386,18 @@ watch(isLoggedIn, (loggedIn) => {
     });
   }
 });
+
+// Create a wrapper function for opening exercise detail with context
+const handleOpenExerciseDetailWrapper = (exercise: any) => {
+  // If the exercise is from the pipeline (has originalIndex in selectedPins), use full context
+  const exerciseInPipeline = selectedPins.value.find(pin => pin.originalIndex === exercise.originalIndex);
+  if (exerciseInPipeline) {
+    handleOpenExerciseDetailWithContext(exercise, selectedPins.value);
+  } else {
+    // For individual exercises (from exercises page), create a single-item context
+    handleOpenExerciseDetailWithContext(exercise, [exercise]);
+  }
+};
 
 onMounted(() => {
   initializeAuth();
