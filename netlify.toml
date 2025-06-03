@@ -1,0 +1,14 @@
+# Netlify configuration for Vite + Vue 3 project using Bun
+[build]
+  command = "bun run build"
+  publish = "dist"
+
+[dev]
+  command = "bun run dev"
+  port = 5173
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
