@@ -31,8 +31,16 @@ export function useCanvas() {
   };
 
   const handleUnselectPin = (originalPinIndex: number) => {
+    // Remove the pin from selectedPins array
+    const updatedPins = selectedPins.value.filter(pin => pin.originalIndex !== originalPinIndex);
+    selectedPins.value = updatedPins;
+    
+    // Update the project with the new selected pins
+    updateProjectSelectedPins(updatedPins);
+    
+    // If KonvaCanvas is available, update its state as well
     if (konvaCanvasRef.value) {
-      konvaCanvasRef.value.togglePinSelected(originalPinIndex);
+      konvaCanvasRef.value.loadSelectedPins(updatedPins);
     }
   };
 
