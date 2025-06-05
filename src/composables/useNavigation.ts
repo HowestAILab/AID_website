@@ -106,17 +106,9 @@ export function useNavigation() {
     currentPhase.value = phase;
   };
 
-  const handleExercisesClose = () => {
+  const handleBackToDiamond = () => {
     currentPage.value = 'diamond';
     currentPhase.value = '';
-  };
-
-  const handlePipelineClose = () => {
-    currentPage.value = 'diamond';
-  };
-
-  const handleReflexionClose = () => {
-    currentPage.value = 'diamond';
   };
 
   const handleOpenExerciseDetail = (exercise: Exercise | SelectedPin) => {
@@ -187,9 +179,7 @@ export function useNavigation() {
     handleNavigate,
     handleNavigateToProject,
     handleExerciseButtonClick,
-    handleExercisesClose,
-    handlePipelineClose,
-    handleReflexionClose,
+    handleBackToDiamond,
     handleOpenExerciseDetail,
     handleOpenExerciseDetailWithContext,
     handleNavigateToExercise,

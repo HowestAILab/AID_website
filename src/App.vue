@@ -82,7 +82,7 @@
               v-else-if="currentPage === 'exercises'"
               :phase="currentPhase"
               :selected-pins="selectedPins"
-              @close="handleExercisesClose"
+              @close="handleBackToDiamond"
               @update:phase="(phase: string) => currentPhase = phase"
               @selected-pins-change="handleSelectedPinsChange"
               @open-exercise-detail="handleOpenExerciseDetailWrapper"
@@ -95,14 +95,14 @@
               v-else-if="currentPage === 'pipeline'"
               :selected-pins="selectedPins"
               :showBackButton="true"
-              @close="handlePipelineClose"
+              @close="handleBackToDiamond"
               @open-exercise-detail="handleOpenExerciseDetailWrapper"
               class="overflow-y-auto"
             />
             <ReflexionPage
               v-else-if="currentPage === 'reflexion'"
               :selected-exercises="selectedPins"
-              @close="handleReflexionClose"
+              @close="handleBackToDiamond"
             />
             <ExerciseDetail
               v-if="currentPage === 'exerciseDetail' && currentExercise"
@@ -201,7 +201,7 @@
                   v-else-if="currentPage === 'exercises'"
                   :phase="currentPhase"
                   :selected-pins="selectedPins"
-                  @close="handleExercisesClose"
+                  @close="handleBackToDiamond"
                   @update:phase="(phase: string) => currentPhase = phase"
                   @selected-pins-change="handleSelectedPinsChange"
                   @open-exercise-detail="handleOpenExerciseDetailWrapper"
@@ -214,13 +214,13 @@
                   v-else-if="currentPage === 'pipeline'"
                   :selected-pins="selectedPins"
                   :showBackButton="true"
-                  @close="handlePipelineClose"
+                  @close="handleBackToDiamond"
                   @open-exercise-detail="handleOpenExerciseDetailWrapper"
                 />
                 <ReflexionPage
                   v-else-if="currentPage === 'reflexion'"
                   :selected-exercises="selectedPins"
-                  @close="handleReflexionClose"
+                  @close="handleBackToDiamond"
                 />
                 <ExerciseDetail
                   v-if="currentPage === 'exerciseDetail' && currentExercise"
@@ -317,9 +317,7 @@ const {
   handleNavigate,
   handleNavigateToProject,
   handleExerciseButtonClick,
-  handleExercisesClose,
-  handlePipelineClose,
-  handleReflexionClose,
+  handleBackToDiamond,
   handleOpenExerciseDetail,
   handleOpenExerciseDetailWithContext,
   handleNavigateToExercise,
