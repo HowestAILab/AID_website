@@ -1,5 +1,5 @@
 <template>
-  <div class="border-b border-[#A1824A]">
+  <div class="border-b border-primary-accent">
     <nav class="flex -mb-px" aria-label="Tabs">
       <div class="flex-1"></div>
       <button
@@ -19,8 +19,8 @@
           'focus:outline-none',
           clickable ? 'cursor-pointer' : 'cursor-default',
           clickable && activeTab === tab
-            ? ['border-b-2', 'border-b-[#A1824A]', 'text-[#A1824A]', '']
-            : ['border-b', 'border-b-[#A1824A]', '', 'text-[#1C170D]'],
+            ? ['border-b-2', 'border-primary-accent', 'text-on-light-accent', '']
+            : ['border-b', 'border-primary-accent', '', 'text-[#1C170D]'],
         ]"
       >
         {{ tab }}

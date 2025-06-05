@@ -24,13 +24,13 @@
       <Button 
         type="submit"
         :disabled="isLoading"
-        class="w-full bg-[#F5F0E5] text-[#1C170D] hover:bg-[#DBD1BA] cursor-pointer mb-4"
+        class="w-full bg-light text-[#1C170D] cursor-pointer mb-4"
       >
         Login
       </Button>
     </form>
     <p class="text-sm text-gray-500">
-      Don't have an account? <a href="#" class="text-[#F59E0C]">Sign up</a>
+      Don't have an account? <a href="#" class="text-primary-accent">Sign up</a>
     </p>
   </div>
 </template>

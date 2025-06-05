@@ -39,7 +39,7 @@
               />
               <div
                 ref="labelBarRef"
-                class="relative h-10 border-t border-[#A1824A] flex-shrink-0"
+                class="relative h-10 border-t border-primary-accent flex-shrink-0"
               >
                 <template
                   v-for="label in sectionLabels"
@@ -158,7 +158,7 @@
                   />
                   <div
                     ref="labelBarRef"
-                    class="relative h-10 border-t border-[#A1824A] flex-shrink-0"
+                    class="relative h-10 border-t border-primary-accent flex-shrink-0"
                   >
                     <template
                       v-for="label in sectionLabels"
@@ -255,9 +255,9 @@
               <div class="absolute bottom-4 right-4">
                 <button
                   @click="handleCollapsePipeline"
-                  class="border border-[#A1824A] p-2 rounded-xs bg-[#F5F0E5] cursor-pointer hover:bg-[#F5F0E5]/80 transition-colors"
+                  class="border border-primary-accent p-2 rounded-xs bg-light cursor-pointer hover:bg-light/80 transition-colors"
                 >
-                  <ChevronDown class="w-5 h-5 text-[#A1824A]" />
+                  <ChevronDown class="w-5 h-5 text-primary-accent" />
                 </button>
               </div>
             </ResizablePanel>

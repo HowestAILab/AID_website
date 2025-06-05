@@ -16,7 +16,7 @@
           class="relative group"
         >
           <div
-            class="w-6 h-6 bg-[#F5F0E5] border border-black transform rotate-45 flex items-center justify-center"
+            class="w-6 h-6 bg-light border border-black transform rotate-45 flex items-center justify-center"
           >
             <span class="text-black text-xs transform -rotate-45">
               {{ exercise.originalIndex + 1 }}
@@ -39,9 +39,9 @@
     </div>
     <button
       @click="$emit('expandPipeline')"
-      class="border border-[#A1824A] p-2 ml-20 rounded-xs bg-[#F5F0E5] cursor-pointer hover:bg-[#F5F0E5]/80 transition-colors"
+      class="border border-[#A1824A] p-2 ml-20 rounded-xs bg-light cursor-pointer hover:bg-light/80 transition-colors"
     >
-      <ChevronUp class="w-5 h-5 text-[#A1824A]" />
+      <ChevronUp class="w-5 h-5 text-on-light-accent" />
     </button>
   </div>
 </template>

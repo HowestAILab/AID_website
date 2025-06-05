@@ -17,7 +17,7 @@
     <p class="text-[#4B5563] mb-4 flex-grow">{{ description }}</p>
     <button
       class="flex items-center gap-2 mt-auto cursor-pointer"
-      :class="props.isInPipeline ? 'text-red-500' : 'text-[#F59E0C]'"
+      :class="props.isInPipeline ? 'text-red-500' : 'text-primary-accent'"
       @click="$emit('togglePipeline', originalIndex)"
     >
       <CirclePlus v-if="!props.isInPipeline" />
