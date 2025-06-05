@@ -180,6 +180,27 @@ const chartOptions = computed(() => ({
         return val + (val === 1 ? " exercise" : " exercises");
       },
     },
+    style: {
+      fontSize: "12px",
+    },
+    theme: "light",
+    custom: function({ series, seriesIndex, dataPointIndex, w }: any) {
+      const categoryName = w.globals.labels[dataPointIndex] || w.config.xaxis.categories[dataPointIndex];
+      const seriesName = w.config.series[seriesIndex].name;
+      const value = series[seriesIndex][dataPointIndex];
+      
+      return `
+        <div style="border-radius: 4px; overflow: hidden;">
+          <div style="background-color: #F5F0E5; padding: 4px 12px; font-weight: 600;">
+            ${categoryName}
+          </div>
+          <div style="background-color: white; padding: 8px 12px; color: #374151;">
+            <span style="color: ${w.globals.colors[seriesIndex]};">●</span>
+            ${seriesName}: ${value} ${value === 1 ? 'exercise' : 'exercises'}
+          </div>
+        </div>
+      `;
+    },
   },
 }));
 </script>

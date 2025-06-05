@@ -116,6 +116,33 @@
         ]
       },
       "miro_board": "https://miro.com/app/board/xyz123"
+    },
+    {
+      "name": "AI-Assisted Technical Architecture Planning",
+      "description": "Leverage AI to analyze system requirements, evaluate technical constraints, and generate comprehensive architecture recommendations for scalable solution development.",
+      "location": {
+        "phase": "Develop",
+        "step": "Prepare (Develop)",
+        "human_ai_scale": 6
+      },
+      "prompt_example": [
+        "Based on these requirements [requirements list], suggest an optimal technical architecture for a [type of application]",
+        "Evaluate the scalability implications of using [technology stack] for [project scope]",
+        "What are the key technical risks and mitigation strategies for implementing [feature/system]?"
+      ],
+      "ethical": {
+        "before": [
+          "Ensure technical recommendations consider accessibility and inclusive design",
+          "Verify that suggested architectures comply with data protection regulations",
+          "Consider the environmental impact of proposed technical solutions"
+        ],
+        "after": [
+          "Review AI recommendations with experienced technical architects",
+          "Ensure the proposed architecture doesn't create vendor lock-in or technical debt",
+          "Validate that the solution is maintainable and documentable by the development team"
+        ]
+      },
+      "miro_board": "https://miro.com/app/board/xyz123"
     }
   ],
   "project": [
