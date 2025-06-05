@@ -152,9 +152,9 @@
             :class="[
               'flex items-center text-sm font-medium rounded-full text-[#1C170D] transition-colors',
               isCollapsed ? 'p-2 justify-center' : 'px-3 py-2.5',
-              activeItem === 'diamond-exercises' || activeItem === 'diamond-pipeline'
+              activeItem === 'diamond-exercises' || activeItem === 'diamond-pipeline' || activeItem === 'diamond-reflexion'
                 ? 'bg-white border border-[#A1824A] hover:bg-gray-50'
-                : activeItem === 'diamond' || activeItem.startsWith('diamond-')
+                : activeItem === 'diamond'
                 ? 'bg-[#F5F0E5] hover:bg-[#EDE6D3]'
                 : 'hover:bg-gray-100',
             ]"
@@ -207,7 +207,7 @@
                   : 'hover:bg-gray-100',
               ]"
             >
-              <ChartLine class="w-4 h-4 mr-3" />
+              <BarChart class="w-4 h-4 mr-3" />
               <span>Reflexion</span>
             </a>
           </div>
@@ -298,6 +298,7 @@ import {
   ChartLine,
   RectangleHorizontal,
   ArrowUpFromLine,
+  BarChart,
 } from "lucide-vue-next";
 import {
   Tooltip,
@@ -352,6 +353,9 @@ watch(
     } else if (newPage === "pipeline") {
       activeItem.value = "diamond-pipeline";
       isDiamondExpanded.value = true;
+    } else if (newPage === "reflexion") {
+      activeItem.value = "diamond-reflexion";
+      isDiamondExpanded.value = true;
     } else if (newPage === "overview") {
       activeItem.value = "overview";
       isDiamondExpanded.value = false;
@@ -387,7 +391,7 @@ const setActive = (item: ActiveItem) => {
       emit("navigate", "pipeline");
       break;
     case "diamond-reflexion":
-      emit("navigate", "diamond");
+      emit("navigate", "reflexion");
       break;
     case "overview":
       emit("navigate", "overview");

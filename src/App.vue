@@ -99,6 +99,11 @@
               @open-exercise-detail="handleOpenExerciseDetailWrapper"
               class="overflow-y-auto"
             />
+            <ReflexionPage
+              v-else-if="currentPage === 'reflexion'"
+              :selected-exercises="selectedPins"
+              @close="handleReflexionClose"
+            />
             <ExerciseDetail
               v-if="currentPage === 'exerciseDetail' && currentExercise"
               :exercise="currentExercise"
@@ -212,6 +217,11 @@
                   @close="handlePipelineClose"
                   @open-exercise-detail="handleOpenExerciseDetailWrapper"
                 />
+                <ReflexionPage
+                  v-else-if="currentPage === 'reflexion'"
+                  :selected-exercises="selectedPins"
+                  @close="handleReflexionClose"
+                />
                 <ExerciseDetail
                   v-if="currentPage === 'exerciseDetail' && currentExercise"
                   :exercise="currentExercise"
@@ -278,6 +288,7 @@ import AddExercisesButtons from "./components/diamond/AddExercisesButtons.vue";
 import ExercisesPage from "./components/exercise/ExercisesPage.vue";
 import OverviewPage from "./components/project/OverviewPage.vue";
 import PipelinePage from "./components/pipeline/PipelinePage.vue";
+import ReflexionPage from "./components/project/ReflexionPage.vue";
 import ExerciseDetail from "./components/exercise/ExerciseDetail.vue";
 import LoginPage from "./components/layout/LoginPage.vue";
 import { Toaster } from "@/components/ui/sonner";
@@ -308,6 +319,7 @@ const {
   handleExerciseButtonClick,
   handleExercisesClose,
   handlePipelineClose,
+  handleReflexionClose,
   handleOpenExerciseDetail,
   handleOpenExerciseDetailWithContext,
   handleNavigateToExercise,
@@ -390,7 +402,9 @@ watch(isLoggedIn, (loggedIn) => {
 // Create a wrapper function for opening exercise detail with context
 const handleOpenExerciseDetailWrapper = (exercise: any) => {
   // If the exercise is from the pipeline (has originalIndex in selectedPins), use full context
-  const exerciseInPipeline = selectedPins.value.find(pin => pin.originalIndex === exercise.originalIndex);
+  const exerciseInPipeline = selectedPins.value.find(
+    (pin) => pin.originalIndex === exercise.originalIndex
+  );
   if (exerciseInPipeline) {
     handleOpenExerciseDetailWithContext(exercise, selectedPins.value);
   } else {
