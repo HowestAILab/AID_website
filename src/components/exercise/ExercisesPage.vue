@@ -48,7 +48,7 @@
           >
             <template #trigger>
               <button
-                class="text-[#F59E0C] flex items-center gap-2 cursor-pointer"
+                class="text-primary-accent flex items-center gap-2 cursor-pointer"
                 @click="openDialogForCategory(categoryName)"
               >
                 <CirclePlus />

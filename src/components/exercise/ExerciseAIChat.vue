@@ -21,7 +21,7 @@
                     :key="index"
                     class="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors group relative"
                     :class="{
-                      'bg-[#F5F0E5] border-[#A1824A]':
+                      'bg-light border-primary-accent':
                         chat.id === currentChatId,
                     }"
                   >
@@ -73,7 +73,7 @@
             :class="[
               'p-3 rounded-lg max-w-full break-words',
               msg.role === 'user'
-                ? 'bg-[#F5F0E5] text-black'
+                ? 'bg-light text-black'
                 : 'text-gray-800 w-full',
             ]"
           >

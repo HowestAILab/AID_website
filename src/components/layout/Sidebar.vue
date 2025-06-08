@@ -19,20 +19,20 @@
             <AvatarFallback>WI</AvatarFallback>
           </Avatar>
           <div :class="{ hidden: isCollapsed }">
-            <p class="font-semibold text-sm text-gray-800">Will Inno</p>
-            <p class="text-xs text-[#A1824A]">UX designer</p>
+            <p class="font-semibold text-sm text-on-light-default">Will Inno</p>
+            <p class="text-xs text-on-light-accent">UX designer</p>
           </div>
         </div>
         <div v-if="currentProject && !isCollapsed" class="mt-3 w-full">
-          <div class="bg-[#F5F0E5] rounded-lg p-3">
-            <p class="text-xs font-medium text-[#A1824A] mb-1">
+          <div class="bg-light rounded-lg p-3">
+            <p class="text-xs font-medium text-on-light-accent mb-1">
               Current Project
             </p>
-            <p class="text-sm font-semibold text-[#1C170D] truncate">
+            <p class="text-sm font-semibold text-on-light-default truncate">
               {{ currentProject.name }}
             </p>
             <Button
-              class="w-full mt-2 bg-white rounded border text-sm py-1 text-[#1C170D] cursor-pointer flex items-center justify-center gap-2"
+              class="w-full mt-2 bg-white rounded border text-sm py-1 text-on-light-default cursor-pointer flex items-center justify-center gap-2"
               @click="handleExportProject"
             >
               <ArrowUpFromLine class="w-4 h-4" />
@@ -46,9 +46,9 @@
           href="#"
           @click.prevent="setActive('overview')"
           :class="[
-            'flex items-center text-sm font-medium rounded-full text-[#1C170D]',
+            'flex items-center text-sm font-medium rounded-full text-on-light-default',
             isCollapsed ? 'p-2 justify-center' : 'px-3 py-2.5',
-            activeItem === 'overview' ? 'bg-[#F5F0E5]' : 'hover:bg-gray-100',
+            activeItem === 'overview' ? 'bg-light' : 'hover:bg-gray-100',
           ]"
         >
           <LayoutDashboard
@@ -70,7 +70,7 @@
                   'flex items-center text-sm font-medium rounded-full text-[#1C170D] transition-colors',
                   'p-2 justify-center',
                   activeItem === 'diamond' || activeItem.startsWith('diamond-')
-                    ? 'bg-[#F5F0E5] hover:bg-[#EDE6D3]'
+                    ? 'bg-light hover:bg-[#EDE6D3]'
                     : 'hover:bg-gray-100',
                 ]"
               >
@@ -94,7 +94,7 @@
                   :class="[
                     'flex items-center text-sm font-medium rounded-lg text-[#1C170D] px-2 py-2 w-full',
                     activeItem === 'diamond'
-                      ? 'bg-[#F5F0E5]'
+                      ? 'bg-light'
                       : 'hover:bg-gray-100',
                   ]"
                 >
@@ -108,7 +108,7 @@
                   :class="[
                     'flex items-center text-sm font-medium rounded-lg text-[#1C170D] px-2 py-2 w-full',
                     activeItem === 'diamond-exercises'
-                      ? 'bg-[#F5F0E5]'
+                      ? 'bg-light'
                       : 'hover:bg-gray-100',
                   ]"
                 >
@@ -121,7 +121,7 @@
                   :class="[
                     'flex items-center text-sm font-medium rounded-lg text-[#1C170D] px-2 py-2 w-full',
                     activeItem === 'diamond-pipeline'
-                      ? 'bg-[#F5F0E5]'
+                      ? 'bg-light'
                       : 'hover:bg-gray-100',
                   ]"
                 >
@@ -134,7 +134,7 @@
                   :class="[
                     'flex items-center text-sm font-medium rounded-lg text-[#1C170D] px-2 py-2 w-full',
                     activeItem === 'diamond-reflexion'
-                      ? 'bg-[#F5F0E5]'
+                      ? 'bg-light'
                       : 'hover:bg-gray-100',
                   ]"
                 >
@@ -152,10 +152,10 @@
             :class="[
               'flex items-center text-sm font-medium rounded-full text-[#1C170D] transition-colors',
               isCollapsed ? 'p-2 justify-center' : 'px-3 py-2.5',
-              activeItem === 'diamond-exercises' || activeItem === 'diamond-pipeline'
-                ? 'bg-white border border-[#A1824A] hover:bg-gray-50'
-                : activeItem === 'diamond' || activeItem.startsWith('diamond-')
-                ? 'bg-[#F5F0E5] hover:bg-[#EDE6D3]'
+              activeItem === 'diamond-exercises' || activeItem === 'diamond-pipeline' || activeItem === 'diamond-reflexion'
+                ? 'bg-white border border-primary-accent hover:bg-gray-50'
+                : activeItem === 'diamond'
+                ? 'bg-light hover:bg-light/80'
                 : 'hover:bg-gray-100',
             ]"
           >
@@ -177,7 +177,7 @@
               :class="[
                 'flex items-center text-sm font-medium rounded-full text-[#1C170D] px-3 py-2',
                 activeItem === 'diamond-exercises'
-                  ? 'bg-[#F5F0E5]'
+                  ? 'bg-light'
                   : 'hover:bg-gray-100',
               ]"
             >
@@ -190,7 +190,7 @@
               :class="[
                 'flex items-center text-sm font-medium rounded-full text-[#1C170D] px-3 py-2',
                 activeItem === 'diamond-pipeline'
-                  ? 'bg-[#F5F0E5]'
+                  ? 'bg-light'
                   : 'hover:bg-gray-100',
               ]"
             >
@@ -203,11 +203,11 @@
               :class="[
                 'flex items-center text-sm font-medium rounded-full text-[#1C170D] px-3 py-2',
                 activeItem === 'diamond-reflexion'
-                  ? 'bg-[#F5F0E5]'
+                  ? 'bg-light'
                   : 'hover:bg-gray-100',
               ]"
             >
-              <ChartLine class="w-4 h-4 mr-3" />
+              <BarChart class="w-4 h-4 mr-3" />
               <span>Reflexion</span>
             </a>
           </div>
@@ -219,7 +219,7 @@
           :class="[
             'flex items-center text-sm font-medium rounded-full text-[#1C170D]',
             isCollapsed ? 'p-2 justify-center' : 'px-3 py-2.5',
-            activeItem === 'tools' ? 'bg-[#F5F0E5]' : 'hover:bg-gray-100',
+            activeItem === 'tools' ? 'bg-light' : 'hover:bg-gray-100',
           ]"
         >
           <Wrench :class="[isCollapsed ? 'w-6 h-6' : 'w-5 h-5 mr-3']" />
@@ -298,6 +298,7 @@ import {
   ChartLine,
   RectangleHorizontal,
   ArrowUpFromLine,
+  BarChart,
 } from "lucide-vue-next";
 import {
   Tooltip,
@@ -352,6 +353,9 @@ watch(
     } else if (newPage === "pipeline") {
       activeItem.value = "diamond-pipeline";
       isDiamondExpanded.value = true;
+    } else if (newPage === "reflexion") {
+      activeItem.value = "diamond-reflexion";
+      isDiamondExpanded.value = true;
     } else if (newPage === "overview") {
       activeItem.value = "overview";
       isDiamondExpanded.value = false;
@@ -387,7 +391,7 @@ const setActive = (item: ActiveItem) => {
       emit("navigate", "pipeline");
       break;
     case "diamond-reflexion":
-      emit("navigate", "diamond");
+      emit("navigate", "reflexion");
       break;
     case "overview":
       emit("navigate", "overview");

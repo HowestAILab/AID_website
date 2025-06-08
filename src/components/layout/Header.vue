@@ -30,7 +30,7 @@
       </svg>
       <p class="font-bold">
         Refraxion
-        <span class="text-[#A1824A] font-normal"
+        <span class="text-on-light-accent font-normal"
           >| Human-AI Collaboration Framework</span
         >
       </p>

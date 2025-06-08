@@ -83,7 +83,7 @@ export function useNavigation() {
 
   const handleNavigate = (page: string) => {
     // If no project is selected, stay on overview
-    if ((page === 'diamond' || page === 'exercises' || page === 'pipeline') && !currentProject.value) {
+    if ((page === 'diamond' || page === 'exercises' || page === 'pipeline' || page === 'reflexion') && !currentProject.value) {
       currentPage.value = 'overview';
       return;
     }
@@ -106,13 +106,9 @@ export function useNavigation() {
     currentPhase.value = phase;
   };
 
-  const handleExercisesClose = () => {
+  const handleBackToDiamond = () => {
     currentPage.value = 'diamond';
     currentPhase.value = '';
-  };
-
-  const handlePipelineClose = () => {
-    currentPage.value = 'diamond';
   };
 
   const handleOpenExerciseDetail = (exercise: Exercise | SelectedPin) => {
@@ -183,8 +179,7 @@ export function useNavigation() {
     handleNavigate,
     handleNavigateToProject,
     handleExerciseButtonClick,
-    handleExercisesClose,
-    handlePipelineClose,
+    handleBackToDiamond,
     handleOpenExerciseDetail,
     handleOpenExerciseDetailWithContext,
     handleNavigateToExercise,

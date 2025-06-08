@@ -76,6 +76,13 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --theme-page-background: black;
+  --theme-text-on-dark: white;
+  --theme-background-light: #F5F0E5;
+  --theme-text-on-light-default: black;
+  --theme-text-on-light-accent: #A1824A;
+  --theme-primary-accent: #F59E0C;
+  --theme-text-on-primary-accent: white;
 }
 
 .dark {
@@ -120,4 +127,56 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom Theme Properties */
+:root {
+  --theme-page-background: black;
+  --theme-text-on-dark: white;
+  --theme-background-light: #F5F0E5;
+  --theme-text-on-light-default: black;
+  --theme-text-on-light-accent: #A1824A;
+  --theme-primary-accent: #F59E0C;
+  --theme-text-on-primary-accent: white;
+}
+
+/* Theme Utility Classes */
+
+/* Background Colors */
+.bg-page {
+  background-color: var(--theme-page-background);
+}
+
+.bg-light {
+  background-color: var(--theme-background-light);
+}
+
+.bg-primary-accent {
+  background-color: var(--theme-primary-accent);
+}
+
+/* Text Colors */
+.text-on-dark {
+  color: var(--theme-text-on-dark);
+}
+
+.text-on-light-default {
+  color: var(--theme-text-on-light-default);
+}
+
+.text-on-light-accent {
+  color: var(--theme-text-on-light-accent);
+}
+
+.text-on-primary-accent {
+  color: var(--theme-text-on-primary-accent);
+}
+
+.text-primary-accent {
+  color: var(--theme-primary-accent);
+}
+
+/* Border Colors */
+.border-primary-accent {
+  border-color: var(--theme-text-on-light-accent);
 }

@@ -39,7 +39,7 @@
               />
               <div
                 ref="labelBarRef"
-                class="relative h-10 border-t border-[#A1824A] flex-shrink-0"
+                class="relative h-10 border-t border-primary-accent flex-shrink-0"
               >
                 <template
                   v-for="label in sectionLabels"
@@ -82,7 +82,7 @@
               v-else-if="currentPage === 'exercises'"
               :phase="currentPhase"
               :selected-pins="selectedPins"
-              @close="handleExercisesClose"
+              @close="handleBackToDiamond"
               @update:phase="(phase: string) => currentPhase = phase"
               @selected-pins-change="handleSelectedPinsChange"
               @open-exercise-detail="handleOpenExerciseDetailWrapper"
@@ -95,9 +95,14 @@
               v-else-if="currentPage === 'pipeline'"
               :selected-pins="selectedPins"
               :showBackButton="true"
-              @close="handlePipelineClose"
+              @close="handleBackToDiamond"
               @open-exercise-detail="handleOpenExerciseDetailWrapper"
               class="overflow-y-auto"
+            />
+            <ReflexionPage
+              v-else-if="currentPage === 'reflexion'"
+              :selected-exercises="selectedPins"
+              @close="handleBackToDiamond"
             />
             <ExerciseDetail
               v-if="currentPage === 'exerciseDetail' && currentExercise"
@@ -153,7 +158,7 @@
                   />
                   <div
                     ref="labelBarRef"
-                    class="relative h-10 border-t border-[#A1824A] flex-shrink-0"
+                    class="relative h-10 border-t border-primary-accent flex-shrink-0"
                   >
                     <template
                       v-for="label in sectionLabels"
@@ -196,7 +201,7 @@
                   v-else-if="currentPage === 'exercises'"
                   :phase="currentPhase"
                   :selected-pins="selectedPins"
-                  @close="handleExercisesClose"
+                  @close="handleBackToDiamond"
                   @update:phase="(phase: string) => currentPhase = phase"
                   @selected-pins-change="handleSelectedPinsChange"
                   @open-exercise-detail="handleOpenExerciseDetailWrapper"
@@ -209,8 +214,13 @@
                   v-else-if="currentPage === 'pipeline'"
                   :selected-pins="selectedPins"
                   :showBackButton="true"
-                  @close="handlePipelineClose"
+                  @close="handleBackToDiamond"
                   @open-exercise-detail="handleOpenExerciseDetailWrapper"
+                />
+                <ReflexionPage
+                  v-else-if="currentPage === 'reflexion'"
+                  :selected-exercises="selectedPins"
+                  @close="handleBackToDiamond"
                 />
                 <ExerciseDetail
                   v-if="currentPage === 'exerciseDetail' && currentExercise"
@@ -245,9 +255,9 @@
               <div class="absolute bottom-4 right-4">
                 <button
                   @click="handleCollapsePipeline"
-                  class="border border-[#A1824A] p-2 rounded-xs bg-[#F5F0E5] cursor-pointer hover:bg-[#F5F0E5]/80 transition-colors"
+                  class="border border-primary-accent p-2 rounded-xs bg-light cursor-pointer hover:bg-light/80 transition-colors"
                 >
-                  <ChevronDown class="w-5 h-5 text-[#A1824A]" />
+                  <ChevronDown class="w-5 h-5 text-primary-accent" />
                 </button>
               </div>
             </ResizablePanel>
@@ -278,6 +288,7 @@ import AddExercisesButtons from "./components/diamond/AddExercisesButtons.vue";
 import ExercisesPage from "./components/exercise/ExercisesPage.vue";
 import OverviewPage from "./components/project/OverviewPage.vue";
 import PipelinePage from "./components/pipeline/PipelinePage.vue";
+import ReflexionPage from "./components/project/ReflexionPage.vue";
 import ExerciseDetail from "./components/exercise/ExerciseDetail.vue";
 import LoginPage from "./components/layout/LoginPage.vue";
 import { Toaster } from "@/components/ui/sonner";
@@ -306,8 +317,7 @@ const {
   handleNavigate,
   handleNavigateToProject,
   handleExerciseButtonClick,
-  handleExercisesClose,
-  handlePipelineClose,
+  handleBackToDiamond,
   handleOpenExerciseDetail,
   handleOpenExerciseDetailWithContext,
   handleNavigateToExercise,
@@ -390,7 +400,9 @@ watch(isLoggedIn, (loggedIn) => {
 // Create a wrapper function for opening exercise detail with context
 const handleOpenExerciseDetailWrapper = (exercise: any) => {
   // If the exercise is from the pipeline (has originalIndex in selectedPins), use full context
-  const exerciseInPipeline = selectedPins.value.find(pin => pin.originalIndex === exercise.originalIndex);
+  const exerciseInPipeline = selectedPins.value.find(
+    (pin) => pin.originalIndex === exercise.originalIndex
+  );
   if (exerciseInPipeline) {
     handleOpenExerciseDetailWithContext(exercise, selectedPins.value);
   } else {
