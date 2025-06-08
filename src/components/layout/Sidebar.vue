@@ -23,23 +23,7 @@
             <p class="text-xs text-on-light-accent">UX designer</p>
           </div>
         </div>
-        <div v-if="currentProject && !isCollapsed" class="mt-3 w-full">
-          <div class="bg-light rounded-lg p-3">
-            <p class="text-xs font-medium text-on-light-accent mb-1">
-              Current Project
-            </p>
-            <p class="text-sm font-semibold text-on-light-default truncate">
-              {{ currentProject.name }}
-            </p>
-            <Button
-              class="w-full mt-2 bg-white rounded border text-sm py-1 text-on-light-default cursor-pointer flex items-center justify-center gap-2"
-              @click="handleExportProject"
-            >
-              <ArrowUpFromLine class="w-4 h-4" />
-              Export project
-            </Button>
-          </div>
-        </div>
+        <!-- Project info moved to navigation below -->
       </div>
       <nav class="flex-grow space-y-1">
         <a
@@ -80,25 +64,36 @@
             <PopoverContent
               side="right"
               align="start"
-              class="w-48 p-2"
+              class="w-56 p-2"
               @mouseenter="handleDiamondMouseEnter"
               @mouseleave="handleDiamondMouseLeave"
             >
               <div class="space-y-1">
-                <h4 class="font-medium text-sm text-[#1C170D] px-2 py-1">
-                  Diamond
+                <h4
+                  class="font-medium text-sm text-[#1C170D] px-2 py-1 truncate"
+                  :title="currentProject?.name"
+                >
+                  {{ currentProject?.name || "No Project" }}
                 </h4>
+                <!-- <p v-if="currentProject?.description" class="text-xs text-on-light-accent px-2 truncate mb-1">
+                  {{ currentProject?.description }}
+                </p> -->
+                <Button
+                  v-if="currentProject"
+                  class="w-full mb-2 bg-white rounded border text-xs py-1 text-on-light-default cursor-pointer flex items-center justify-center gap-2"
+                  @click="handleExportProject"
+                >
+                  <ArrowUpFromLine class="w-4 h-4" />
+                  Export project
+                </Button>
                 <a
                   href="#"
                   @click.prevent="setActive('diamond')"
                   :class="[
                     'flex items-center text-sm font-medium rounded-lg text-[#1C170D] px-2 py-2 w-full',
-                    activeItem === 'diamond'
-                      ? 'bg-light'
-                      : 'hover:bg-gray-100',
+                    activeItem === 'diamond' ? 'bg-light' : 'hover:bg-gray-100',
                   ]"
                 >
-                  <!-- Maybe change icon or remove as its redundant, clicking on the diamond opens same thing -->
                   <RectangleHorizontal class="w-4 h-4 mr-3" />
                   <span>Canvas</span>
                 </a>
@@ -152,7 +147,9 @@
             :class="[
               'flex items-center text-sm font-medium rounded-full text-[#1C170D] transition-colors',
               isCollapsed ? 'p-2 justify-center' : 'px-3 py-2.5',
-              activeItem === 'diamond-exercises' || activeItem === 'diamond-pipeline' || activeItem === 'diamond-reflexion'
+              activeItem === 'diamond-exercises' ||
+              activeItem === 'diamond-pipeline' ||
+              activeItem === 'diamond-reflexion'
                 ? 'bg-white border border-primary-accent hover:bg-gray-50'
                 : activeItem === 'diamond'
                 ? 'bg-light hover:bg-light/80'
@@ -160,7 +157,12 @@
             ]"
           >
             <Gem :class="[isCollapsed ? 'w-6 h-6' : 'w-5 h-5 mr-3']" />
-            <span :class="{ hidden: isCollapsed }">Diamond</span>
+            <span
+              :class="['truncate', { hidden: isCollapsed }]"
+              :title="currentProject?.name"
+            >
+              {{ currentProject?.name || "No Project" }}
+            </span>
             <ChevronDown
               v-if="!isCollapsed"
               :class="[
@@ -210,6 +212,22 @@
               <BarChart class="w-4 h-4 mr-3" />
               <span>Reflexion</span>
             </a>
+            <div v-if="currentProject" class="mt-2 bg-light rounded-lg p-2">
+              <p
+                class="text-xs font-medium text-on-light-accent mb-1 truncate"
+                :title="currentProject?.name"
+              >
+                {{ currentProject?.name }}
+              </p>
+
+              <Button
+                class="w-full mt-1 bg-white rounded border text-xs py-1 text-on-light-default cursor-pointer flex items-center justify-center gap-2"
+                @click="handleExportProject"
+              >
+                <ArrowUpFromLine class="w-4 h-4" />
+                Export project
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -282,9 +300,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import Avatar from "@/components/ui/avatar/Avatar.vue";
-import AvatarFallback from "@/components/ui/avatar/AvatarFallback.vue";
-import AvatarImage from "@/components/ui/avatar/AvatarImage.vue";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   LayoutDashboard,
   Gem,
