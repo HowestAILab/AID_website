@@ -126,7 +126,10 @@
         <template v-for="(pin, i) in pins" :key="i">
           <div
             v-if="pin.isAddedToDiamond"
-            class="absolute flex items-center"
+            class="absolute flex items-center transition-opacity duration-200"
+            :class="{
+              'opacity-50': hoveredColumnIndex !== null && !isPinInColumn(i, hoveredColumnIndex)
+            }"
             :style="{
               left: pin.config.x + 'px',
               top: pin.config.y + 'px',
@@ -137,8 +140,6 @@
             <div
               class="relative cursor-pointer transition-all duration-200 hover:scale-110"
               @click="handlePinClick(i)"
-              @mouseenter="() => handleMouseEnter(i)"
-              @mouseleave="handleMouseLeave"
             >
               <!-- Selected state: diamond shape -->
               <div
@@ -178,7 +179,7 @@
 
             <!-- Hover Label -->
             <div
-              v-if="hoveredPinIndex === i"
+              v-if="hoveredColumnIndex !== null && isPinInColumn(i, hoveredColumnIndex)"
               class="absolute left-full ml-2 bg-white px-2 py-1 rounded shadow-lg border text-sm whitespace-nowrap z-10"
               :style="{
                 top: '50%',
@@ -189,6 +190,21 @@
             </div>
           </div>
         </template>
+      </div>
+
+      <!-- Add invisible column hover areas -->
+      <div class="absolute inset-0 pointer-events-none" style="z-index: 20;">
+        <div 
+          v-for="(section, index) in sectionLabels" 
+          :key="'section-' + index"
+          class="absolute top-0 bottom-0 pointer-events-auto"
+          :style="{
+            left: section.left + 'px',
+            width: section.width + 'px'
+          }"
+          @mouseenter="hoveredColumnIndex = index"
+          @mouseleave="hoveredColumnIndex = null"
+        ></div>
       </div>
     </div>
   </div>
@@ -344,7 +360,7 @@ const selectedPin = ref<PinConfig | null>(null);
 const selectedPinIndex = ref<number | null>(null);
 const pinTriggerRef = ref<HTMLElement | null>(null);
 const selectedPinPosition = ref({ x: 0, y: 0 });
-const hoveredPinIndex = ref<number | null>(null);
+const hoveredColumnIndex = ref<number | null>(null);
 
 // Line Y positions - repositioned to top, center, bottom
 const horizontalLineYFraction1 = 0.2;   // Top (human axis)
@@ -466,20 +482,6 @@ defineExpose({
   }
 });
 
-const handleMouseEnter = (index: number) => {
-  hoveredPinIndex.value = index;
-  if (gridContainerRef.value) {
-    gridContainerRef.value.style.cursor = "pointer";
-  }
-};
-
-const handleMouseLeave = () => {
-  hoveredPinIndex.value = null;
-  if (gridContainerRef.value) {
-    gridContainerRef.value.style.cursor = "default";
-  }
-};
-
 // Emit layout update to parent components
 const emitLayoutUpdate = () => {
   emit("layoutUpdate", {
@@ -492,6 +494,14 @@ const emitLayoutUpdate = () => {
       height: svgScale.value.height,
     },
   });
+};
+
+// Helper function to check if a pin is in a specific column
+const isPinInColumn = (pinIndex: number, columnIndex: number) => {
+  const pin = pins.value[pinIndex];
+  const section = sectionLabels.value[columnIndex];
+  const pinX = pin.config.x;
+  return pinX >= section.left && pinX <= section.left + section.width;
 };
 
 // Calculate pin positions based on human_ai_scale and phase

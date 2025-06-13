@@ -2,7 +2,7 @@
   <div
     v-if="addExercisesButtonCenterOffsets.length > 0"
     class="relative py-4"
-    style="min-height: 60px"
+    style="min-height: 60px; z-index: 20;"
   >
     <button
       v-for="(offset, index) in addExercisesButtonCenterOffsets"
