@@ -1,0 +1,671 @@
+<template>
+  <div class="py-6 flex-1 relative">
+    <!-- Popover for pin details -->
+    <Popover v-model:open="selectedPinPopover" :key="selectedPinIndex ?? -1">
+      <PopoverTrigger as-child>
+        <div
+          ref="pinTriggerRef"
+          class="absolute"
+          :style="{
+            left: selectedPinPosition.x + 'px',
+            top: selectedPinPosition.y + 'px',
+          }"
+        />
+      </PopoverTrigger>
+      <PopoverContent v-if="selectedPin" class="w-80">
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <h4 class="font-medium leading-none">
+              {{ selectedPin.labelConfig.text }}
+            </h4>
+            <p class="text-sm text-muted-foreground">
+              {{ selectedPin.description }}
+            </p>
+          </div>
+          <div class="flex justify-end">
+            <Button
+              class="cursor-pointer"
+              :variant="selectedPin.isSelected ? 'destructive' : 'default'"
+              @click="togglePinSelection(selectedPinIndex)"
+            >
+              {{
+                selectedPin.isSelected
+                  ? "Remove from pipeline"
+                  : "Add to pipeline"
+              }}
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+
+    <!-- Diamond Grid Container -->
+    <div 
+      ref="gridContainerRef"
+      class="relative w-full h-full flex items-center justify-center"
+      :style="{ 
+        minHeight: '500px',
+        height: props.containerHeight + 'px'
+      }"
+    >
+      <!-- Background SVG - positioned and scaled based on actual SVG dimensions -->
+      <div
+        class="absolute"
+        :style="{
+          left: svgScale.left + 'px',
+          top: svgScale.top + 'px',
+          width: svgScale.width + 'px',
+          height: svgScale.height + 'px',
+          zIndex: 1
+        }"
+      >
+        <img
+          v-if="imageObj"
+          :src="imageObj.src"
+          alt="Double Diamond"
+          class="w-full h-full pointer-events-none"
+          :style="{ 
+            width: '100%',
+            height: '100%'
+          }"
+        />
+      </div>
+
+      <!-- Horizontal Lines - aligned with the SVG -->
+      <div class="absolute inset-0" style="z-index: 2;">
+        <div 
+          class="absolute border-t border-gray-300"
+          :style="{ 
+            top: (svgScale.top + humanLineY) + 'px',
+            left: svgScale.left + 'px',
+            width: svgScale.width + 'px'
+          }"
+        ></div>
+        <div 
+          class="absolute border-t border-gray-300"
+          :style="{ 
+            top: (svgScale.top + humanAiLineY) + 'px',
+            left: svgScale.left + 'px',
+            width: svgScale.width + 'px'
+          }"
+        ></div>
+        <div 
+          class="absolute border-t border-gray-300"
+          :style="{ 
+            top: (svgScale.top + aiLineY) + 'px',
+            left: svgScale.left + 'px',
+            width: svgScale.width + 'px'
+          }"
+        ></div>
+      </div>
+
+      <!-- Axis Labels -->
+      <div class="absolute text-xs text-gray-600 font-medium" style="z-index: 3;" :style="{ left: (svgScale.left - 10) + 'px', top: (svgScale.top - 10) + 'px' }">
+        <div 
+          class="absolute whitespace-nowrap -translate-x-full pr-4"
+          :style="{ top: (humanLineY) + 'px' }"
+        >
+          human axis
+        </div>
+        <div 
+          class="absolute whitespace-nowrap -translate-x-full pr-4"
+          :style="{ top: (humanAiLineY) + 'px' }"
+        >
+          human+ai axis
+        </div>
+        <div 
+          class="absolute whitespace-nowrap -translate-x-full pr-4"
+          :style="{ top: (aiLineY) + 'px' }"
+        >
+          ai axis
+        </div>
+      </div>
+
+      <!-- Exercise Pins -->
+      <div class="absolute inset-0" style="z-index: 10;">
+        <template v-for="(pin, i) in pins" :key="i">
+          <div
+            v-if="pin.isAddedToDiamond"
+            class="absolute flex items-center"
+            :style="{
+              left: pin.config.x + 'px',
+              top: pin.config.y + 'px',
+              transform: 'translate(-50%, -50%)'
+            }"
+          >
+            <!-- Pin Circle/Diamond -->
+            <div
+              class="relative cursor-pointer transition-all duration-200 hover:scale-110"
+              @click="handlePinClick(i)"
+              @mouseenter="() => handleMouseEnter(i)"
+              @mouseleave="handleMouseLeave"
+            >
+              <!-- Selected state: diamond shape -->
+              <div
+                v-if="pin.isSelected"
+                class="w-7 h-7 bg-[#F5F0E5] border-2 border-black transform rotate-45 flex items-center justify-center"
+                :style="{
+                  backgroundColor: pin.config.fill,
+                  borderColor: pin.config.stroke,
+                  borderWidth: pin.config.strokeWidth + 'px'
+                }"
+              >
+                <span 
+                  class="text-sm font-medium text-gray-700 transform -rotate-45"
+                >
+                  {{ i + 1 }}
+                </span>
+              </div>
+              <!-- Unselected state: circle -->
+              <div
+                v-else
+                class="w-6 h-6 rounded-full border flex items-center justify-center"
+                :style="{
+                  backgroundColor: pin.config.fill,
+                  borderColor: pin.config.stroke,
+                  borderWidth: pin.config.strokeWidth + 'px',
+                  width: (pin.config.radius * 2) + 'px',
+                  height: (pin.config.radius * 2) + 'px'
+                }"
+              >
+                <span 
+                  class="text-sm font-medium text-gray-700"
+                >
+                  {{ i + 1 }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Hover Label -->
+            <div
+              v-if="hoveredPinIndex === i"
+              class="absolute left-full ml-2 bg-white px-2 py-1 rounded shadow-lg border text-sm whitespace-nowrap z-10"
+              :style="{
+                top: '50%',
+                transform: 'translateY(-50%)'
+              }"
+            >
+              {{ pin.labelConfig.text }}
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import {
+  computed,
+  defineProps,
+  defineEmits,
+  ref,
+  onMounted,
+  defineExpose,
+  watch,
+  nextTick,
+} from "vue";
+import pinsData from "@/../dummy.json";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { SECTION_LABEL_TEXTS } from "@/constants/app";
+
+const LOCAL_STORAGE_KEY_DIAMOND_EXERCISES = "diamondExercises";
+
+interface SelectedPinInfo {
+  name: string;
+  originalIndex: number;
+  order: number;
+  description: string;
+  location: {
+    phase: string;
+    step: string;
+    human_ai_scale: number;
+  };
+}
+
+const emit = defineEmits<{
+  (e: "selectedPinsChange", selectedPins: SelectedPinInfo[]): void;
+  (e: "layoutUpdate", layout: {
+    sectionLabels: { text: string; left: number; width: number }[];
+    addExercisesButtonCenterOffsets: number[];
+    svgBounds: { left: number; top: number; width: number; height: number };
+  }): void;
+}>();
+
+const props = defineProps<{
+  containerWidth: number;
+  containerHeight: number;
+  imageObj: HTMLImageElement | null;
+}>();
+
+const gridContainerRef = ref<HTMLElement | null>(null);
+
+// SVG dimensions from the original file
+const SVG_WIDTH = 834;
+const SVG_HEIGHT = 420;
+
+// Computed properties for SVG scaling and positioning
+const svgScale = computed(() => {
+  if (!props.containerWidth || !props.containerHeight) return { width: SVG_WIDTH, height: SVG_HEIGHT, left: 0, top: 0 };
+  
+  // Calculate available space (with 10% padding on each side)
+  const paddingPercent = 0.1;
+  const availableWidth = props.containerWidth * (1 - 2 * paddingPercent);
+  const availableHeight = props.containerHeight * 0.9; // Use 90% of total height
+  
+  // Calculate scale to fit SVG within available space while maintaining aspect ratio
+  const scaleX = availableWidth / SVG_WIDTH;
+  const scaleY = availableHeight / SVG_HEIGHT;
+  const scale = Math.min(scaleX, scaleY);
+  
+  // Calculate actual rendered SVG dimensions
+  const renderedWidth = SVG_WIDTH * scale;
+  const renderedHeight = SVG_HEIGHT * scale;
+  
+  // Position the SVG higher up (top 5% margin instead of centering)
+  const leftOffset = props.containerWidth * paddingPercent + (availableWidth - renderedWidth) / 2;
+  const topOffset = props.containerHeight * 0.05; // 5% from top
+  
+  return {
+    width: renderedWidth,
+    height: renderedHeight,
+    left: leftOffset,
+    top: topOffset,
+    scale
+  };
+});
+
+interface PinConfig {
+  isSelected: boolean;
+  isAddedToDiamond: boolean;
+  order: number;
+  config: {
+    x: number;
+    y: number;
+    radius: number;
+    fill: string;
+    stroke: string;
+    strokeWidth: number;
+  };
+  labelConfig: {
+    x: number;
+    y: number;
+    text: string;
+    fontSize: number;
+    fill: string;
+  };
+  description: string;
+  location: {
+    phase: string;
+    step: string;
+    human_ai_scale: number;
+  };
+}
+
+// Initialize pins ref with static data
+const pins = ref<PinConfig[]>(
+  (pinsData.exercise || []).map((exercise: any, index: number): PinConfig => {
+    // Calculate initial X position based on phase and step
+    const x = calculatePhaseXPosition(exercise.location.phase, exercise.location.step, index);
+    const initialY = 200;
+
+    return {
+      isSelected: false,
+      isAddedToDiamond: false,
+      order: index,
+      config: {
+        x,
+        y: initialY,
+        radius: 12,
+        fill: "#F5F0E5",
+        stroke: "black",
+        strokeWidth: 1,
+      },
+      labelConfig: {
+        x: x + 20,
+        y: initialY - 10,
+        text: exercise.name,
+        fontSize: 14,
+        fill: "#374151",
+      },
+      description: exercise.description,
+      location: exercise.location,
+    };
+  })
+);
+
+const selectedPinPopover = ref(false);
+const selectedPin = ref<PinConfig | null>(null);
+const selectedPinIndex = ref<number | null>(null);
+const pinTriggerRef = ref<HTMLElement | null>(null);
+const selectedPinPosition = ref({ x: 0, y: 0 });
+const hoveredPinIndex = ref<number | null>(null);
+
+// Line Y positions - repositioned to top, center, bottom
+const horizontalLineYFraction1 = 0.2;   // Top (human axis)
+const horizontalLineYFraction2 = 0.5;   // Center (human+ai axis)  
+const horizontalLineYFraction3 = 0.8;   // Bottom (ai axis)
+
+const humanLineY = computed(() => svgScale.value.height * horizontalLineYFraction1);
+const humanAiLineY = computed(() => svgScale.value.height * horizontalLineYFraction2);
+const aiLineY = computed(() => svgScale.value.height * horizontalLineYFraction3);
+
+// Section labels based on SVG scaling - 8 sections total (4 phases × 2 steps)
+const sectionLabels = computed(() => {
+  const svgLeft = svgScale.value.left;
+  const svgWidth = svgScale.value.width;
+  const sectionWidth = svgWidth / 8; // 8 equal sections
+  
+  const labels: { text: string; left: number; width: number }[] = [];
+  
+  // Create 8 sections based on the section label texts
+  for (let i = 0; i < SECTION_LABEL_TEXTS.length; i++) {
+    labels.push({
+      text: SECTION_LABEL_TEXTS[i],
+      left: svgLeft + (i * sectionWidth),
+      width: sectionWidth,
+    });
+  }
+  
+  return labels;
+});
+
+// Add exercise button positions - center of each phase (4 buttons total)
+const addExercisesButtonCenterOffsets = computed(() => {
+  const svgLeft = svgScale.value.left;
+  const svgWidth = svgScale.value.width;
+  const phaseWidth = svgWidth / 4;
+  
+  return [
+    svgLeft + (phaseWidth * 0.5), // Discover center
+    svgLeft + (phaseWidth * 1.5), // Define center  
+    svgLeft + (phaseWidth * 2.5), // Develop center
+    svgLeft + (phaseWidth * 3.5), // Deliver center
+  ];
+});
+
+function handlePinClick(index: number) {
+  selectedPin.value = pins.value[index];
+  selectedPinIndex.value = index;
+
+  if (gridContainerRef.value) {
+    const containerRect = gridContainerRef.value.getBoundingClientRect();
+
+    selectedPinPosition.value = {
+      x: containerRect.left + pins.value[index].config.x,
+      y: containerRect.top + pins.value[index].config.y,
+    };
+  }
+
+  selectedPinPopover.value = true;
+}
+
+let selectedIndices: number[] = [];
+function togglePinSelection(index: number | null) {
+  if (index === null) return;
+
+  // Toggle pin selection
+  pins.value[index].isSelected = !pins.value[index].isSelected;
+
+  if (pins.value[index].isSelected) {
+    // Add to end if selected
+    if (!selectedIndices.includes(index)) {
+      selectedIndices.push(index);
+    }
+  } else {
+    // Remove if deselected
+    selectedIndices = selectedIndices.filter((i) => i !== index);
+  }
+
+  // Build selectedPinData in the order of selectedIndices
+  const selectedPinData = selectedIndices.map((idx) => ({
+    name: pins.value[idx].labelConfig.text,
+    originalIndex: idx,
+    order: pins.value[idx].order,
+    description: pins.value[idx].description,
+    location: pins.value[idx].location,
+  }));
+
+  emit("selectedPinsChange", selectedPinData);
+
+  // Update the selectedPin ref to reflect the new state
+  if (selectedPin.value) {
+    selectedPin.value = {
+      ...selectedPin.value,
+      isSelected: pins.value[index].isSelected,
+    };
+  }
+
+  selectedPinPopover.value = false;
+}
+
+// Expose methods for external use
+defineExpose({
+  togglePinSelected: togglePinSelection,
+  loadSelectedPins: (projectSelectedPins: SelectedPinInfo[]) => {
+    // Clear current selections
+    pins.value.forEach(pin => {
+      pin.isSelected = false;
+    });
+    
+    // Set selected pins based on project state
+    const projectSelectedIndices: number[] = [];
+    projectSelectedPins.forEach(pinInfo => {
+      if (pinInfo.originalIndex >= 0 && pinInfo.originalIndex < pins.value.length) {
+        pins.value[pinInfo.originalIndex].isSelected = true;
+        projectSelectedIndices.push(pinInfo.originalIndex);
+      }
+    });
+    
+    selectedIndices = projectSelectedIndices;
+  }
+});
+
+const handleMouseEnter = (index: number) => {
+  hoveredPinIndex.value = index;
+  if (gridContainerRef.value) {
+    gridContainerRef.value.style.cursor = "pointer";
+  }
+};
+
+const handleMouseLeave = () => {
+  hoveredPinIndex.value = null;
+  if (gridContainerRef.value) {
+    gridContainerRef.value.style.cursor = "default";
+  }
+};
+
+// Emit layout update to parent components
+const emitLayoutUpdate = () => {
+  emit("layoutUpdate", {
+    sectionLabels: sectionLabels.value,
+    addExercisesButtonCenterOffsets: addExercisesButtonCenterOffsets.value,
+    svgBounds: {
+      left: svgScale.value.left,
+      top: svgScale.value.top,
+      width: svgScale.value.width,
+      height: svgScale.value.height,
+    },
+  });
+};
+
+// Calculate pin positions based on human_ai_scale and phase
+const calculatePinPositions = () => {
+  if (props.containerHeight <= 0 || props.containerWidth <= 0) return;
+
+  const svgTop = svgScale.value.top;
+  const yHuman = svgTop + humanLineY.value;
+  const yHumanAi = svgTop + humanAiLineY.value;
+  const yAi = svgTop + aiLineY.value;
+
+  // 1. Group pins by cell (phase, step, quantized scale)
+  const cellMap = new Map<string, number[]>(); // key -> array of pin indices
+  const quantizeScale = (scale: number) => Math.round(scale * 2) / 2; // 0.5 steps
+
+  pins.value.forEach((pin, idx) => {
+    const key = `${pin.location.phase}-${pin.location.step}-${quantizeScale(pin.location.human_ai_scale)}`;
+    if (!cellMap.has(key)) cellMap.set(key, []);
+    cellMap.get(key)!.push(idx);
+  });
+
+  // 2. For each cell, space pins evenly in X and Y
+  cellMap.forEach((indices, key) => {
+    // Parse key
+    const [phase, step, scaleStr] = key.split("-");
+    const scale = parseFloat(scaleStr);
+    // Calculate base Y for this scale
+    let baseY;
+    if (scale <= 2.5) {
+      const t = scale / 2.5;
+      baseY = yHuman * (1 - t) + yHumanAi * t;
+    } else if (scale <= 7.5) {
+      const t = (scale - 2.5) / 5;
+      baseY = yHumanAi * (1 - t) + yAi * t;
+    } else {
+      const t = Math.min(1, (scale - 7.5) / 2.5);
+      baseY = yAi * (1 - t * 0.1) + yAi * (t * 0.1);
+    }
+    // Y band for spacing (±2.5% of svg height)
+    const yBand = svgScale.value.height * 0.05;
+    const yStart = baseY - yBand / 2;
+    const yEnd = baseY + yBand / 2;
+    // X section info
+    const { sectionStart, sectionEnd, padding } = getSectionBounds(phase, step);
+    const xStart = sectionStart + padding;
+    const xEnd = sectionEnd - padding;
+    // How many pins in this cell?
+    const n = indices.length;
+    indices.forEach((pinIdx, i) => {
+      // Evenly space in X and Y
+      const frac = n === 1 ? 0.5 : i / (n - 1);
+      const newPinX = xStart + frac * (xEnd - xStart);
+      const newPinY = yStart + frac * (yEnd - yStart);
+      const pin = pins.value[pinIdx];
+      pin.config.x = newPinX;
+      pin.config.y = newPinY;
+      pin.labelConfig.x = newPinX + 20;
+      pin.labelConfig.y = newPinY - 10;
+    });
+  });
+};
+
+// Helper to get section bounds for a phase+step
+function getSectionBounds(phase: string, step: string) {
+  const gridMapping: Record<string, Record<string, number>> = {
+    'Discover': {
+      'Prepare': 0,
+      'Discover': 1,
+    },
+    'Define': {
+      'Define': 2,
+      'Synthesise': 3,
+    },
+    'Develop': {
+      'Prepare': 4,
+      'Develop': 5,
+    },
+    'Deliver': {
+      'Deliver': 6,
+      'Synthesise': 7,
+    }
+  };
+  const sectionIndex = gridMapping[phase]?.[step];
+  if (sectionIndex === undefined) {
+    console.warn(`Unknown phase/step combination: ${phase}/${step}`);
+    // fallback
+    const svgLeft = svgScale.value.left;
+    return { sectionStart: svgLeft + 100, sectionEnd: svgLeft + 200, padding: 0 };
+  }
+  const svgLeft = svgScale.value.left;
+  const svgWidth = svgScale.value.width;
+  const sectionWidth = svgWidth / 8;
+  const sectionStart = svgLeft + (sectionIndex * sectionWidth);
+  const sectionEnd = sectionStart + sectionWidth;
+  const padding = sectionWidth * 0.1;
+  return { sectionStart, sectionEnd, padding };
+}
+
+// calculatePhaseXPosition is now only used for initial dummy positions
+function calculatePhaseXPosition(phase: string, step: string, exerciseIndex: number): number {
+  // Map phase+step combinations to grid sections (0-7)
+  const gridMapping: Record<string, Record<string, number>> = {
+    'Discover': {
+      'Prepare': 0,      // prepare
+      'Discover': 1,     // discover  
+    },
+    'Define': {
+      'Define': 2,       // define
+      'Synthesise': 3,   // synthesise
+    },
+    'Develop': {
+      'Prepare': 4,      // prepare
+      'Develop': 5,      // develop
+    },
+    'Deliver': {
+      'Deliver': 6,      // deliver
+      'Synthesise': 7,   // synthesise
+    }
+  };
+  
+  // Get the grid section index
+  const sectionIndex = gridMapping[phase]?.[step];
+  if (sectionIndex === undefined) {
+    console.warn(`Unknown phase/step combination: ${phase}/${step}`);
+    return svgScale.value.left + 100; // Fallback position
+  }
+  
+  // Get SVG positioning and dimensions
+  const svgLeft = svgScale.value.left;
+  const svgWidth = svgScale.value.width;
+  const sectionWidth = svgWidth / 8; // 8 equal grid sections
+  
+  // Calculate the grid cell boundaries
+  const sectionStart = svgLeft + (sectionIndex * sectionWidth);
+  const sectionEnd = sectionStart + sectionWidth;
+  
+  // Add random positioning within the grid cell (with padding from edges)
+  const padding = sectionWidth * 0.1; // 10% padding on each side
+  const randomPosition = sectionStart + padding + (Math.random() * (sectionWidth - 2 * padding));
+  
+  // Ensure the position stays within bounds
+  const minX = sectionStart + padding;
+  const maxX = sectionEnd - padding;
+  
+  return Math.max(minX, Math.min(maxX, randomPosition));
+}
+
+// Watch for container dimension changes and recalculate positions
+watch([() => props.containerWidth, () => props.containerHeight], () => {
+  nextTick(() => {
+    calculatePinPositions();
+    emitLayoutUpdate();
+  });
+}, { immediate: true });
+
+// Watch for SVG scaling changes and emit layout updates
+watch([sectionLabels, addExercisesButtonCenterOffsets], () => {
+  emitLayoutUpdate();
+}, { immediate: true });
+
+onMounted(() => {
+  // Load diamond exercises state from local storage to determine visibility
+  const savedDiamondExercises = localStorage.getItem(
+    LOCAL_STORAGE_KEY_DIAMOND_EXERCISES
+  );
+  const diamondExercisesMap = savedDiamondExercises
+    ? JSON.parse(savedDiamondExercises)
+    : {};
+
+  pins.value.forEach((pin) => {
+    // If the value is undefined or not explicitly false, make it true (so default is visible)
+    pin.isAddedToDiamond = diamondExercisesMap[pin.labelConfig.text] !== false;
+  });
+
+  calculatePinPositions();
+});
+</script> 

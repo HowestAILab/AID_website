@@ -16,7 +16,7 @@
             <template v-if="currentPage === 'diamond'">
               <!-- Vertical Grey Lines -->
               <template
-                v-for="(offset, index) in allRenderingLineOffsets"
+                v-for="(offset, index) in calculatedVerticalLineOffsets"
                 :key="'line-' + index"
               >
                 <div
@@ -34,6 +34,8 @@
               <Tabs
                 :tabs="tabs as unknown as string[]"
                 :active-tab="activeTab"
+                :grid-layout="gridLayoutForTabs"
+                :is-grid-mode="true"
                 @update:active-tab="setActiveTab"
                 @button-refs-updated="handleButtonRefsUpdate"
               />
@@ -60,12 +62,13 @@
               </div>
 
               <div class="relative flex-1">
-                <KonvaCanvas
-                  ref="konvaCanvasRef"
-                  :config-konva="configKonva"
-                  :config-image="configImage"
+                <DiamondGrid
+                  ref="diamondGridRef"
+                  :container-width="configKonva.width"
+                  :container-height="configKonva.height"
                   :image-obj="imageObj"
                   @selected-pins-change="handleSelectedPinsChange"
+                  @layout-update="handleLayoutUpdate"
                 />
 
                 <AddExercisesButtons
@@ -135,7 +138,7 @@
                 <template v-if="currentPage === 'diamond'">
                   <!-- Vertical Grey Lines -->
                   <template
-                    v-for="(offset, index) in allRenderingLineOffsets"
+                    v-for="(offset, index) in calculatedVerticalLineOffsets"
                     :key="'line-' + index"
                   >
                     <div
@@ -153,6 +156,8 @@
                   <Tabs
                     :tabs="tabs as unknown as string[]"
                     :active-tab="activeTab"
+                    :grid-layout="gridLayoutForTabs"
+                    :is-grid-mode="true"
                     @update:active-tab="setActiveTab"
                     @button-refs-updated="handleButtonRefsUpdate"
                   />
@@ -179,12 +184,13 @@
                   </div>
 
                   <div class="relative flex-1">
-                    <KonvaCanvas
-                      ref="konvaCanvasRef"
-                      :config-konva="configKonva"
-                      :config-image="configImage"
+                    <DiamondGrid
+                      ref="diamondGridRef"
+                      :container-width="configKonva.width"
+                      :container-height="configKonva.height"
                       :image-obj="imageObj"
                       @selected-pins-change="handleSelectedPinsChange"
+                      @layout-update="handleLayoutUpdate"
                     />
 
                     <AddExercisesButtons
@@ -268,7 +274,7 @@
       <!-- Current Pipeline Section (only shown when not expanded) -->
       <CurrentPipelineSection
         v-if="!isPipelineExpanded"
-        :all-rendering-line-offsets="allRenderingLineOffsets"
+        :all-rendering-line-offsets="calculatedVerticalLineOffsets"
         :main-content-screen-left="mainContentScreenLeft"
         :selected-pins="selectedPins"
         @unselectPinRequested="handleUnselectPin"
@@ -279,11 +285,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, nextTick, watch, ref } from "vue";
+import { onMounted, nextTick, watch, ref, computed } from "vue";
 import Sidebar from "./components/layout/Sidebar.vue";
 import CurrentPipelineSection from "./components/pipeline/CurrentPipelineSection.vue";
 import Tabs from "./components/layout/Tabs.vue";
-import KonvaCanvas from "./components/diamond/KonvaCanvas.vue";
+import DiamondGrid from "./components/diamond/DiamondGrid.vue";
 import AddExercisesButtons from "./components/diamond/AddExercisesButtons.vue";
 import ExercisesPage from "./components/exercise/ExercisesPage.vue";
 import OverviewPage from "./components/project/OverviewPage.vue";
@@ -333,28 +339,62 @@ const {
 } = useTabs();
 
 const {
+  containerWidth,
+  containerHeight,
   configKonva,
   imageObj,
   configImage,
   selectedPins,
-  konvaCanvasRef,
+  diamondGridRef,
   handleSelectedPinsChange,
   handleUnselectPin,
   loadImage,
+  updateContainerDimensions,
 } = useCanvas();
 
 const {
   mainElementRef,
   labelBarRef,
   allRenderingLineOffsets,
-  sectionLabels,
   labelBarCalculatedTop,
   mainContentScreenLeft,
-  addExercisesButtonCenterOffsets,
   fullHeightLineIndices,
   updateLayout,
   setupResizeListener,
 } = useLayout();
+
+// Layout data from DiamondGrid
+const sectionLabels = ref<{ text: string; left: number; width: number }[]>([]);
+const addExercisesButtonCenterOffsets = ref<number[]>([]);
+const svgBounds = ref({ left: 0, top: 0, width: 0, height: 0 });
+
+// Calculate vertical line offsets based on section labels
+const calculatedVerticalLineOffsets = computed(() => {
+  if (sectionLabels.value.length === 0) return [];
+  
+  const offsets: number[] = [];
+  
+  // Add vertical lines at section boundaries
+  for (let i = 0; i < sectionLabels.value.length; i++) {
+    const section = sectionLabels.value[i];
+    if (i === 0) {
+      offsets.push(section.left); // First line at start
+    }
+    offsets.push(section.left + section.width); // Line at end of each section
+  }
+  
+  return offsets;
+});
+
+// Compute grid layout data for tabs
+const gridLayoutForTabs = computed(() => {
+  if (sectionLabels.value.length === 0 || !svgBounds.value.width) return null;
+  
+  return {
+    sectionLabels: sectionLabels.value,
+    svgBounds: svgBounds.value,
+  };
+});
 
 const isPipelineExpanded = ref(false);
 
@@ -366,9 +406,22 @@ const handleCollapsePipeline = () => {
   isPipelineExpanded.value = false;
 };
 
+// Handle layout updates from DiamondGrid
+const handleLayoutUpdate = (layout: {
+  sectionLabels: { text: string; left: number; width: number }[];
+  addExercisesButtonCenterOffsets: number[];
+  svgBounds: { left: number; top: number; width: number; height: number };
+}) => {
+  sectionLabels.value = layout.sectionLabels;
+  addExercisesButtonCenterOffsets.value = layout.addExercisesButtonCenterOffsets;
+  svgBounds.value = layout.svgBounds;
+};
+
 // Wrapper functions that include layout updates
 const updateLayoutWithConfigs = () => {
   updateLayout(buttonRefs, configKonva, configImage);
+  // Update container dimensions to match configKonva
+  updateContainerDimensions(configKonva.value.width, configKonva.value.height);
 };
 
 const setActiveTab = (tabName: string) => {

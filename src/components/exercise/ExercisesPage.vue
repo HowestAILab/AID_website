@@ -4,6 +4,8 @@
       :tabs="tabNames"
       :active-tab="phase"
       :clickable="true"
+      :grid-layout="null"
+      :is-grid-mode="false"
       @update:active-tab="handleTabChange"
     />
     <div class="flex items-center p-4">

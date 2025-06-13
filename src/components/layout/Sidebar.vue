@@ -231,7 +231,7 @@
           </div>
         </div>
 
-        <a
+        <!-- <a
           href="#"
           @click.prevent="setActive('tools')"
           :class="[
@@ -242,7 +242,7 @@
         >
           <Wrench :class="[isCollapsed ? 'w-6 h-6' : 'w-5 h-5 mr-3']" />
           <span :class="{ hidden: isCollapsed }">Tools</span>
-        </a>
+        </a> -->
       </nav>
 
       <div

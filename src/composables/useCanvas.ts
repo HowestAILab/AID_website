@@ -6,6 +6,11 @@ import DoubleDiamond from '@/assets/DoubleDiamond.svg';
 export function useCanvas() {
   const { currentProject, updateProjectSelectedPins, getCurrentProjectSelectedPins } = useProjects();
   
+  // Container dimensions (formerly Konva config)
+  const containerWidth = ref(DEFAULT_KONVA_CONFIG.width);
+  const containerHeight = ref(DEFAULT_KONVA_CONFIG.height);
+  
+  // Keep configKonva for backward compatibility with layout calculations
   const configKonva = ref({
     width: DEFAULT_KONVA_CONFIG.width,
     height: DEFAULT_KONVA_CONFIG.height,
@@ -22,7 +27,7 @@ export function useCanvas() {
   });
 
   const selectedPins = ref<SelectedPinInfo[]>([]);
-  const konvaCanvasRef = ref<any>(null);
+  const diamondGridRef = ref<any>(null);
 
   const handleSelectedPinsChange = (pins: SelectedPinInfo[]) => {
     selectedPins.value = pins;
@@ -38,9 +43,9 @@ export function useCanvas() {
     // Update the project with the new selected pins
     updateProjectSelectedPins(updatedPins);
     
-    // If KonvaCanvas is available, update its state as well
-    if (konvaCanvasRef.value) {
-      konvaCanvasRef.value.loadSelectedPins(updatedPins);
+    // If DiamondGrid is available, update its state as well
+    if (diamondGridRef.value) {
+      diamondGridRef.value.loadSelectedPins(updatedPins);
     }
   };
 
@@ -49,10 +54,10 @@ export function useCanvas() {
     // Load the selected pins for the current project
     if (project) {
       selectedPins.value = getCurrentProjectSelectedPins();
-      // Update the canvas with the project's selected pins
+      // Update the grid with the project's selected pins
       nextTick(() => {
-        if (konvaCanvasRef.value) {
-          konvaCanvasRef.value.loadSelectedPins(selectedPins.value);
+        if (diamondGridRef.value) {
+          diamondGridRef.value.loadSelectedPins(selectedPins.value);
         }
       });
     } else {
@@ -60,12 +65,12 @@ export function useCanvas() {
     }
   }, { immediate: true });
 
-  // Watch for konvaCanvasRef to become available and load selected pins
-  watch(konvaCanvasRef, (canvas) => {
-    if (canvas && currentProject.value) {
+  // Watch for diamondGridRef to become available and load selected pins
+  watch(diamondGridRef, (grid) => {
+    if (grid && currentProject.value) {
       const projectSelectedPins = getCurrentProjectSelectedPins();
       selectedPins.value = projectSelectedPins;
-      canvas.loadSelectedPins(projectSelectedPins);
+      grid.loadSelectedPins(projectSelectedPins);
     }
   });
 
@@ -81,16 +86,31 @@ export function useCanvas() {
     });
   };
 
+  // Update container dimensions and sync with configKonva for layout compatibility
+  const updateContainerDimensions = (width: number, height: number) => {
+    containerWidth.value = width;
+    containerHeight.value = height;
+    configKonva.value.width = width;
+    configKonva.value.height = height;
+  };
+
   onMounted(() => {
     loadImage();
   });
 
   return {
+    // Grid-specific properties
+    containerWidth,
+    containerHeight,
+    diamondGridRef,
+    updateContainerDimensions,
+    
+    // Legacy properties for backward compatibility
     configKonva,
     imageObj,
     configImage,
     selectedPins,
-    konvaCanvasRef,
+    konvaCanvasRef: diamondGridRef, // Alias for backward compatibility
     handleSelectedPinsChange,
     handleUnselectPin,
     loadImage,
