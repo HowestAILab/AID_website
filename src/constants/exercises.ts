@@ -6,8 +6,8 @@ export const LOCAL_STORAGE_KEYS = {
 } as const;
 
 export const PHASE_CATEGORY_MAPPING: Record<string, string[]> = {
-  Discover: ["Prepare (Discover)", "Discover"],
-  Define: ["Define", "Synthesise (Define)"],
-  Develop: ["Prepare (Develop)", "Develop"],
-  Deliver: ["Deliver", "Synthesise (Deliver)"],
+  Discover: ["Prepare", "Discover"],
+  Define: ["Define", "Synthesise"],
+  Develop: ["Prepare", "Develop"],
+  Deliver: ["Deliver", "Synthesise"],
 }; 
