@@ -64,8 +64,8 @@
               <div class="relative flex-1">
                 <DiamondGrid
                   ref="diamondGridRef"
-                  :container-width="configKonva.width"
-                  :container-height="configKonva.height"
+                  :container-width="containerWidth"
+                  :container-height="containerHeight"
                   :image-obj="imageObj"
                   @selected-pins-change="handleSelectedPinsChange"
                   @layout-update="handleLayoutUpdate"
@@ -186,8 +186,8 @@
                   <div class="relative flex-1">
                     <DiamondGrid
                       ref="diamondGridRef"
-                      :container-width="configKonva.width"
-                      :container-height="configKonva.height"
+                      :container-width="containerWidth"
+                      :container-height="containerHeight"
                       :image-obj="imageObj"
                       @selected-pins-change="handleSelectedPinsChange"
                       @layout-update="handleLayoutUpdate"
@@ -341,9 +341,7 @@ const {
 const {
   containerWidth,
   containerHeight,
-  configKonva,
   imageObj,
-  configImage,
   selectedPins,
   diamondGridRef,
   handleSelectedPinsChange,
@@ -419,9 +417,21 @@ const handleLayoutUpdate = (layout: {
 
 // Wrapper functions that include layout updates
 const updateLayoutWithConfigs = () => {
-  updateLayout(buttonRefs, configKonva, configImage);
-  // Update container dimensions to match configKonva
-  updateContainerDimensions(configKonva.value.width, configKonva.value.height);
+  updateLayout(buttonRefs);
+  
+  // Calculate actual available dimensions from the main element
+  if (mainElementRef.value) {
+    const mainWidth = mainElementRef.value.clientWidth;
+    const mainHeight = mainElementRef.value.clientHeight;
+    
+    // Account for the tabs height (approximately 40px) and label bar (40px)
+    const availableHeight = mainHeight - 80;
+    
+    updateContainerDimensions(mainWidth, Math.max(availableHeight, 400));
+  } else {
+    // Fallback to default dimensions
+    updateContainerDimensions(containerWidth.value, containerHeight.value);
+  }
 };
 
 const setActiveTab = (tabName: string) => {

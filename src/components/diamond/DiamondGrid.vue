@@ -1,5 +1,5 @@
 <template>
-  <div class="py-6 flex-1 relative">
+  <div class="flex-1 relative w-full h-full">
     <!-- Popover for pin details -->
     <Popover v-model:open="selectedPinPopover" :key="selectedPinIndex ?? -1">
       <PopoverTrigger as-child>
@@ -42,10 +42,10 @@
     <!-- Diamond Grid Container -->
     <div 
       ref="gridContainerRef"
-      class="relative w-full h-full flex items-center justify-center"
+      class="relative w-full h-full"
       :style="{ 
-        minHeight: '500px',
-        height: props.containerHeight + 'px'
+        minHeight: '0',
+        width: '100%'
       }"
     >
       <!-- Background SVG - positioned and scaled based on actual SVG dimensions -->
@@ -270,9 +270,9 @@ const svgScale = computed(() => {
   if (!props.containerWidth || !props.containerHeight) return { width: SVG_WIDTH, height: SVG_HEIGHT, left: 0, top: 0 };
   
   // Calculate available space (with 10% padding on each side)
-  const paddingPercent = 0.1;
+  const paddingPercent = 0.08;
   const availableWidth = props.containerWidth * (1 - 2 * paddingPercent);
-  const availableHeight = props.containerHeight * 0.9; // Use 90% of total height
+  const availableHeight = props.containerHeight * 0.95; // Use 95% of total height
   
   // Calculate scale to fit SVG within available space while maintaining aspect ratio
   const scaleX = availableWidth / SVG_WIDTH;
@@ -283,9 +283,9 @@ const svgScale = computed(() => {
   const renderedWidth = SVG_WIDTH * scale;
   const renderedHeight = SVG_HEIGHT * scale;
   
-  // Position the SVG higher up (top 5% margin instead of centering)
+  // Center horizontally and position with minimal top margin
   const leftOffset = props.containerWidth * paddingPercent + (availableWidth - renderedWidth) / 2;
-  const topOffset = props.containerHeight * 0.05; // 5% from top
+  const topOffset = props.containerHeight * 0.025; // 2.5% from top (smaller margin)
   
   return {
     width: renderedWidth,
