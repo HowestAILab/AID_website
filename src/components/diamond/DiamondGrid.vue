@@ -509,13 +509,18 @@ const calculatePinPositions = () => {
   if (props.containerHeight <= 0 || props.containerWidth <= 0) return;
 
   const svgTop = svgScale.value.top;
-  const yHuman = svgTop + humanLineY.value;
-  const yHumanAi = svgTop + humanAiLineY.value;
-  const yAi = svgTop + aiLineY.value;
+  const svgHeight = svgScale.value.height;
+  const svgBottom = svgTop + svgHeight;
+
+  // Define number of levels (e.g., 10)
+  const NUM_LEVELS = 10;
+  // The vertical range for pins: full SVG height
+  const yMin = svgTop;
+  const yMax = svgBottom;
 
   // 1. Group pins by cell (phase, step, quantized scale)
   const cellMap = new Map<string, number[]>(); // key -> array of pin indices
-  const quantizeScale = (scale: number) => Math.round(scale * 2) / 2; // 0.5 steps
+  const quantizeScale = (scale: number) => Math.round(scale * (NUM_LEVELS - 1) / 10) / ((NUM_LEVELS - 1) / 10); // quantize to NUM_LEVELS
 
   pins.value.forEach((pin, idx) => {
     const key = `${pin.location.phase}-${pin.location.step}-${quantizeScale(pin.location.human_ai_scale)}`;
@@ -523,38 +528,52 @@ const calculatePinPositions = () => {
     cellMap.get(key)!.push(idx);
   });
 
-  // 2. For each cell, space pins evenly in X and Y
+  // 2. For each cell, space pins in a grid if needed to avoid overlap
   cellMap.forEach((indices, key) => {
     // Parse key
     const [phase, step, scaleStr] = key.split("-");
     const scale = parseFloat(scaleStr);
-    // Calculate base Y for this scale
-    let baseY;
-    if (scale <= 2.5) {
-      const t = scale / 2.5;
-      baseY = yHuman * (1 - t) + yHumanAi * t;
-    } else if (scale <= 7.5) {
-      const t = (scale - 2.5) / 5;
-      baseY = yHumanAi * (1 - t) + yAi * t;
-    } else {
-      const t = Math.min(1, (scale - 7.5) / 2.5);
-      baseY = yAi * (1 - t * 0.1) + yAi * (t * 0.1);
-    }
+    // Map scale (0-10) to level (0-9)
+    const level = Math.round(scale * (NUM_LEVELS - 1) / 10);
+    // Calculate Y for this level (spread across full SVG height)
+    const frac = level / (NUM_LEVELS - 1); // 0 to 1
+    const baseY = yMin + frac * (yMax - yMin);
     // Y band for spacing (±2.5% of svg height)
-    const yBand = svgScale.value.height * 0.05;
+    const yBand = svgHeight * 0.05;
     const yStart = baseY - yBand / 2;
     const yEnd = baseY + yBand / 2;
     // X section info
     const { sectionStart, sectionEnd, padding } = getSectionBounds(phase, step);
     const xStart = sectionStart + padding;
     const xEnd = sectionEnd - padding;
+    const cellWidth = xEnd - xStart;
+    const cellHeight = yEnd - yStart;
     // How many pins in this cell?
     const n = indices.length;
+    if (n === 1) {
+      // Center the single pin
+      const pinIdx = indices[0];
+      const newPinX = xStart + cellWidth / 2;
+      const newPinY = yStart + cellHeight / 2;
+      const pin = pins.value[pinIdx];
+      pin.config.x = newPinX;
+      pin.config.y = newPinY;
+      pin.labelConfig.x = newPinX + 20;
+      pin.labelConfig.y = newPinY - 10;
+      return;
+    }
+    // Calculate grid size
+    const MIN_PIN_DISTANCE = 28;
+    const maxCols = Math.max(1, Math.floor(cellWidth / MIN_PIN_DISTANCE));
+    const rows = Math.ceil(n / maxCols);
+    const cols = Math.min(n, maxCols);
+    const rowSpacing = rows > 1 ? cellHeight / (rows - 1) : 0;
+    const colSpacing = cols > 1 ? cellWidth / (cols - 1) : 0;
     indices.forEach((pinIdx, i) => {
-      // Evenly space in X and Y
-      const frac = n === 1 ? 0.5 : i / (n - 1);
-      const newPinX = xStart + frac * (xEnd - xStart);
-      const newPinY = yStart + frac * (yEnd - yStart);
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+      const newPinX = xStart + (cols === 1 ? cellWidth / 2 : col * colSpacing);
+      const newPinY = yStart + (rows === 1 ? cellHeight / 2 : row * rowSpacing);
       const pin = pins.value[pinIdx];
       pin.config.x = newPinX;
       pin.config.y = newPinY;
