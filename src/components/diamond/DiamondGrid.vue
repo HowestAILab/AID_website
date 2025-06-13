@@ -363,9 +363,9 @@ const selectedPinPosition = ref({ x: 0, y: 0 });
 const hoveredColumnIndex = ref<number | null>(null);
 
 // Line Y positions - repositioned to top, center, bottom
-const horizontalLineYFraction1 = 0.2;   // Top (human axis)
-const horizontalLineYFraction2 = 0.5;   // Center (human+ai axis)  
-const horizontalLineYFraction3 = 0.8;   // Bottom (ai axis)
+const horizontalLineYFraction1 = 0.25;   // Top (human axis, moved closer to center)
+const horizontalLineYFraction2 = 0.5;    // Center (human+ai axis)
+const horizontalLineYFraction3 = 0.75;   // Bottom (ai axis, moved closer to center)
 
 const humanLineY = computed(() => svgScale.value.height * horizontalLineYFraction1);
 const humanAiLineY = computed(() => svgScale.value.height * horizontalLineYFraction2);
