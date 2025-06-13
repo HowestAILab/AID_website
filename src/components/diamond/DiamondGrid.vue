@@ -122,7 +122,7 @@
       </div>
 
       <!-- Exercise Pins -->
-      <div class="absolute inset-0" style="z-index: 10;">
+      <div class="absolute inset-0" style="z-index: 30;">
         <template v-for="(pin, i) in pins" :key="i">
           <div
             v-if="pin.isAddedToDiamond"
@@ -409,14 +409,10 @@ function handlePinClick(index: number) {
   selectedPin.value = pins.value[index];
   selectedPinIndex.value = index;
 
-  if (gridContainerRef.value) {
-    const containerRect = gridContainerRef.value.getBoundingClientRect();
-
-    selectedPinPosition.value = {
-      x: containerRect.left + pins.value[index].config.x,
-      y: containerRect.top + pins.value[index].config.y,
-    };
-  }
+  selectedPinPosition.value = {
+    x: pins.value[index].config.x,
+    y: pins.value[index].config.y,
+  };
 
   selectedPinPopover.value = true;
 }

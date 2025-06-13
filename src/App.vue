@@ -76,8 +76,8 @@
                     addExercisesButtonCenterOffsets
                   "
                   @exercise-button-click="handleExerciseButtonClick"
-                  class="absolute inset-x-0 pointer-events-none"
-                  style="bottom: 145px"
+                  class="absolute inset-x-0"
+                  style="bottom: 8%"
                 />
               </div>
             </template>
@@ -198,7 +198,7 @@
                         addExercisesButtonCenterOffsets
                       "
                       @exercise-button-click="handleExerciseButtonClick"
-                      class="absolute inset-x-0 pointer-events-none"
+                      class="absolute inset-x-0"
                       style="bottom: 10px"
                     />
                   </div>
