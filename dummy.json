@@ -1,170 +1,176 @@
 {
-  "exercise": [
-    {
-      "name": "Interviews",
-      "description": "Gather qualitative data directly from users to understand their needs, motivations, and pain points.",
-      "location": {
-        "phase": "Discover",
-        "step": "Prepare (Discover)",
-        "human_ai_scale": 0
-      },
-      "prompt_example": [],
-      "ethical": {
-        "before": [],
-        "after": []
-      },
-      "miro_board": "https://miro.com/app/board/xyz123"
-    },
-    {
-      "name": "Brainstorm",
-      "description": "Generate a wide range of ideas and solutions collaboratively with a human-centric approach.",
-      "location": {
-        "phase": "Develop",
-        "step": "Prepare (Develop)",
-        "human_ai_scale": 3
-      },
-      "prompt_example": [],
-      "ethical": {
-        "before": [],
-        "after": []
-      },
-      "miro_board": "https://miro.com/app/board/xyz123"
-    },
-    {
-      "name": "Insight Scraping",
-      "description": "Automatically gather and analyze data from various online sources using AI to uncover actionable insights.",
-      "location": {
-        "phase": "Define",
-        "step": "Synthesise (Define)",
-        "human_ai_scale": 9
-      },
-      "prompt_example": [],
-      "ethical": {
-        "before": [],
-        "after": []
-      },
-      "miro_board": "https://miro.com/app/board/xyz123"
-    },
-    {
-      "name": "Automated Research",
-      "description": "Leverage AI to conduct research tasks like literature reviews, market analysis, or competitive analysis efficiently.",
-      "location": {
-        "phase": "Discover",
-        "step": "Discover",
-        "human_ai_scale": 7
-      },
-      "prompt_example": [],
-      "ethical": {
-        "before": [],
-        "after": []
-      },
-      "miro_board": "https://miro.com/app/board/xyz123"
-    },
-    {
-      "name": "User Testing",
-      "description": "Conduct structured testing sessions with real users to validate design decisions and gather feedback on the final product.",
-      "location": {
-        "phase": "Deliver",
-        "step": "Deliver",
-        "human_ai_scale": 1
-      },
-      "prompt_example": [],
-      "ethical": {
-        "before": [],
-        "after": []
-      },
-      "miro_board": "https://miro.com/app/board/xyz123"
-    },
-    {
-      "name": "Performance Analytics",
-      "description": "Use AI-powered analytics tools to synthesize user behavior data, performance metrics, and feedback into actionable insights for product improvement.",
-      "location": {
-        "phase": "Deliver",
-        "step": "Synthesise (Deliver)",
-        "human_ai_scale": 7
-      },
-      "prompt_example": [],
-      "ethical": {
-        "before": [],
-        "after": []
-      },
-      "miro_board": "https://miro.com/app/board/xyz123"
-    },
-    {
-      "name": "AI-Powered Trend Analysis",
-      "description": "Use AI to automatically analyze market trends, emerging technologies, and user behavior patterns from large datasets to identify opportunities and threats in the problem space.",
-      "location": {
-        "phase": "Discover",
-        "step": "Discover",
-        "human_ai_scale": 9
-      },
-      "prompt_example": [
-        "Analyze current market trends in [industry/domain] and identify emerging opportunities",
-        "What are the key behavioral patterns of users in [target demographic] based on recent data?",
-        "Identify potential disruptions or threats in the [problem space] based on technological and market trends"
-      ],
-      "ethical": {
-        "before": [
-          "Ensure data sources are legitimate and privacy-compliant",
-          "Consider potential biases in datasets being analyzed",
-          "Verify that trend analysis doesn't reinforce existing inequalities"
-        ],
-        "after": [
-          "Validate AI findings with human expertise and domain knowledge",
-          "Consider the societal impact of identified trends and opportunities",
-          "Ensure recommendations don't exclude or harm marginalized groups"
-        ]
-      },
-      "miro_board": "https://miro.com/app/board/xyz123"
-    },
-    {
-      "name": "AI-Assisted Technical Architecture Planning",
-      "description": "Leverage AI to analyze system requirements, evaluate technical constraints, and generate comprehensive architecture recommendations for scalable solution development.",
-      "location": {
-        "phase": "Develop",
-        "step": "Prepare (Develop)",
-        "human_ai_scale": 6
-      },
-      "prompt_example": [
-        "Based on these requirements [requirements list], suggest an optimal technical architecture for a [type of application]",
-        "Evaluate the scalability implications of using [technology stack] for [project scope]",
-        "What are the key technical risks and mitigation strategies for implementing [feature/system]?"
-      ],
-      "ethical": {
-        "before": [
-          "Ensure technical recommendations consider accessibility and inclusive design",
-          "Verify that suggested architectures comply with data protection regulations",
-          "Consider the environmental impact of proposed technical solutions"
-        ],
-        "after": [
-          "Review AI recommendations with experienced technical architects",
-          "Ensure the proposed architecture doesn't create vendor lock-in or technical debt",
-          "Validate that the solution is maintainable and documentable by the development team"
-        ]
-      },
-      "miro_board": "https://miro.com/app/board/xyz123"
-    }
-  ],
-  "project": [
-    {
-      "project_name": "projectName",
-      "workflow": [
+    "exercise": [
         {
-          "toolname": "brainstorming",
-          "position": 0,
-          "notes": ["Initial ideation session."],
-          "chat_history": [
-            "What ideas did the team generate?",
-            "Which ideas align with user needs?"
-          ]
+            "name": "Interviews",
+            "description": "Gather qualitative data directly from users to understand their needs, motivations, and pain points.",
+            "location": {
+                "phase": "Discover",
+                "step": "Prepare",
+                "human_ai_scale": 0
+            },
+            "prompt_example": [],
+            "ethical": {
+                "before": [],
+                "after": []
+            },
+            "miro_board": "https://miro.com/app/board/xyz123"
         },
         {
-          "toolname": "prototyping",
-          "position": 1,
-          "notes": ["Create low-fidelity prototypes."],
-          "chat_history": ["What feedback was received on the prototype?"]
+            "name": "Brainstorm",
+            "description": "Generate a wide range of ideas and solutions collaboratively with a human-centric approach.",
+            "location": {
+                "phase": "Develop",
+                "step": "Prepare",
+                "human_ai_scale": 3
+            },
+            "prompt_example": [],
+            "ethical": {
+                "before": [],
+                "after": []
+            },
+            "miro_board": "https://miro.com/app/board/xyz123"
+        },
+        {
+            "name": "Insight Scraping",
+            "description": "Automatically gather and analyze data from various online sources using AI to uncover actionable insights.",
+            "location": {
+                "phase": "Define",
+                "step": "Synthesise",
+                "human_ai_scale": 9
+            },
+            "prompt_example": [],
+            "ethical": {
+                "before": [],
+                "after": []
+            },
+            "miro_board": "https://miro.com/app/board/xyz123"
+        },
+        {
+            "name": "Automated Research",
+            "description": "Leverage AI to conduct research tasks like literature reviews, market analysis, or competitive analysis efficiently.",
+            "location": {
+                "phase": "Discover",
+                "step": "Discover",
+                "human_ai_scale": 7
+            },
+            "prompt_example": [],
+            "ethical": {
+                "before": [],
+                "after": []
+            },
+            "miro_board": "https://miro.com/app/board/xyz123"
+        },
+        {
+            "name": "User Testing",
+            "description": "Conduct structured testing sessions with real users to validate design decisions and gather feedback on the final product.",
+            "location": {
+                "phase": "Deliver",
+                "step": "Deliver",
+                "human_ai_scale": 1
+            },
+            "prompt_example": [],
+            "ethical": {
+                "before": [],
+                "after": []
+            },
+            "miro_board": "https://miro.com/app/board/xyz123"
+        },
+        {
+            "name": "Performance Analytics",
+            "description": "Use AI-powered analytics tools to synthesize user behavior data, performance metrics, and feedback into actionable insights for product improvement.",
+            "location": {
+                "phase": "Deliver",
+                "step": "Synthesise",
+                "human_ai_scale": 7
+            },
+            "prompt_example": [],
+            "ethical": {
+                "before": [],
+                "after": []
+            },
+            "miro_board": "https://miro.com/app/board/xyz123"
+        },
+        {
+            "name": "AI-Powered Trend Analysis",
+            "description": "Use AI to automatically analyze market trends, emerging technologies, and user behavior patterns from large datasets to identify opportunities and threats in the problem space.",
+            "location": {
+                "phase": "Discover",
+                "step": "Discover",
+                "human_ai_scale": 9
+            },
+            "prompt_example": [
+                "Analyze current market trends in [industry/domain] and identify emerging opportunities",
+                "What are the key behavioral patterns of users in [target demographic] based on recent data?",
+                "Identify potential disruptions or threats in the [problem space] based on technological and market trends"
+            ],
+            "ethical": {
+                "before": [
+                    "Ensure data sources are legitimate and privacy-compliant",
+                    "Consider potential biases in datasets being analyzed",
+                    "Verify that trend analysis doesn't reinforce existing inequalities"
+                ],
+                "after": [
+                    "Validate AI findings with human expertise and domain knowledge",
+                    "Consider the societal impact of identified trends and opportunities",
+                    "Ensure recommendations don't exclude or harm marginalized groups"
+                ]
+            },
+            "miro_board": "https://miro.com/app/board/xyz123"
+        },
+        {
+            "name": "AI-Assisted Technical Architecture Planning",
+            "description": "Leverage AI to analyze system requirements, evaluate technical constraints, and generate comprehensive architecture recommendations for scalable solution development.",
+            "location": {
+                "phase": "Develop",
+                "step": "Prepare",
+                "human_ai_scale": 6
+            },
+            "prompt_example": [
+                "Based on these requirements [requirements list], suggest an optimal technical architecture for a [type of application]",
+                "Evaluate the scalability implications of using [technology stack] for [project scope]",
+                "What are the key technical risks and mitigation strategies for implementing [feature/system]?"
+            ],
+            "ethical": {
+                "before": [
+                    "Ensure technical recommendations consider accessibility and inclusive design",
+                    "Verify that suggested architectures comply with data protection regulations",
+                    "Consider the environmental impact of proposed technical solutions"
+                ],
+                "after": [
+                    "Review AI recommendations with experienced technical architects",
+                    "Ensure the proposed architecture doesn't create vendor lock-in or technical debt",
+                    "Validate that the solution is maintainable and documentable by the development team"
+                ]
+            },
+            "miro_board": "https://miro.com/app/board/xyz123"
         }
-      ]
-    }
-  ]
+    ],
+    "project": [
+        {
+            "project_name": "projectName",
+            "workflow": [
+                {
+                    "toolname": "brainstorming",
+                    "position": 0,
+                    "notes": [
+                        "Initial ideation session."
+                    ],
+                    "chat_history": [
+                        "What ideas did the team generate?",
+                        "Which ideas align with user needs?"
+                    ]
+                },
+                {
+                    "toolname": "prototyping",
+                    "position": 1,
+                    "notes": [
+                        "Create low-fidelity prototypes."
+                    ],
+                    "chat_history": [
+                        "What feedback was received on the prototype?"
+                    ]
+                }
+            ]
+        }
+    ]
 }
