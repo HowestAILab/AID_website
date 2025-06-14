@@ -122,7 +122,7 @@
       </div>
 
       <!-- Exercise Pins -->
-      <div class="absolute inset-0" style="z-index: 30;">
+      <div class="absolute inset-0">
         <template v-for="(pin, i) in pins" :key="i">
           <div
             v-if="pin.isAddedToDiamond"
@@ -133,7 +133,8 @@
             :style="{
               left: pin.config.x + 'px',
               top: pin.config.y + 'px',
-              transform: 'translate(-50%, -50%)'
+              transform: 'translate(-50%, -50%)',
+              zIndex: 30
             }"
           >
             <!-- Pin Circle/Diamond -->
