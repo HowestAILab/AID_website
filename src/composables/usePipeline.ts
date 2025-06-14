@@ -44,6 +44,15 @@ export function usePipeline(
     emit("selectedPinsChange", selectedPinData);
   };
 
+  // Handle reordering of pins in the pipeline
+  const handleReorderPins = (fromIndex: number, toIndex: number) => {
+    const updatedPins = [...props.selectedPins];
+    const [movedPin] = updatedPins.splice(fromIndex, 1);
+    updatedPins.splice(toIndex, 0, movedPin);
+    
+    emit("selectedPinsChange", updatedPins);
+  };
+
   // Check if exercise is in pipeline
   const isExerciseInPipeline = (exercise: Exercise, getOriginalExerciseIndex: (exercise: Exercise) => number): boolean => {
     const originalIndex = getOriginalExerciseIndex(exercise);
@@ -54,6 +63,7 @@ export function usePipeline(
     selectedPinIndices,
     updateSelectedPinsFromProp,
     togglePipelineSelection,
+    handleReorderPins,
     isExerciseInPipeline,
   };
 } 

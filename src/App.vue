@@ -279,6 +279,7 @@
         :selected-pins="selectedPins"
         @unselectPinRequested="handleUnselectPin"
         @expandPipeline="handleExpandPipeline"
+        @reorderPins="handleReorderPins"
       />
     </div>
   </template>
@@ -402,6 +403,15 @@ const handleExpandPipeline = () => {
 
 const handleCollapsePipeline = () => {
   isPipelineExpanded.value = false;
+};
+
+// Handle reordering of pins in the pipeline
+const handleReorderPins = (fromIndex: number, toIndex: number) => {
+  const updatedPins = [...selectedPins.value];
+  const [movedPin] = updatedPins.splice(fromIndex, 1);
+  updatedPins.splice(toIndex, 0, movedPin);
+  
+  handleSelectedPinsChange(updatedPins);
 };
 
 // Handle layout updates from DiamondGrid

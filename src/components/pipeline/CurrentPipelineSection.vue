@@ -11,12 +11,24 @@
       <!-- Exercise spreading currently at 10px between each -->
       <div class="flex gap-10 w-full px-4 relative z-10">
         <div
-          v-for="exercise in selectedPins"
+          v-for="(exercise, index) in selectedPins"
           :key="exercise.originalIndex"
           class="relative group"
+          :class="{ 'opacity-50': draggedIndex === index, 'cursor-move': !isDragging }"
+          draggable="true"
+          @dragstart="handleDragStart($event, index)"
+          @dragend="handleDragEnd"
+          @dragover.prevent
+          @drop="handleDrop($event, index)"
+          @dragenter.prevent="handleDragEnter(index)"
+          @dragleave="handleDragLeave"
         >
           <div
-            class="w-6 h-6 bg-light border border-black transform rotate-45 flex items-center justify-center"
+            class="w-6 h-6 bg-light border border-black transform rotate-45 flex items-center justify-center transition-all duration-200"
+            :class="{ 
+              'scale-110 shadow-lg': dragOverIndex === index && draggedIndex !== index,
+              'bg-blue-100 border-blue-500': dragOverIndex === index && draggedIndex !== index 
+            }"
           >
             <span class="text-black text-xs transform -rotate-45">
               {{ exercise.originalIndex + 1 }}
@@ -25,6 +37,7 @@
           <button
             @click="$emit('unselectPinRequested', exercise.originalIndex)"
             class="absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
+            :class="{ 'pointer-events-none': isDragging }"
           >
             <X class="w-3 h-3" />
           </button>
@@ -47,6 +60,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import { Network, ChevronUp, X } from "lucide-vue-next";
 import type { SelectedPinInfo } from "@/types/exercise";
 
@@ -56,8 +70,52 @@ defineProps<{
   selectedPins: SelectedPinInfo[];
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (e: "unselectPinRequested", originalIndex: number): void;
   (e: "expandPipeline"): void;
+  (e: "reorderPins", fromIndex: number, toIndex: number): void;
 }>();
+
+// Drag and drop state
+const isDragging = ref(false);
+const draggedIndex = ref<number | null>(null);
+const dragOverIndex = ref<number | null>(null);
+
+const handleDragStart = (event: DragEvent, index: number) => {
+  isDragging.value = true;
+  draggedIndex.value = index;
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', index.toString());
+  }
+};
+
+const handleDragEnd = () => {
+  isDragging.value = false;
+  draggedIndex.value = null;
+  dragOverIndex.value = null;
+};
+
+const handleDragEnter = (index: number) => {
+  if (draggedIndex.value !== null && draggedIndex.value !== index) {
+    dragOverIndex.value = index;
+  }
+};
+
+const handleDragLeave = () => {
+  // Only clear dragOverIndex after a small delay to prevent flickering
+  setTimeout(() => {
+    dragOverIndex.value = null;
+  }, 50);
+};
+
+const handleDrop = (event: DragEvent, toIndex: number) => {
+  event.preventDefault();
+  
+  if (draggedIndex.value !== null && draggedIndex.value !== toIndex) {
+    emit('reorderPins', draggedIndex.value, toIndex);
+  }
+  
+  handleDragEnd();
+};
 </script>
