@@ -104,16 +104,26 @@
                 "Identify potential disruptions or threats in the [problem space] based on technological and market trends"
             ],
             "ethical": {
-                "before": [
-                    "Ensure data sources are legitimate and privacy-compliant",
-                    "Consider potential biases in datasets being analyzed",
-                    "Verify that trend analysis doesn't reinforce existing inequalities"
-                ],
-                "after": [
-                    "Validate AI findings with human expertise and domain knowledge",
-                    "Consider the societal impact of identified trends and opportunities",
-                    "Ensure recommendations don't exclude or harm marginalized groups"
-                ]
+                "before": {
+                    "lens": "consequentialist",
+                    "capital": "human",
+                    "zoomingState": "out",
+                    "questions": [
+                        "Ensure data sources are legitimate and privacy-compliant",
+                        "Consider potential biases in datasets being analyzed",
+                        "Verify that trend analysis doesn't reinforce existing inequalities"
+                    ]
+                },
+                "after": {
+                    "lens": "care",
+                    "capital": "human",
+                    "zoomingState": "in",
+                    "questions": [
+                        "Validate AI findings with human expertise and domain knowledge",
+                        "Consider the societal impact of identified trends and opportunities",
+                        "Ensure recommendations don't exclude or harm marginalized groups"
+                    ]
+                }
             },
             "miro_board": "https://miro.com/app/board/xyz123"
         },
@@ -131,16 +141,26 @@
                 "What are the key technical risks and mitigation strategies for implementing [feature/system]?"
             ],
             "ethical": {
-                "before": [
-                    "Ensure technical recommendations consider accessibility and inclusive design",
-                    "Verify that suggested architectures comply with data protection regulations",
-                    "Consider the environmental impact of proposed technical solutions"
-                ],
-                "after": [
-                    "Review AI recommendations with experienced technical architects",
-                    "Ensure the proposed architecture doesn't create vendor lock-in or technical debt",
-                    "Validate that the solution is maintainable and documentable by the development team"
-                ]
+                "before": {
+                    "lens": "deontologist",
+                    "capital": "natural",
+                    "zoomingState": "out",
+                    "questions": [
+                        "Ensure technical recommendations consider accessibility and inclusive design",
+                        "Verify that suggested architectures comply with data protection regulations",
+                        "Consider the environmental impact of proposed technical solutions"
+                    ]
+                },
+                "after": {
+                    "lens": "virtue",
+                    "capital": "economic",
+                    "zoomingState": "in",
+                    "questions": [
+                        "Review AI recommendations with experienced technical architects",
+                        "Ensure the proposed architecture doesn't create vendor lock-in or technical debt",
+                        "Validate that the solution is maintainable and documentable by the development team"
+                    ]
+                }
             },
             "miro_board": "https://miro.com/app/board/xyz123"
         }

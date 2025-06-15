@@ -122,7 +122,7 @@
       </div>
 
       <!-- Exercise Pins -->
-      <div class="absolute inset-0">
+      <div class="absolute inset-0" style="z-index: 30;">
         <template v-for="(pin, i) in pins" :key="i">
           <div
             v-if="pin.isAddedToDiamond"
@@ -133,8 +133,7 @@
             :style="{
               left: pin.config.x + 'px',
               top: pin.config.y + 'px',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 30
+              transform: 'translate(-50%, -50%)'
             }"
           >
             <!-- Pin Circle/Diamond -->
@@ -145,7 +144,7 @@
               <!-- Selected state: diamond shape -->
               <div
                 v-if="pin.isSelected"
-                class="w-7 h-7 bg-[#F5F0E5] border-2 border-black transform rotate-45 flex items-center justify-center"
+                class="w-7 h-7 bg-[#F5F0E5] border-2 border-black transform rotate-45 flex items-center justify-center relative"
                 :style="{
                   backgroundColor: pin.config.fill,
                   borderColor: pin.config.stroke,
@@ -157,11 +156,17 @@
                 >
                   {{ i + 1 }}
                 </span>
+                <!-- Ethics indicator -->
+                <span
+                  v-if="pin.hasEthicsBefore || pin.hasEthicsAfter"
+                  class="absolute -top-1 -right-1 w-3 h-3 rounded-full"
+                  :class="pin.hasEthicsBefore && pin.hasEthicsAfter ? 'bg-purple-600' : (pin.hasEthicsBefore ? 'bg-red-500' : 'bg-blue-500')"
+                />
               </div>
               <!-- Unselected state: circle -->
               <div
                 v-else
-                class="w-6 h-6 rounded-full border flex items-center justify-center"
+                class="w-6 h-6 rounded-full border flex items-center justify-center relative"
                 :style="{
                   backgroundColor: pin.config.fill,
                   borderColor: pin.config.stroke,
@@ -175,6 +180,12 @@
                 >
                   {{ i + 1 }}
                 </span>
+                <!-- Ethics indicator for unselected -->
+                <span
+                  v-if="pin.hasEthicsBefore || pin.hasEthicsAfter"
+                  class="absolute -top-1 -right-1 w-3 h-3 rounded-full"
+                  :class="pin.hasEthicsBefore && pin.hasEthicsAfter ? 'bg-purple-600' : (pin.hasEthicsBefore ? 'bg-red-500' : 'bg-blue-500')"
+                />
               </div>
             </div>
 
@@ -230,6 +241,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { SECTION_LABEL_TEXTS } from "@/constants/app";
+import { useEthics } from "@/composables/useEthics";
 
 const LOCAL_STORAGE_KEY_DIAMOND_EXERCISES = "diamondExercises";
 
@@ -301,6 +313,8 @@ interface PinConfig {
   isSelected: boolean;
   isAddedToDiamond: boolean;
   order: number;
+  hasEthicsBefore: boolean;
+  hasEthicsAfter: boolean;
   config: {
     x: number;
     y: number;
@@ -325,16 +339,21 @@ interface PinConfig {
 }
 
 // Initialize pins ref with static data
+const { hasEthics } = useEthics();
 const pins = ref<PinConfig[]>(
   (pinsData.exercise || []).map((exercise: any, index: number): PinConfig => {
     // Calculate initial X position based on phase and step
     const x = calculatePhaseXPosition(exercise.location.phase, exercise.location.step, index);
     const initialY = 200;
 
+    const hasEthicsBefore = Boolean(hasEthics(exercise, 'before'));
+    const hasEthicsAfter = Boolean(hasEthics(exercise, 'after'));
     return {
       isSelected: false,
       isAddedToDiamond: false,
       order: index,
+      hasEthicsBefore,
+      hasEthicsAfter,
       config: {
         x,
         y: initialY,

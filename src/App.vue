@@ -10,276 +10,118 @@
       <div class="flex flex-1 overflow-hidden">
         <Sidebar @navigate="handleNavigate" :current-page="currentPage" />
 
-        <!-- Normal Layout -->
-        <template v-if="!isPipelineExpanded">
-          <main ref="mainElementRef" class="flex-1 flex flex-col relative">
-            <template v-if="currentPage === 'diamond'">
-              <!-- Vertical Grey Lines -->
-              <template
-                v-for="(offset, index) in calculatedVerticalLineOffsets"
-                :key="'line-' + index"
-              >
-                <div
-                  class="absolute bottom-0 bg-gray-300 w-px"
-                  :style="{
-                    left: offset + 'px',
-                    top: fullHeightLineIndices.includes(index as 0 | 2 | 4 | 6 | 8)
-                      ? '0px'
-                      : labelBarCalculatedTop + 'px',
-                    bottom: '0px',
-                  }"
-                ></div>
-              </template>
-
-              <Tabs
-                :tabs="tabs as unknown as string[]"
-                :active-tab="activeTab"
-                :grid-layout="gridLayoutForTabs"
-                :is-grid-mode="true"
-                @update:active-tab="setActiveTab"
-                @button-refs-updated="handleButtonRefsUpdate"
-              />
+        <!-- Main Layout -->
+        <main ref="mainElementRef" class="flex-1 flex flex-col relative">
+          <template v-if="currentPage === 'diamond'">
+            <!-- Vertical Grey Lines -->
+            <template
+              v-for="(offset, index) in calculatedVerticalLineOffsets"
+              :key="'line-' + index"
+            >
               <div
-                ref="labelBarRef"
-                class="relative h-10 border-t border-primary-accent flex-shrink-0"
-              >
-                <template
-                  v-for="label in sectionLabels"
-                  :key="'label-' + label.text"
-                >
-                  <div
-                    class="pt-1 absolute flex items-center justify-center text-center text-sm font-medium text-[#1C170D]"
-                    :style="{
-                      left: label.left + 'px',
-                      width: label.width + 'px',
-                      top: '0',
-                      height: '100%',
-                    }"
-                  >
-                    <span>{{ label.text }}</span>
-                  </div>
-                </template>
-              </div>
-
-              <div class="relative flex-1">
-                <DiamondGrid
-                  ref="diamondGridRef"
-                  :container-width="containerWidth"
-                  :container-height="containerHeight"
-                  :image-obj="imageObj"
-                  @selected-pins-change="handleSelectedPinsChange"
-                  @layout-update="handleLayoutUpdate"
-                />
-
-                <AddExercisesButtons
-                  :add-exercises-button-center-offsets="
-                    addExercisesButtonCenterOffsets
-                  "
-                  @exercise-button-click="handleExerciseButtonClick"
-                  class="absolute inset-x-0"
-                  style="bottom: 8%"
-                />
-              </div>
+                class="absolute bottom-0 bg-gray-300 w-px"
+                :style="{
+                  left: offset + 'px',
+                  top: fullHeightLineIndices.includes(index as 0 | 2 | 4 | 6 | 8)
+                    ? '0px'
+                    : labelBarCalculatedTop + 'px',
+                  bottom: '0px',
+                }"
+              ></div>
             </template>
-            <ExercisesPage
-              v-else-if="currentPage === 'exercises'"
-              :phase="currentPhase"
-              :selected-pins="selectedPins"
-              @close="handleBackToDiamond"
-              @update:phase="(phase: string) => currentPhase = phase"
-              @selected-pins-change="handleSelectedPinsChange"
-              @open-exercise-detail="handleOpenExerciseDetailWrapper"
-            />
-            <OverviewPage
-              v-else-if="currentPage === 'overview'"
-              @navigate-to-project="handleNavigateToProject"
-            />
-            <PipelinePage
-              v-else-if="currentPage === 'pipeline'"
-              :selected-pins="selectedPins"
-              :showBackButton="true"
-              @close="handleBackToDiamond"
-              @open-exercise-detail="handleOpenExerciseDetailWrapper"
-              class="overflow-y-auto"
-            />
-            <ReflexionPage
-              v-else-if="currentPage === 'reflexion'"
-              :selected-exercises="selectedPins"
-              @close="handleBackToDiamond"
-            />
-            <ExerciseDetail
-              v-if="currentPage === 'exerciseDetail' && currentExercise"
-              :exercise="currentExercise"
-              :all-exercises="allExercises"
-              :current-exercise-index="currentExerciseIndex"
-              @back="handleBackToPipeline"
-              @navigate-to-exercise="handleNavigateToExercise"
+
+            <Tabs
+              :tabs="tabs as unknown as string[]"
+              :active-tab="activeTab"
+              :grid-layout="gridLayoutForTabs"
+              :is-grid-mode="true"
+              @update:active-tab="setActiveTab"
+              @button-refs-updated="handleButtonRefsUpdate"
             />
             <div
-              v-else-if="currentPage === 'tools'"
-              class="flex-1 flex items-center justify-center"
+              ref="labelBarRef"
+              class="relative h-10 border-t border-primary-accent flex-shrink-0"
             >
-              <p class="text-gray-500">Tools page</p>
-              <!-- Todo tools page -->
-            </div>
-          </main>
-        </template>
-
-        <!-- Expanded Pipeline Layout -->
-        <template v-else>
-          <ResizablePanelGroup direction="vertical" class="flex-1">
-            <ResizablePanel :default-size="70" :min-size="30" class="bg-white">
-              <!-- Main content area when pipeline is expanded -->
-              <main
-                ref="mainElementRef"
-                class="flex-1 flex flex-col relative h-full"
-                :class="{ 'overflow-y-auto': currentPage === 'pipeline' }"
+              <template
+                v-for="label in sectionLabels"
+                :key="'label-' + label.text"
               >
-                <template v-if="currentPage === 'diamond'">
-                  <!-- Vertical Grey Lines -->
-                  <template
-                    v-for="(offset, index) in calculatedVerticalLineOffsets"
-                    :key="'line-' + index"
-                  >
-                    <div
-                      class="absolute bottom-0 bg-gray-300 w-px"
-                      :style="{
-                        left: offset + 'px',
-                        top: fullHeightLineIndices.includes(index as 0 | 2 | 4 | 6 | 8)
-                          ? '0px'
-                          : labelBarCalculatedTop + 'px',
-                        bottom: '0px',
-                      }"
-                    ></div>
-                  </template>
-
-                  <Tabs
-                    :tabs="tabs as unknown as string[]"
-                    :active-tab="activeTab"
-                    :grid-layout="gridLayoutForTabs"
-                    :is-grid-mode="true"
-                    @update:active-tab="setActiveTab"
-                    @button-refs-updated="handleButtonRefsUpdate"
-                  />
-                  <div
-                    ref="labelBarRef"
-                    class="relative h-10 border-t border-primary-accent flex-shrink-0"
-                  >
-                    <template
-                      v-for="label in sectionLabels"
-                      :key="'label-' + label.text"
-                    >
-                      <div
-                        class="pt-1 absolute flex items-center justify-center text-center text-sm font-medium text-[#1C170D]"
-                        :style="{
-                          left: label.left + 'px',
-                          width: label.width + 'px',
-                          top: '0',
-                          height: '100%',
-                        }"
-                      >
-                        <span>{{ label.text }}</span>
-                      </div>
-                    </template>
-                  </div>
-
-                  <div class="relative flex-1">
-                    <DiamondGrid
-                      ref="diamondGridRef"
-                      :container-width="containerWidth"
-                      :container-height="containerHeight"
-                      :image-obj="imageObj"
-                      @selected-pins-change="handleSelectedPinsChange"
-                      @layout-update="handleLayoutUpdate"
-                    />
-
-                    <AddExercisesButtons
-                      :add-exercises-button-center-offsets="
-                        addExercisesButtonCenterOffsets
-                      "
-                      @exercise-button-click="handleExerciseButtonClick"
-                      class="absolute inset-x-0"
-                      style="bottom: 10px"
-                    />
-                  </div>
-                </template>
-                <ExercisesPage
-                  v-else-if="currentPage === 'exercises'"
-                  :phase="currentPhase"
-                  :selected-pins="selectedPins"
-                  @close="handleBackToDiamond"
-                  @update:phase="(phase: string) => currentPhase = phase"
-                  @selected-pins-change="handleSelectedPinsChange"
-                  @open-exercise-detail="handleOpenExerciseDetailWrapper"
-                />
-                <OverviewPage
-                  v-else-if="currentPage === 'overview'"
-                  @navigate-to-project="handleNavigateToProject"
-                />
-                <PipelinePage
-                  v-else-if="currentPage === 'pipeline'"
-                  :selected-pins="selectedPins"
-                  :showBackButton="true"
-                  @close="handleBackToDiamond"
-                  @open-exercise-detail="handleOpenExerciseDetailWrapper"
-                />
-                <ReflexionPage
-                  v-else-if="currentPage === 'reflexion'"
-                  :selected-exercises="selectedPins"
-                  @close="handleBackToDiamond"
-                />
-                <ExerciseDetail
-                  v-if="currentPage === 'exerciseDetail' && currentExercise"
-                  :exercise="currentExercise"
-                  :all-exercises="allExercises"
-                  :current-exercise-index="currentExerciseIndex"
-                  @back="handleBackToPipeline"
-                  @navigate-to-exercise="handleNavigateToExercise"
-                />
                 <div
-                  v-else-if="currentPage === 'tools'"
-                  class="flex-1 flex items-center justify-center"
+                  class="pt-1 absolute flex items-center justify-center text-center text-sm font-medium text-[#1C170D]"
+                  :style="{
+                    left: label.left + 'px',
+                    width: label.width + 'px',
+                    top: '0',
+                    height: '100%',
+                  }"
                 >
-                  <p class="text-gray-500">Tools page</p>
-                  <!-- Todo tools page -->
+                  <span>{{ label.text }}</span>
                 </div>
-              </main>
-            </ResizablePanel>
-            <ResizableHandle with-handle />
-            <ResizablePanel
-              :default-size="30"
-              :min-size="20"
-              :max-size="70"
-              class="bg-white relative"
-            >
-              <PipelinePage
-                :selected-pins="selectedPins"
-                :showBackButton="false"
-                @open-exercise-detail="handleOpenExerciseDetailWrapper"
-                class="overflow-y-auto h-full"
+              </template>
+            </div>
+
+            <div class="relative flex-1">
+              <DiamondGrid
+                ref="diamondGridRef"
+                :container-width="containerWidth"
+                :container-height="containerHeight"
+                :image-obj="imageObj"
+                @selected-pins-change="handleSelectedPinsChange"
+                @layout-update="handleLayoutUpdate"
               />
-              <div class="absolute bottom-4 right-4">
-                <button
-                  @click="handleCollapsePipeline"
-                  class="border border-primary-accent p-2 rounded-xs bg-light cursor-pointer hover:bg-light/80 transition-colors"
-                >
-                  <ChevronDown class="w-5 h-5 text-primary-accent" />
-                </button>
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </template>
+
+              <AddExercisesButtons
+                :add-exercises-button-center-offsets="
+                  addExercisesButtonCenterOffsets
+                "
+                @exercise-button-click="handleExerciseButtonClick"
+                class="absolute inset-x-0"
+                style="bottom: 8%"
+              />
+            </div>
+          </template>
+          <ExercisesPage
+            v-else-if="currentPage === 'exercises'"
+            :phase="currentPhase"
+            :selected-pins="selectedPins"
+            @close="handleBackToDiamond"
+            @update:phase="(phase: string) => currentPhase = phase"
+            @selected-pins-change="handleSelectedPinsChange"
+          />
+          <OverviewPage
+            v-else-if="currentPage === 'overview'"
+            @navigate-to-project="handleNavigateToProject"
+          />
+          <PipelinePage
+            v-else-if="currentPage === 'pipeline'"
+            :selected-pins="selectedPins"
+            @close="handleBackToDiamond"
+            class="overflow-y-auto"
+          />
+          <ReflexionPage
+            v-else-if="currentPage === 'reflexion'"
+            :selected-exercises="selectedPins"
+            @close="handleBackToDiamond"
+          />
+          <div
+            v-else-if="currentPage === 'tools'"
+            class="flex-1 flex items-center justify-center"
+          >
+            <p class="text-gray-500">Tools page</p>
+            <!-- Todo tools page -->
+          </div>
+        </main>
       </div>
 
-      <!-- Current Pipeline Section (only shown when not expanded) -->
+      <!-- Current Pipeline Section -->
       <CurrentPipelineSection
-        v-if="!isPipelineExpanded"
         :all-rendering-line-offsets="calculatedVerticalLineOffsets"
         :main-content-screen-left="mainContentScreenLeft"
         :selected-pins="selectedPins"
         @unselectPinRequested="handleUnselectPin"
         @expandPipeline="handleExpandPipeline"
         @reorderPins="handleReorderPins"
+        @openExercise="handleOpenExerciseFromPipeline"
       />
     </div>
   </template>
@@ -296,10 +138,8 @@ import ExercisesPage from "./components/exercise/ExercisesPage.vue";
 import OverviewPage from "./components/project/OverviewPage.vue";
 import PipelinePage from "./components/pipeline/PipelinePage.vue";
 import ReflexionPage from "./components/project/ReflexionPage.vue";
-import ExerciseDetail from "./components/exercise/ExerciseDetail.vue";
 import LoginPage from "./components/layout/LoginPage.vue";
 import { Toaster } from "@/components/ui/sonner";
-import { ChevronDown } from "lucide-vue-next";
 import { TABS } from "@/constants/app";
 
 import { useAuth } from "@/composables/useAuth";
@@ -307,28 +147,17 @@ import { useNavigation } from "@/composables/useNavigation";
 import { useTabs } from "@/composables/useTabs";
 import { useCanvas } from "@/composables/useCanvas";
 import { useLayout } from "@/composables/useLayout";
-import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
-} from "@/components/ui/resizable";
+import type { SelectedPinInfo } from "@/types/exercise";
 
 const { isLoggedIn, initializeAuth } = useAuth();
 
 const {
   currentPage,
   currentPhase,
-  currentExercise,
-  currentExerciseIndex,
-  allExercises,
   handleNavigate,
   handleNavigateToProject,
   handleExerciseButtonClick,
   handleBackToDiamond,
-  handleOpenExerciseDetail,
-  handleOpenExerciseDetailWithContext,
-  handleNavigateToExercise,
-  handleBackToPipeline,
 } = useNavigation();
 
 const {
@@ -395,14 +224,8 @@ const gridLayoutForTabs = computed(() => {
   };
 });
 
-const isPipelineExpanded = ref(false);
-
 const handleExpandPipeline = () => {
-  isPipelineExpanded.value = true;
-};
-
-const handleCollapsePipeline = () => {
-  isPipelineExpanded.value = false;
+  // Pipeline expansion is now handled by CurrentPipelineSection
 };
 
 // Handle reordering of pins in the pipeline
@@ -412,6 +235,13 @@ const handleReorderPins = (fromIndex: number, toIndex: number) => {
   updatedPins.splice(toIndex, 0, movedPin);
   
   handleSelectedPinsChange(updatedPins);
+};
+
+// Handle opening exercise from pipeline
+const handleOpenExerciseFromPipeline = (exercise: SelectedPinInfo, index: number) => {
+  // Navigate to pipeline page and open the exercise
+  handleNavigate('pipeline');
+  // The PipelinePage will handle opening the specific exercise
 };
 
 // Handle layout updates from DiamondGrid
@@ -469,20 +299,6 @@ watch(isLoggedIn, (loggedIn) => {
     });
   }
 });
-
-// Create a wrapper function for opening exercise detail with context
-const handleOpenExerciseDetailWrapper = (exercise: any) => {
-  // If the exercise is from the pipeline (has originalIndex in selectedPins), use full context
-  const exerciseInPipeline = selectedPins.value.find(
-    (pin) => pin.originalIndex === exercise.originalIndex
-  );
-  if (exerciseInPipeline) {
-    handleOpenExerciseDetailWithContext(exercise, selectedPins.value);
-  } else {
-    // For individual exercises (from exercises page), create a single-item context
-    handleOpenExerciseDetailWithContext(exercise, [exercise]);
-  }
-};
 
 onMounted(() => {
   initializeAuth();

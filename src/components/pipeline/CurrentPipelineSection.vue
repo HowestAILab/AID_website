@@ -1,5 +1,7 @@
 <template>
+  <!-- Collapsed State -->
   <div
+    v-if="!isExpanded"
     class="border-t border-gray-200 bg-white px-4 py-3 h-20 flex items-center relative"
   >
     <div class="flex items-center mr-10">
@@ -51,20 +53,63 @@
       </div>
     </div>
     <button
-      @click="$emit('expandPipeline')"
+      @click="handleExpand"
       class="border border-[#A1824A] p-2 ml-20 rounded-xs bg-light cursor-pointer hover:bg-light/80 transition-colors"
     >
       <ChevronUp class="w-5 h-5 text-on-light-accent" />
     </button>
   </div>
+
+  <!-- Expanded State -->
+  <div
+    v-else
+    class="border-t border-gray-200 bg-white flex flex-col h-96"
+  >
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b">
+      <div class="flex items-center gap-3">
+        <Network class="w-5 h-5 text-[#F59E0C]" />
+        <h1 class="text-lg font-medium text-gray-900">Pipeline Overview</h1>
+        <div class="bg-[#F59E0C]/10 text-[#D97704] px-2 py-1 rounded-sm text-sm font-medium">
+          {{ overallProgress }}% Complete
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <Button
+          v-if="currentExercise && selectedPins.length > 0"
+          @click="openCurrentExercise"
+          class="bg-[#F59E0C] hover:bg-[#F59E0C]/90 text-white"
+        >
+          <Play class="w-4 h-4 mr-2" />
+          Continue Current Exercise
+        </Button>
+        <button
+          @click="handleCollapse"
+          class="border border-[#A1824A] p-2 rounded-xs bg-light cursor-pointer hover:bg-light/80 transition-colors"
+        >
+          <ChevronDown class="w-5 h-5 text-on-light-accent" />
+        </button>
+      </div>
+    </div>
+
+    <!-- Pipeline Overview Content -->
+    <PipelineOverviewView
+      :selected-pins="selectedPins"
+      @open-exercise="handleOpenExercise"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Network, ChevronUp, X } from "lucide-vue-next";
+import { ref, computed } from 'vue';
+import { Network, ChevronUp, ChevronDown, X, Play } from "lucide-vue-next";
+import { Button } from "@/components/ui/button";
+import PipelineOverviewView from "./PipelineOverviewView.vue";
+import { usePipelineProgress } from "@/composables/usePipelineProgress";
 import type { SelectedPinInfo } from "@/types/exercise";
 
-defineProps<{
+const props = defineProps<{
   allRenderingLineOffsets?: any;
   mainContentScreenLeft?: number;
   selectedPins: SelectedPinInfo[];
@@ -74,13 +119,54 @@ const emit = defineEmits<{
   (e: "unselectPinRequested", originalIndex: number): void;
   (e: "expandPipeline"): void;
   (e: "reorderPins", fromIndex: number, toIndex: number): void;
+  (e: "openExercise", exercise: SelectedPinInfo, index: number): void;
 }>();
+
+// Composables
+const { 
+  calculatePipelineProgress,
+  getCurrentExercise
+} = usePipelineProgress();
+
+// State
+const isExpanded = ref(false);
 
 // Drag and drop state
 const isDragging = ref(false);
 const draggedIndex = ref<number | null>(null);
 const dragOverIndex = ref<number | null>(null);
 
+// Computed properties
+const overallProgress = computed(() => calculatePipelineProgress(props.selectedPins));
+const currentExercise = computed(() => getCurrentExercise(props.selectedPins));
+
+// Expand/Collapse handlers
+const handleExpand = () => {
+  isExpanded.value = true;
+  emit('expandPipeline');
+};
+
+const handleCollapse = () => {
+  isExpanded.value = false;
+};
+
+// Exercise handlers
+const openCurrentExercise = () => {
+  if (currentExercise.value) {
+    const index = props.selectedPins.findIndex(pin => 
+      pin.originalIndex === currentExercise.value!.originalIndex
+    );
+    if (index >= 0) {
+      handleOpenExercise(currentExercise.value, index);
+    }
+  }
+};
+
+const handleOpenExercise = (exercise: SelectedPinInfo, index: number) => {
+  emit('openExercise', exercise, index);
+};
+
+// Drag and drop handlers
 const handleDragStart = (event: DragEvent, index: number) => {
   isDragging.value = true;
   draggedIndex.value = index;
