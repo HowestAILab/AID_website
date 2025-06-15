@@ -1,7 +1,7 @@
 <template>
-  <div class="flex-1 bg-white flex flex-col">
+  <div class="flex-1 bg-white flex flex-col min-h-0">
     <!-- Progress Stepper -->
-    <div class="p-4 border-b bg-gray-50">
+    <div class="p-4 border-b bg-gray-50 flex-shrink-0">
       <div class="w-full">
         <Stepper
           :model-value="currentStep"
@@ -46,7 +46,7 @@
     </div>
 
     <!-- Phase Exercises -->
-    <div class="flex-1 overflow-y-auto p-4 space-y-6">
+    <div class="flex-1 overflow-y-auto p-4 space-y-6 min-h-0">
       <div v-for="(phaseItem, index) in phaseExercises" :key="index">
         <div
           v-if="phaseItem.exercises.length > 0"

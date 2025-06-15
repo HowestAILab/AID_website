@@ -96,7 +96,7 @@
             v-else-if="currentPage === 'pipeline'"
             :selected-pins="selectedPins"
             @close="handleBackToDiamond"
-            class="overflow-y-auto"
+            class="flex-1 min-h-0"
           />
           <ReflexionPage
             v-else-if="currentPage === 'reflexion'"
@@ -147,6 +147,7 @@ import { useNavigation } from "@/composables/useNavigation";
 import { useTabs } from "@/composables/useTabs";
 import { useCanvas } from "@/composables/useCanvas";
 import { useLayout } from "@/composables/useLayout";
+import { usePipelineNavigation } from "@/composables/usePipelineNavigation";
 import type { SelectedPinInfo } from "@/types/exercise";
 
 const { isLoggedIn, initializeAuth } = useAuth();
@@ -190,6 +191,8 @@ const {
   updateLayout,
   setupResizeListener,
 } = useLayout();
+
+const { setPendingExerciseOpen } = usePipelineNavigation();
 
 // Layout data from DiamondGrid
 const sectionLabels = ref<{ text: string; left: number; width: number }[]>([]);
@@ -239,9 +242,10 @@ const handleReorderPins = (fromIndex: number, toIndex: number) => {
 
 // Handle opening exercise from pipeline
 const handleOpenExerciseFromPipeline = (exercise: SelectedPinInfo, index: number) => {
-  // Navigate to pipeline page and open the exercise
+  // Set the pending exercise to open
+  setPendingExerciseOpen(exercise, index);
+  // Navigate to pipeline page and the exercise will be opened automatically
   handleNavigate('pipeline');
-  // The PipelinePage will handle opening the specific exercise
 };
 
 // Handle layout updates from DiamondGrid

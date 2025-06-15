@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-1 bg-white flex flex-col">
+  <div class="flex-1 bg-white flex flex-col min-h-0">
     <!-- Exercise Detail View -->
     <template v-if="currentExercise">
       <PipelineExercisePage
@@ -70,6 +70,7 @@
       <PipelineOverviewView
         v-if="currentView === 'overview'"
         :selected-pins="selectedPins"
+        :mode="'full'"
         @open-exercise="handleOpenExerciseFromOverview"
       />
 
@@ -97,7 +98,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
 import { 
   ArrowLeft, 
   List, 
@@ -111,6 +112,7 @@ import PipelineExercisePage from "./PipelineExercisePage.vue";
 import EthicsCheckDialog from "@/components/ethics/EthicsCheckDialog.vue";
 import { usePipelineProgress } from "@/composables/usePipelineProgress";
 import { useEthics } from "@/composables/useEthics";
+import { usePipelineNavigation } from "@/composables/usePipelineNavigation";
 import type { SelectedPinInfo } from "@/types/exercise";
 
 const props = defineProps<{
@@ -129,6 +131,8 @@ const {
 const { 
   ensureEthicalCheckFromExercise 
 } = useEthics();
+
+const { getPendingExerciseOpen } = usePipelineNavigation();
 
 // View state
 const currentView = ref<'overview' | 'phases'>('overview');
@@ -150,6 +154,14 @@ onMounted(() => {
   if (savedView === 'overview' || savedView === 'phases') {
     currentView.value = savedView;
   }
+
+  // Check for pending exercise open
+  nextTick(() => {
+    const pendingOpen = getPendingExerciseOpen();
+    if (pendingOpen) {
+      openExercise(pendingOpen.exercise);
+    }
+  });
 });
 
 // Computed properties

@@ -96,6 +96,7 @@
     <!-- Pipeline Overview Content -->
     <PipelineOverviewView
       :selected-pins="selectedPins"
+      :mode="'compact'"
       @open-exercise="handleOpenExercise"
     />
   </div>
