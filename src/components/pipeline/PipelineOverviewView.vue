@@ -3,12 +3,12 @@
     <!-- Progress Bar -->
     <div class="px-4 py-3 bg-gray-50 flex-shrink-0">
       <div class="flex items-center gap-3 mb-2">
-        <span class="text-sm font-medium text-gray-700">Overall Progress</span>
-        <span class="text-sm text-gray-500">{{ completedCount }} of {{ totalCount }} exercises</span>
+        <span class="text-sm font-medium text-on-light-default">Overall Progress</span>
+        <span class="text-sm text-on-light-accent">{{ completedCount }} of {{ totalCount }} exercises</span>
       </div>
-      <div class="w-full bg-gray-200 rounded-full h-2">
+      <div class="w-full bg-white/50 rounded-full h-2 border border-on-light-accent/20">
         <div 
-          class="bg-[#F59E0C] h-2 rounded-full transition-all duration-300"
+          class="bg-primary-accent h-2 rounded-full transition-all duration-300"
           :style="{ width: overallProgress + '%' }"
         ></div>
       </div>
@@ -21,9 +21,9 @@
         <div
           v-for="(exercise, index) in selectedPins"
           :key="exercise.originalIndex"
-          class="flex-shrink-0 w-80 border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+          class="flex-shrink-0 w-80 border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
           :class="{
-            'ring-2 ring-[#F59E0C] ring-opacity-50': isCurrentExercise(exercise),
+            'ring-2 ring-primary-accent ring-opacity-50': isCurrentExercise(exercise),
             'bg-green-50 border-green-200': isExerciseCompleted(exercise.name),
             'bg-blue-50 border-blue-200': !isExerciseCompleted(exercise.name) && isCurrentExercise(exercise)
           }"
@@ -32,12 +32,17 @@
           <!-- Exercise Header -->
           <div class="flex items-start justify-between mb-3">
             <div class="flex items-center gap-2">
-              <div class="w-8 h-8 bg-[#F59E0C] rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+              <div class="w-8 h-8 bg-primary-accent rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                 {{ index + 1 }}
               </div>
               <div>
-                <h3 class="font-medium text-gray-900 text-sm">{{ exercise.name }}</h3>
-                <p class="text-xs text-gray-500">{{ exercise.location.phase }} • {{ exercise.location.step }}</p>
+                <h3 class="font-medium text-on-light-default text-sm">{{ exercise.name }}</h3>
+                <div class="flex items-center gap-2 mt-1">
+                  <p class="text-xs text-on-light-accent">{{ exercise.location.phase }} • {{ exercise.location.step }}</p>
+                  <div :class="getHumanAiScaleStyle(exercise.location.human_ai_scale)" class="text-xs px-1.5 py-0.5 rounded-sm font-medium">
+                    {{ getHumanAiScaleText(exercise.location.human_ai_scale) }}
+                  </div>
+                </div>
               </div>
             </div>
             
@@ -49,11 +54,11 @@
               />
               <Clock 
                 v-else-if="isCurrentExercise(exercise)"
-                class="w-5 h-5 text-blue-600"
+                class="w-5 h-5 text-primary-accent"
               />
               <Circle 
                 v-else
-                class="w-5 h-5 text-gray-400"
+                class="w-5 h-5 text-on-light-accent/40"
               />
             </div>
           </div>
@@ -65,10 +70,10 @@
           <div class="space-y-2">
             <!-- Ethics Status -->
             <div v-if="exerciseHasEthics(exercise)" class="flex items-center gap-2 text-xs">
-              <Shield class="w-3 h-3 flex-shrink-0" />
-              <span class="text-gray-600">Ethics:</span>
+              <Shield class="w-3 h-3 flex-shrink-0 text-purple-600" />
+              <span class="text-on-light-accent">Ethics:</span>
               <span 
-                :class="exerciseEthicsCompleted(exercise) ? 'text-green-600' : 'text-orange-600'"
+                :class="exerciseEthicsCompleted(exercise) ? 'text-green-600' : 'text-primary-accent'"
               >
                 {{ exerciseEthicsCompleted(exercise) ? 'Completed' : 'Pending' }}
               </span>
@@ -76,19 +81,19 @@
 
             <!-- Chat History -->
             <div class="flex items-center gap-2 text-xs">
-              <MessageSquare class="w-3 h-3 flex-shrink-0" />
-              <span class="text-gray-600">Chat:</span>
-              <span class="text-gray-500">
+              <MessageSquare class="w-3 h-3 flex-shrink-0 text-on-light-accent" />
+              <span class="text-on-light-accent">Chat:</span>
+              <span class="text-on-light-accent/70">
                 {{ getChatHistoryCount(exercise.name) }} messages
               </span>
             </div>
 
             <!-- Completion Status -->
             <div class="flex items-center gap-2 text-xs">
-              <Target class="w-3 h-3 flex-shrink-0" />
-              <span class="text-gray-600">Status:</span>
+              <Target class="w-3 h-3 flex-shrink-0 text-on-light-accent" />
+              <span class="text-on-light-accent">Status:</span>
               <span 
-                :class="isExerciseCompleted(exercise.name) ? 'text-green-600 font-medium' : 'text-gray-500'"
+                :class="isExerciseCompleted(exercise.name) ? 'text-green-600 font-medium' : 'text-on-light-accent/70'"
               >
                 {{ isExerciseCompleted(exercise.name) ? 'Completed' : 'Not Started' }}
               </span>
@@ -96,8 +101,8 @@
           </div>
 
           <!-- Completion Date -->
-          <div v-if="isExerciseCompleted(exercise.name)" class="mt-3 pt-3 border-t border-gray-100">
-            <p class="text-xs text-gray-500">
+          <div v-if="isExerciseCompleted(exercise.name)" class="mt-3 pt-3 border-t border-on-light-accent/20">
+            <p class="text-xs text-on-light-accent/70">
               Completed {{ formatCompletionDate(exercise.name) }}
             </p>
           </div>
@@ -106,11 +111,11 @@
         <!-- Add more exercises prompt -->
         <div 
           v-if="selectedPins.length === 0"
-          class="flex-shrink-0 w-80 border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center text-center"
+          class="flex-shrink-0 w-80 border-2 border-dashed border-on-light-accent/30 rounded-lg p-8 flex flex-col items-center justify-center text-center"
         >
-          <Plus class="w-8 h-8 text-gray-400 mb-2" />
-          <p class="text-gray-500 font-medium mb-1">No exercises in pipeline</p>
-          <p class="text-sm text-gray-400">Add exercises from the diamond to get started</p>
+          <Plus class="w-8 h-8 text-on-light-accent/40 mb-2" />
+          <p class="text-on-light-accent font-medium mb-1">No exercises in pipeline</p>
+          <p class="text-sm text-on-light-accent/70">Add exercises from the diamond to get started</p>
         </div>
       </div>
     </div>
@@ -121,9 +126,9 @@
         <div
           v-for="(exercise, index) in selectedPins"
           :key="exercise.originalIndex"
-          class="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer min-w-0"
+          class="border border-on-light-accent/20 rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer min-w-0"
           :class="{
-            'ring-2 ring-[#F59E0C] ring-opacity-50': isCurrentExercise(exercise),
+            'ring-2 ring-primary-accent ring-opacity-50 border-primary-accent/30': isCurrentExercise(exercise),
             'bg-green-50 border-green-200': isExerciseCompleted(exercise.name),
             'bg-blue-50 border-blue-200': !isExerciseCompleted(exercise.name) && isCurrentExercise(exercise)
           }"
@@ -132,12 +137,17 @@
           <!-- Exercise Header -->
           <div class="flex items-start justify-between mb-3">
             <div class="flex items-center gap-2 min-w-0">
-              <div class="w-8 h-8 bg-[#F59E0C] rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+              <div class="w-8 h-8 bg-primary-accent rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                 {{ index + 1 }}
               </div>
               <div class="min-w-0">
-                <h3 class="font-medium text-gray-900 text-sm truncate">{{ exercise.name }}</h3>
-                <p class="text-xs text-gray-500 truncate">{{ exercise.location.phase }} • {{ exercise.location.step }}</p>
+                <h3 class="font-medium text-on-light-default text-sm truncate">{{ exercise.name }}</h3>
+                <div class="flex items-center gap-2 mt-1">
+                  <p class="text-xs text-on-light-accent truncate">{{ exercise.location.phase }} • {{ exercise.location.step }}</p>
+                  <div :class="getHumanAiScaleStyle(exercise.location.human_ai_scale)" class="text-xs px-1.5 py-0.5 rounded-sm font-medium">
+                    {{ getHumanAiScaleText(exercise.location.human_ai_scale) }}
+                  </div>
+                </div>
               </div>
             </div>
             
@@ -149,11 +159,11 @@
               />
               <Clock 
                 v-else-if="isCurrentExercise(exercise)"
-                class="w-5 h-5 text-blue-600"
+                class="w-5 h-5 text-primary-accent"
               />
               <Circle 
                 v-else
-                class="w-5 h-5 text-gray-400"
+                class="w-5 h-5 text-on-light-accent/40"
               />
             </div>
           </div>
@@ -165,10 +175,10 @@
           <div class="space-y-2">
             <!-- Ethics Status -->
             <div v-if="exerciseHasEthics(exercise)" class="flex items-center gap-2 text-xs">
-              <Shield class="w-3 h-3 flex-shrink-0" />
-              <span class="text-gray-600">Ethics:</span>
+              <Shield class="w-3 h-3 flex-shrink-0 text-purple-600" />
+              <span class="text-on-light-accent">Ethics:</span>
               <span 
-                :class="exerciseEthicsCompleted(exercise) ? 'text-green-600' : 'text-orange-600'"
+                :class="exerciseEthicsCompleted(exercise) ? 'text-green-600' : 'text-primary-accent'"
               >
                 {{ exerciseEthicsCompleted(exercise) ? 'Completed' : 'Pending' }}
               </span>
@@ -176,19 +186,19 @@
 
             <!-- Chat History -->
             <div class="flex items-center gap-2 text-xs">
-              <MessageSquare class="w-3 h-3 flex-shrink-0" />
-              <span class="text-gray-600">Chat:</span>
-              <span class="text-gray-500">
+              <MessageSquare class="w-3 h-3 flex-shrink-0 text-on-light-accent" />
+              <span class="text-on-light-accent">Chat:</span>
+              <span class="text-on-light-accent/70">
                 {{ getChatHistoryCount(exercise.name) }} messages
               </span>
             </div>
 
             <!-- Completion Status -->
             <div class="flex items-center gap-2 text-xs">
-              <Target class="w-3 h-3 flex-shrink-0" />
-              <span class="text-gray-600">Status:</span>
+              <Target class="w-3 h-3 flex-shrink-0 text-on-light-accent" />
+              <span class="text-on-light-accent">Status:</span>
               <span 
-                :class="isExerciseCompleted(exercise.name) ? 'text-green-600 font-medium' : 'text-gray-500'"
+                :class="isExerciseCompleted(exercise.name) ? 'text-green-600 font-medium' : 'text-on-light-accent/70'"
               >
                 {{ isExerciseCompleted(exercise.name) ? 'Completed' : 'Not Started' }}
               </span>
@@ -196,8 +206,8 @@
           </div>
 
           <!-- Completion Date -->
-          <div v-if="isExerciseCompleted(exercise.name)" class="mt-3 pt-3 border-t border-gray-100">
-            <p class="text-xs text-gray-500">
+          <div v-if="isExerciseCompleted(exercise.name)" class="mt-3 pt-3 border-t border-on-light-accent/20">
+            <p class="text-xs text-on-light-accent/70">
               Completed {{ formatCompletionDate(exercise.name) }}
             </p>
           </div>
@@ -206,17 +216,17 @@
         <!-- Add more exercises prompt -->
         <div 
           v-if="selectedPins.length === 0"
-          class="col-span-full border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center text-center"
+          class="col-span-full border-2 border-dashed border-on-light-accent/30 rounded-lg p-8 flex flex-col items-center justify-center text-center"
         >
-          <Plus class="w-8 h-8 text-gray-400 mb-2" />
-          <p class="text-gray-500 font-medium mb-1">No exercises in pipeline</p>
-          <p class="text-sm text-gray-400">Add exercises from the diamond to get started</p>
+          <Plus class="w-8 h-8 text-on-light-accent/40 mb-2" />
+          <p class="text-on-light-accent font-medium mb-1">No exercises in pipeline</p>
+          <p class="text-sm text-on-light-accent/70">Add exercises from the diamond to get started</p>
         </div>
       </div>
     </div>
 
     <!-- Phase Summary - Only show in full mode -->
-    <div v-if="mode === 'full'" class="border-t bg-gray-50 p-4 flex-shrink-0">
+    <div v-if="mode === 'full'" class="border-t p-4 flex-shrink-0">
       <h3 class="text-sm font-medium text-gray-900 mb-3">Phase Progress</h3>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div 
@@ -224,13 +234,13 @@
           :key="phase"
           class="text-center"
         >
-          <div class="text-xs text-gray-500 mb-1">{{ phase }}</div>
-          <div class="text-sm font-medium text-gray-900">
+          <div class="text-xs text-on-light-accent mb-1">{{ phase }}</div>
+          <div class="text-sm font-medium text-on-light-default">
             {{ getPhaseProgress(selectedPins, phase).completed }}/{{ getPhaseProgress(selectedPins, phase).total }}
           </div>
-          <div class="w-full bg-gray-200 rounded-full h-1 mt-1">
+          <div class="w-full bg-white/50 rounded-full h-1 mt-1 border border-on-light-accent/20">
             <div 
-              class="bg-[#F59E0C] h-1 rounded-full transition-all duration-300"
+              class="bg-primary-accent h-1 rounded-full transition-all duration-300"
               :style="{ width: getPhaseProgress(selectedPins, phase).percentage + '%' }"
             ></div>
           </div>
@@ -320,6 +330,18 @@ const formatCompletionDate = (exerciseId: string): string => {
     hour: '2-digit',
     minute: '2-digit'
   });
+};
+
+const getHumanAiScaleText = (scale: number): string => {
+  if (scale <= 3) return 'Human';
+  if (scale <= 7) return 'Human+AI';
+  return 'AI';
+};
+
+const getHumanAiScaleStyle = (scale: number): string => {
+  if (scale <= 3) return 'bg-[#DBE9FE] text-[#1D40AE]'; // Human - blue
+  if (scale <= 7) return 'bg-[#F3E8FF] text-[#6B21A8]'; // Human+AI - purple
+  return 'bg-[#D1FAE5] text-[#076046]'; // AI - green
 };
 
 const openExercise = (exercise: SelectedPinInfo, index: number) => {

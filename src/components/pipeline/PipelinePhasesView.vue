@@ -1,7 +1,7 @@
 <template>
   <div class="flex-1 bg-white flex flex-col min-h-0">
     <!-- Progress Stepper -->
-    <div class="p-4 border-b bg-gray-50 flex-shrink-0">
+    <div class="p-4 border-b flex-shrink-0">
       <div class="w-full">
         <Stepper
           :model-value="currentStep"
@@ -28,17 +28,17 @@
             </StepperTrigger>
 
             <div class="mt-2 text-center">
-              <StepperTitle class="text-sm font-medium text-foreground">
+              <StepperTitle class="text-sm font-medium text-on-light-default">
                 {{ step.title }}
               </StepperTitle>
-              <div class="text-xs text-gray-500 mt-1">
+              <div class="text-xs text-on-light-accent mt-1">
                 {{ getPhaseProgress(selectedPins, step.title).completed }}/{{ getPhaseProgress(selectedPins, step.title).total }}
               </div>
             </div>
 
             <StepperSeparator
               v-if="index < steps.length - 1"
-              class="absolute left-[calc(50%+20px)] top-5 block h-0.5 w-[calc(100%-40px)] shrink-0 rounded-full bg-muted group-data-[state=completed]:bg-primary"
+              class="absolute left-[calc(50%+20px)] top-5 block h-0.5 w-[calc(100%-40px)] shrink-0 rounded-full bg-on-light-accent/30 group-data-[state=completed]:bg-primary-accent"
             />
           </StepperItem>
         </Stepper>
@@ -50,22 +50,22 @@
       <div v-for="(phaseItem, index) in phaseExercises" :key="index">
         <div
           v-if="phaseItem.exercises.length > 0"
-          class="border rounded-lg shadow-sm"
+          class="border border-on-light-accent/20 rounded-lg shadow-sm"
         >
           <!-- Phase Header -->
-          <div class="bg-gray-50 px-4 py-3 border-b rounded-t-lg">
+          <div class="bg-light px-4 py-3 border-b border-on-light-accent/20 rounded-t-lg">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <h3 class="text-lg font-semibold text-[#D97704]">
+                <h3 class="text-lg font-semibold text-primary-accent">
                   {{ phaseItem.phase }} Phase
                 </h3>
-                <div class="text-sm text-gray-600">
+                <div class="text-sm text-on-light-accent">
                   {{ getPhaseProgress(selectedPins, phaseItem.phase).completed }} of {{ getPhaseProgress(selectedPins, phaseItem.phase).total }} completed
                 </div>
               </div>
-              <div class="w-24 bg-gray-200 rounded-full h-2">
+              <div class="w-24 bg-white/50 rounded-full h-2 border border-on-light-accent/20">
                 <div 
-                  class="bg-[#F59E0C] h-2 rounded-full transition-all duration-300"
+                  class="bg-primary-accent h-2 rounded-full transition-all duration-300"
                   :style="{ width: getPhaseProgress(selectedPins, phaseItem.phase).percentage + '%' }"
                 ></div>
               </div>
@@ -98,12 +98,12 @@
         v-if="selectedPins.length === 0"
         class="text-center py-12"
       >
-        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Plus class="w-8 h-8 text-gray-400" />
+        <div class="w-16 h-16 bg-light rounded-full flex items-center justify-center mx-auto mb-4 border border-on-light-accent/20">
+          <Plus class="w-8 h-8 text-on-light-accent/60" />
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No exercises in pipeline</h3>
-        <p class="text-gray-500 mb-4">Add exercises from the diamond to get started with your pipeline.</p>
-        <Button @click="$emit('go-to-diamond')" variant="outline">
+        <h3 class="text-lg font-medium text-on-light-default mb-2">No exercises in pipeline</h3>
+        <p class="text-on-light-accent mb-4">Add exercises from the diamond to get started with your pipeline.</p>
+        <Button @click="$emit('go-to-diamond')" variant="outline" class="border-on-light-accent text-on-light-accent hover:bg-light">
           Go to Diamond
         </Button>
       </div>
@@ -192,16 +192,16 @@ const getStepVariant = (stepNumber: number) => {
 
 const getStepClasses = (stepNumber: number) => {
   const phase = steps[stepNumber - 1]?.title;
-  if (!phase) return 'text-muted-foreground';
+  if (!phase) return 'text-on-light-accent/60 border-on-light-accent/30';
   
   const progress = getPhaseProgress(props.selectedPins, phase);
   if (progress.completed === progress.total && progress.total > 0) {
-    return 'bg-[#F59E0C] text-white hover:bg-[#F59E0C]/90';
+    return 'bg-primary-accent text-white hover:bg-primary-accent/90 border-primary-accent';
   }
   if (progress.completed > 0) {
-    return 'bg-[#F59E0C]/20 text-[#D97704] hover:bg-[#F59E0C]/30';
+    return 'bg-primary-accent/20 text-primary-accent hover:bg-primary-accent/30 border-primary-accent/30';
   }
-  return 'text-muted-foreground';
+  return 'text-on-light-accent/60 border-on-light-accent/30 hover:bg-light';
 };
 
 const exerciseHasEthics = (exercise: SelectedPinInfo): boolean => {

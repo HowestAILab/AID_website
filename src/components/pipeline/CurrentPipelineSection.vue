@@ -29,10 +29,10 @@
             class="w-6 h-6 bg-light border border-black transform rotate-45 flex items-center justify-center transition-all duration-200"
             :class="{ 
               'scale-110 shadow-lg': dragOverIndex === index && draggedIndex !== index,
-              'bg-blue-100 border-blue-500': dragOverIndex === index && draggedIndex !== index 
+              'bg-primary-accent/20 border-primary-accent': dragOverIndex === index && draggedIndex !== index 
             }"
           >
-            <span class="text-black text-xs transform -rotate-45">
+            <span class="text-on-light-default text-xs transform -rotate-45 font-medium">
               {{ exercise.originalIndex + 1 }}
             </span>
           </div>
@@ -46,7 +46,7 @@
         </div>
         <div
           v-if="selectedPins.length === 0"
-          class="flex items-center justify-center w-full text-gray-400 text-sm"
+          class="flex items-center justify-center w-full text-on-light-accent/60 text-sm"
         >
           No exercises added to pipeline
         </div>
@@ -54,7 +54,7 @@
     </div>
     <button
       @click="handleExpand"
-      class="border border-[#A1824A] p-2 ml-20 rounded-xs bg-light cursor-pointer hover:bg-light/80 transition-colors"
+      class="border border-on-light-accent p-2 ml-20 rounded-sm bg-white cursor-pointer hover:bg-light transition-colors shadow-sm"
     >
       <ChevronUp class="w-5 h-5 text-on-light-accent" />
     </button>
@@ -68,9 +68,9 @@
     <!-- Header -->
     <div class="flex items-center justify-between p-4 border-b">
       <div class="flex items-center gap-3">
-        <Network class="w-5 h-5 text-[#F59E0C]" />
-        <h1 class="text-lg font-medium text-gray-900">Pipeline Overview</h1>
-        <div class="bg-[#F59E0C]/10 text-[#D97704] px-2 py-1 rounded-sm text-sm font-medium">
+        <Network class="w-5 h-5 text-primary-accent" />
+        <h1 class="text-lg font-medium text-on-light-default">Pipeline Overview</h1>
+        <div class="bg-primary-accent/10 text-primary-accent px-2 py-1 rounded-sm text-sm font-medium border border-primary-accent/20">
           {{ overallProgress }}% Complete
         </div>
       </div>
@@ -79,14 +79,14 @@
         <Button
           v-if="currentExercise && selectedPins.length > 0"
           @click="openCurrentExercise"
-          class="bg-[#F59E0C] hover:bg-[#F59E0C]/90 text-white"
+          class="bg-primary-accent hover:bg-primary-accent/90 text-white border-0"
         >
           <Play class="w-4 h-4 mr-2" />
           Continue Current Exercise
         </Button>
         <button
           @click="handleCollapse"
-          class="border border-[#A1824A] p-2 rounded-xs bg-light cursor-pointer hover:bg-light/80 transition-colors"
+          class="border border-on-light-accent p-2 rounded-sm bg-white cursor-pointer hover:bg-light transition-colors shadow-sm"
         >
           <ChevronDown class="w-5 h-5 text-on-light-accent" />
         </button>

@@ -27,14 +27,14 @@
 
         <!-- View Toggle and Actions -->
         <div class="flex items-center gap-2">
-          <div class="flex bg-gray-100 rounded-lg p-1">
+          <div class="flex bg-white/50 rounded-lg p-1 border border-on-light-accent/20">
             <button
               @click="setCurrentView('overview')"
               :class="[
                 'px-3 py-1 text-sm font-medium rounded-md transition-colors',
                 currentView === 'overview' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white text-on-light-default shadow-sm border border-on-light-accent/20' 
+                  : 'text-on-light-accent hover:text-on-light-default hover:bg-white/50'
               ]"
             >
               <List class="w-4 h-4 mr-2 inline" />
@@ -45,8 +45,8 @@
               :class="[
                 'px-3 py-1 text-sm font-medium rounded-md transition-colors',
                 currentView === 'phases' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white text-on-light-default shadow-sm border border-on-light-accent/20' 
+                  : 'text-on-light-accent hover:text-on-light-default hover:bg-white/50'
               ]"
             >
               <Grid3X3 class="w-4 h-4 mr-2 inline" />
@@ -58,7 +58,7 @@
           <Button
             v-if="currentExerciseToWork && selectedPins.length > 0"
             @click="openCurrentExercise"
-            class="bg-[#F59E0C] hover:bg-[#F59E0C]/90 text-white"
+            class="bg-primary-accent hover:bg-primary-accent/90 text-white border-0"
           >
             <Play class="w-4 h-4 mr-2" />
             Continue Current
