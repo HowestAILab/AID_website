@@ -3,7 +3,7 @@
     <ResizablePanel>
       <div class="flex flex-col h-full">
         <!-- Header -->
-        <div class="p-6 pb-4 flex justify-between border-b">
+        <div class="p-6 pb-4 flex justify-between border-b mb-4">
           <button
             @click="goBack"
             class="flex items-center gap-2 text-gray-600 hover:text-gray-900 cursor-pointer"
@@ -28,7 +28,7 @@
                   <button
                     v-for="(pipelineExercise, index) in allExercises"
                     :key="pipelineExercise.originalIndex"
-                    @click="goToExercise(index)"
+                    @click="handleExerciseSelection(index)"
                     class="w-full text-left hover:bg-gray-100 rounded flex items-center gap-3 p-2 cursor-pointer"
                     :class="{ 'bg-[#F5F0E5]': pipelineExercise.originalIndex === exercise.originalIndex }"
                   >
@@ -39,10 +39,18 @@
                       <span class="font-medium block truncate">{{ pipelineExercise.name }}</span>
                       <span class="text-xs text-gray-500">{{ pipelineExercise.location.phase }}</span>
                     </div>
-                    <CheckCircle2 
-                      v-if="isExerciseCompleted(pipelineExercise.name)"
-                      class="w-4 h-4 text-green-600 flex-shrink-0"
-                    />
+                    <div class="flex items-center gap-1">
+                      <CheckCircle2 
+                        v-if="isExerciseCompleted(pipelineExercise.name)"
+                        class="w-4 h-4 text-green-600 flex-shrink-0"
+                      />
+                      <EthicsBadge 
+                        v-if="ethics.getExerciseEthicsStatus(pipelineExercise).hasAnyRequirement"
+                        :exercise="pipelineExercise" 
+                        size="sm"
+                        @click.stop="handleEthicsBadgeClick(pipelineExercise)"
+                      />
+                    </div>
                   </button>
                 </div>
               </PopoverContent>
@@ -93,6 +101,14 @@
             {{ exercise.location.phase }} / {{ exercise.location.step }}
           </div>
 
+          <!-- Ethics Badge -->
+          <EthicsBadge 
+            v-if="exerciseEthicsStatus.hasAnyRequirement"
+            :exercise="exercise" 
+            show-detailed
+            @click="handleEthicsBadgeClick(exercise)"
+          />
+
           <!-- Completion Status -->
           <div class="ml-auto flex items-center gap-2">
             <div v-if="isExerciseCompleted(exercise.name)" class="flex items-center gap-2 text-green-600">
@@ -123,19 +139,28 @@
         <!-- Exercise Description -->
         <div class="px-6 text-gray-600 mb-4">
           <p>{{ exercise.description }}</p>
+          
+          <!-- Ethics blocking warning -->
+          <div v-if="ethicsBlockingMessage" class="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
+            <div class="flex items-center gap-2 text-purple-800">
+              <Shield class="w-4 h-4" />
+              <span class="font-medium">Ethics Review Required</span>
+            </div>
+            <p class="text-sm text-purple-700 mt-1">{{ ethicsBlockingMessage }}</p>
+          </div>
         </div>
 
         <!-- Progress Indicators -->
         <div class="px-6 mb-4">
           <div class="flex items-center gap-6 text-sm">
             <!-- Ethics Status -->
-            <div v-if="exerciseHasEthics(exercise)" class="flex items-center gap-2">
+            <div v-if="exerciseEthicsStatus.hasAnyRequirement" class="flex items-center gap-2">
               <Shield class="w-4 h-4" />
               <span class="text-gray-600">Ethics:</span>
               <span 
-                :class="exerciseEthicsCompleted(exercise) ? 'text-green-600 font-medium' : 'text-orange-600'"
+                :class="exerciseEthicsStatus.allCompleted ? 'text-green-600 font-medium' : 'text-orange-600'"
               >
-                {{ exerciseEthicsCompleted(exercise) ? 'Completed' : 'Pending' }}
+                {{ getEthicsStatusText() }}
               </span>
             </div>
 
@@ -143,9 +168,54 @@
             <div class="flex items-center gap-2">
               <MessageSquare class="w-4 h-4" />
               <span class="text-gray-600">Chat:</span>
-              <span class="text-gray-500">{{ getChatHistoryCount(exercise.name) }} messages</span>
+              <span class="text-gray-500">{{ currentChatMessageCount }} user messages</span>
             </div>
           </div>
+          
+          <!-- Debug Section
+          <div class="mt-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
+            <h4 class="font-medium text-yellow-800 mb-2">🔧 Ethics Data Flow Debug</h4>
+            <div class="text-xs text-yellow-700 space-y-2">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <strong>Exercise Info:</strong>
+                  <div class="ml-2">
+                    <div>Name: {{ exercise?.name || 'No exercise' }}</div>
+                    <div>Original Index: {{ exercise?.originalIndex }}</div>
+                    <div>Object Keys: {{ exercise ? Object.keys(exercise).join(', ') : 'none' }}</div>
+                  </div>
+                </div>
+                <div>
+                  <strong>Ethics Detection:</strong>
+                  <div class="ml-2">
+                    <div>Has ethical property: {{ !!exercise?.ethical }}</div>
+                    <div>Before required: {{ ethics.hasEthicsRequirement(exercise, 'before') }}</div>
+                    <div>After required: {{ ethics.hasEthicsRequirement(exercise, 'after') }}</div>
+                    <div>Status: {{ JSON.stringify(exerciseEthicsStatus) }}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <strong>Raw Ethics Data Structure:</strong>
+                <pre class="text-xs bg-yellow-50 p-2 rounded mt-1 overflow-auto max-h-32">{{ JSON.stringify(exercise?.ethical, null, 2) || "No ethics data" }}</pre>
+              </div>
+              
+              <div>
+                <strong>Ethics Analysis:</strong>
+                <div class="ml-2">
+                  <div>Before data type: {{ exercise?.ethical?.before ? typeof exercise.ethical.before : 'undefined' }}</div>
+                  <div>Before is array: {{ Array.isArray(exercise?.ethical?.before) }}</div>
+                  <div>Before length (if array): {{ Array.isArray(exercise?.ethical?.before) ? exercise.ethical.before.length : 'N/A' }}</div>
+                  <div>Before has questions: {{ (exercise?.ethical?.before && typeof exercise.ethical.before === 'object' && !Array.isArray(exercise.ethical.before) && exercise.ethical.before.questions) ? 'Yes (' + exercise.ethical.before.questions.length + ')' : 'No' }}</div>
+                </div>
+              </div>
+              
+              <div class="text-xs text-yellow-600 bg-yellow-50 p-2 rounded">
+                <strong>Expected:</strong> Exercises "AI-Powered Trend Analysis" and "AI-Assisted Technical Architecture Planning" should show ethics data.
+              </div>
+            </div>
+          </div> -->
         </div>
 
         <!-- Main Content Area -->
@@ -154,6 +224,7 @@
             <div class="text-center">
               <p class="text-gray-600 mb-2">Miro Board Integration</p>
               <p class="text-sm text-gray-500">Exercise workspace will be embedded here</p>
+              <p class="text-xs text-gray-400 mt-2">Use the AI chat to discuss ideas and get guidance</p>
             </div>
           </div>
         </div>
@@ -163,24 +234,35 @@
     <ResizableHandle />
     
     <ResizablePanel :default-size="20" :min-size="20" :max-size="40">
-      <ExerciseAIChat />
+      <ExerciseAIChat 
+        :current-exercise="exercise"
+        @chat-updated="handleChatUpdated"
+      />
     </ResizablePanel>
   </ResizablePanelGroup>
 
-  <!-- Ethics Dialog -->
-  <EthicsCheckDialog
-    v-if="ethicsDialogCheck"
-    v-model:open="ethicsDialogOpen"
-    :exercise-id="ethicsDialogCheck.exerciseId"
-    :timing="ethicsDialogCheck.timing"
-    :default-questions="ethicsDialogCheck.questions"
-    :settings="ethicsDialogCheck.settings"
-    @completed="handleEthicsCompleted"
+  <!-- Ethics Modal -->
+  <EthicsModal
+    v-if="ethics.currentEthicsData.value"
+    :open="ethics.ethicsModalOpen.value"
+    :exercise-name="ethics.currentEthicsData.value.exerciseId"
+    :timing="ethics.currentEthicsData.value.timing"
+    :ethics-questions="ethics.currentEthicsData.value.questions"
+    :ethics-settings="ethics.currentEthicsData.value.settings"
+    :exercise-context="ethics.currentEthicsData.value.exerciseContext"
+    :chat-history="ethics.currentEthicsData.value.chatHistory.map(msg => ({
+      ...msg,
+      timestamp: msg.timestamp || Date.now()
+    }))"
+    :existing-responses="ethics.currentEthicsData.value.existingResponses"
+    @update:open="handleEthicsModalOpenChange"
+    @submit="handleEthicsSubmit"
+    @cancel="handleEthicsCancel"
   />
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from "vue";
+import { computed, ref, onMounted, watch, nextTick } from "vue";
 import {
   ArrowLeft,
   UserRound,
@@ -203,10 +285,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import ExerciseAIChat from "@/components/exercise/ExerciseAIChat.vue";
-import EthicsCheckDialog from "@/components/ethics/EthicsCheckDialog.vue";
+import EthicsModal from "@/components/ethics/EthicsModal.vue";
+import EthicsBadge from "@/components/ethics/EthicsBadge.vue";
 import { usePipelineProgress } from "@/composables/usePipelineProgress";
 import { useEthics } from "@/composables/useEthics";
+import { useExerciseChat } from "@/composables/useExerciseChat";
 import type { SelectedPinInfo } from "@/types/exercise";
+import type { ChatMessage as ExerciseChatMessage } from "@/composables/useExerciseChat";
+import type { ChatMessage as EthicsChatMessage } from "@/components/ethics/EthicsModal.vue";
 
 type DriveType = "human" | "human-ai" | "ai";
 
@@ -226,15 +312,19 @@ const {
   isExerciseCompleted, 
   markExerciseCompleted, 
   markExerciseIncomplete,
-  getExerciseProgress 
 } = usePipelineProgress();
 
+const ethics = useEthics();
 const { 
-  hasEthics, 
-  isCompleted: isEthicsCompleted, 
-  ensureEthicalCheckFromExercise,
-  setContextData 
-} = useEthics();
+  currentMessages,
+  getExerciseMessages,
+  getChatStats,
+  setCurrentExercise
+} = useExerciseChat();
+
+// Local state
+const currentChatMessageCount = ref(0);
+const ethicsBlockingMessage = ref<string | null>(null);
 
 // Computed properties
 const derivedDriveType = computed<DriveType>(() => {
@@ -271,35 +361,46 @@ const derivedDriveTypeConfig = computed(() => {
 const canGoPrevious = computed(() => props.currentExerciseIndex > 0);
 const canGoNext = computed(() => props.currentExerciseIndex < props.allExercises.length - 1);
 
-// Ethics state
-const ethicsDialogOpen = ref(false);
-const ethicsDialogCheck = ref<any>(null);
-
-const showEthicsDialog = (timing: 'before' | 'after', contextData?: Record<string, any>) => {
-  const check = ensureEthicalCheckFromExercise(props.exercise, timing, contextData);
-  if (check) {
-    ethicsDialogCheck.value = check;
-    ethicsDialogOpen.value = true;
-  }
-};
+const exerciseEthicsStatus = computed(() => {
+  return ethics.getExerciseEthicsStatus(props.exercise);
+});
 
 // Helper functions
-const exerciseHasEthics = (exercise: SelectedPinInfo): boolean => {
-  return Boolean(hasEthics(exercise, 'before') || hasEthics(exercise, 'after'));
+const convertChatMessages = (messages: ExerciseChatMessage[]): EthicsChatMessage[] => {
+  return messages
+    .filter(msg => msg.role !== 'system')
+    .map(msg => ({
+      role: msg.role as 'user' | 'assistant',
+      content: msg.content,
+      timestamp: msg.timestamp
+    }));
 };
 
-const exerciseEthicsCompleted = (exercise: SelectedPinInfo): boolean => {
-  let completed = true;
-  if (hasEthics(exercise, 'before'))
-    completed = completed && isEthicsCompleted(exercise.name, 'before');
-  if (hasEthics(exercise, 'after'))
-    completed = completed && isEthicsCompleted(exercise.name, 'after');
-  return completed;
+const getEthicsStatusText = (): string => {
+  const status = exerciseEthicsStatus.value;
+  if (status.allCompleted) return 'All Complete';
+  
+  let parts: string[] = [];
+  if (status.beforeRequired) {
+    parts.push(`Before: ${status.beforeCompleted ? 'Complete' : 'Pending'}`);
+  }
+  if (status.afterRequired) {
+    parts.push(`After: ${status.afterCompleted ? 'Complete' : 'Pending'}`);
+  }
+  return parts.join(', ');
 };
 
-const getChatHistoryCount = (exerciseId: string): number => {
-  const progress = getExerciseProgress(exerciseId);
-  return progress?.chatHistory?.length || 0;
+const getPreviousExerciseContext = () => {
+  if (props.currentExerciseIndex === 0) return undefined;
+  
+  const previousExercise = props.allExercises[props.currentExerciseIndex - 1];
+  const chatStats = getChatStats(previousExercise.name);
+  
+  return {
+    name: previousExercise.name,
+    chatCount: chatStats.messageCount,
+    outcomes: [] // Could be enhanced to include exercise outcomes
+  };
 };
 
 // Navigation functions
@@ -307,40 +408,41 @@ const goBack = () => {
   emit("back");
 };
 
+const handleExerciseSelection = (exerciseIndex: number) => {
+  requestExerciseChange(exerciseIndex);
+};
+
 const goToPreviousExercise = () => {
-  // Block leaving current exercise if after ethics not completed
-  if (hasEthics(props.exercise, 'after') && !isEthicsCompleted(props.exercise.name, 'after')) {
-    const contextData = {
-      exerciseResults: 'Results from current exercise',
-      timestamp: new Date().toISOString()
-    };
-    showEthicsDialog('after', contextData);
-    return;
-  }
-  
   if (canGoPrevious.value) {
-    emit("navigate-to-exercise", props.currentExerciseIndex - 1);
+    requestExerciseChange(props.currentExerciseIndex - 1);
   }
 };
 
 const goToNextExercise = () => {
-  // Block if after ethics not completed
-  if (hasEthics(props.exercise, 'after') && !isEthicsCompleted(props.exercise.name, 'after')) {
-    const contextData = {
-      exerciseResults: 'Results from current exercise',
-      timestamp: new Date().toISOString()
-    };
-    showEthicsDialog('after', contextData);
-    return;
-  }
-  
   if (canGoNext.value) {
-    emit("navigate-to-exercise", props.currentExerciseIndex + 1);
+    requestExerciseChange(props.currentExerciseIndex + 1);
   }
 };
 
-const goToExercise = (exerciseIndex: number) => {
-  emit("navigate-to-exercise", exerciseIndex);
+const requestExerciseChange = (targetIndex: number) => {
+  const targetExercise = props.allExercises[targetIndex];
+  const currentChatHistory = convertChatMessages(currentMessages.value);
+  
+  const result = ethics.checkNavigationBlock(
+    props.exercise,
+    targetExercise,
+    targetIndex,
+    currentChatHistory
+  );
+  
+  if (result.allowed) {
+    // Navigation is allowed, proceed
+    emit("navigate-to-exercise", targetIndex);
+    ethicsBlockingMessage.value = null;
+  } else {
+    // Navigation is blocked, show message
+    ethicsBlockingMessage.value = result.reason || 'Navigation blocked by ethics requirements';
+  }
 };
 
 // Completion functions
@@ -352,25 +454,63 @@ const markAsIncomplete = () => {
   markExerciseIncomplete(props.exercise.name);
 };
 
-const handleEthicsCompleted = () => {
-  // Ethics completed, can proceed with navigation if needed
-  ethicsDialogOpen.value = false;
+// Ethics event handlers
+const handleEthicsSubmit = (responses: Record<string, any>) => {
+  const pendingNav = ethics.handleEthicsCompleted(responses);
+  ethicsBlockingMessage.value = null;
+  
+  // If there was pending navigation, proceed with it
+  if (pendingNav?.type === 'exercise-change') {
+    emit("navigate-to-exercise", pendingNav.targetIndex);
+  }
 };
 
-// Watch for exercise changes to trigger before ethics
-watch(
-  () => props.exercise,
-  (newExercise) => {
-    if (hasEthics(newExercise, 'before') && !isEthicsCompleted(newExercise.name, 'before')) {
-      showEthicsDialog('before');
-    }
-  },
-  { immediate: false }
-);
+const handleEthicsCancel = () => {
+  ethics.handleEthicsCancel();
+  ethicsBlockingMessage.value = null;
+};
 
-onMounted(() => {
-  if (hasEthics(props.exercise, 'before') && !isEthicsCompleted(props.exercise.name, 'before')) {
-    showEthicsDialog('before');
+const handleEthicsModalOpenChange = (open: boolean) => {
+  if (!open) {
+    ethics.handleEthicsCancel();
   }
+};
+
+const handleEthicsBadgeClick = (exercise: SelectedPinInfo) => {
+  const status = ethics.getExerciseEthicsStatus(exercise);
+  const rawChatHistory = exercise.name === props.exercise.name ? currentMessages.value : getExerciseMessages(exercise.name);
+  const currentChatHistory = convertChatMessages(rawChatHistory);
+  
+  if (status.beforeRequired && !status.beforeCompleted) {
+    ethics.triggerEthicsCheck(exercise, 'before', currentChatHistory);
+  } else if (status.afterRequired && !status.afterCompleted) {
+    ethics.triggerEthicsCheck(exercise, 'after', currentChatHistory);
+  }
+};
+
+const handleChatUpdated = (messageCount: number) => {
+  // Update with user message count specifically
+  const stats = getChatStats(props.exercise.name);
+  currentChatMessageCount.value = stats.userMessages;
+};
+
+// Initialize on mount and exercise changes
+onMounted(() => {
+  setCurrentExercise(props.exercise);
+  currentChatMessageCount.value = currentMessages.value.length;
+
+});
+
+watch(() => props.exercise, (newExercise) => {
+  setCurrentExercise(newExercise);
+  
+  // Update chat count
+  nextTick(() => {
+    currentChatMessageCount.value = currentMessages.value.length;
+  });
+  
+  // Clear any blocking messages when switching exercises
+  ethicsBlockingMessage.value = null;
+
 });
 </script> 

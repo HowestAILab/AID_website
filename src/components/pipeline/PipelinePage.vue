@@ -84,16 +84,7 @@
       />
     </template>
     
-    <!-- Ethics Dialog -->
-    <EthicsCheckDialog
-      v-if="ethicsDialogCheck"
-      :exercise-id="ethicsDialogCheck.exerciseId"
-      :timing="ethicsDialogCheck.timing"
-      v-model:open="ethicsDialogOpen"
-      @completed="handleEthicsCompleted"
-      :default-questions="ethicsDialogCheck.questions"
-      :settings="ethicsDialogCheck.settings"
-    />
+    <!-- Ethics handling is now done in PipelineExercisePage -->
   </div>
 </template>
 
@@ -109,9 +100,7 @@ import { Button } from "@/components/ui/button";
 import PipelineOverviewView from "./PipelineOverviewView.vue";
 import PipelinePhasesView from "./PipelinePhasesView.vue";
 import PipelineExercisePage from "./PipelineExercisePage.vue";
-import EthicsCheckDialog from "@/components/ethics/EthicsCheckDialog.vue";
 import { usePipelineProgress } from "@/composables/usePipelineProgress";
-import { useEthics } from "@/composables/useEthics";
 import { usePipelineNavigation } from "@/composables/usePipelineNavigation";
 import type { SelectedPinInfo } from "@/types/exercise";
 
@@ -128,9 +117,7 @@ const {
   getCurrentExercise
 } = usePipelineProgress();
 
-const { 
-  ensureEthicalCheckFromExercise 
-} = useEthics();
+// Ethics handling is now done in PipelineExercisePage
 
 const { getPendingExerciseOpen } = usePipelineNavigation();
 
@@ -141,9 +128,7 @@ const currentView = ref<'overview' | 'phases'>('overview');
 const currentExercise = ref<SelectedPinInfo | null>(null);
 const currentExerciseIndex = ref<number>(0);
 
-// Ethics state
-const ethicsDialogOpen = ref(false);
-const ethicsDialogCheck = ref<any>(null);
+// Ethics handling is now done in PipelineExercisePage
 
 // View preference key
 const VIEW_PREFERENCE_KEY = 'pipelineViewPreference';
@@ -204,13 +189,10 @@ const handleOpenExerciseFromOverview = (exercise: SelectedPinInfo) => {
   openExercise(exercise);
 };
 
-// Ethics handling
+// Ethics handling - simplified
 const openEthicsForExercise = (exercise: SelectedPinInfo) => {
-  ethicsDialogCheck.value = ensureEthicalCheckFromExercise(exercise, 'before');
-  ethicsDialogOpen.value = true;
-};
-
-const handleEthicsCompleted = () => {
-  ethicsDialogOpen.value = false;
+  // Ethics are now handled in PipelineExercisePage
+  // For now, just open the exercise directly
+  openExercise(exercise);
 };
 </script>

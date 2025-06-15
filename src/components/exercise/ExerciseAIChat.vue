@@ -2,101 +2,113 @@
   <div class="h-full bg-gray-50 flex flex-col">
     <div class="p-4 border-b bg-white">
       <div class="flex justify-between items-center">
-        <h3 class="text-lg font-semibold">RefraxionGPT</h3>
+        <div>
+          <h3 class="text-lg font-semibold">AI Assistant</h3>
+          <p v-if="currentExercise" class="text-sm text-gray-600">{{ currentExercise.name }}</p>
+        </div>
         <div class="flex items-center gap-2">
-          <Popover>
-            <PopoverTrigger as-child>
-              <Button
-                class="flex items-center gap-1 text-black bg-white hover:bg-gray-100 cursor-pointer border"
-              >
-                <Book class="w-4 h-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent class="w-80 p-0" side="bottom" align="end">
-              <div class="p-4">
-                <h4 class="font-semibold mb-3">Chat History</h4>
-                <div class="space-y-2 max-h-96 overflow-y-auto">
-                  <div
-                    v-for="(chat, index) in chatHistory"
-                    :key="index"
-                    class="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors group relative"
-                    :class="{
-                      'bg-light border-primary-accent':
-                        chat.id === currentChatId,
-                    }"
-                  >
-                    <div @click="loadChatFromHistory(chat)" class="pr-8">
-                      <div class="text-sm font-medium truncate">
-                        {{ chat.title || `Chat ${index + 1}` }}
-                      </div>
-                      <div class="text-xs text-gray-500 mt-1">
-                        {{ formatDate(chat.timestamp) }}
-                      </div>
-                    </div>
-                    <Button
-                      @click.stop="deleteChatFromHistory(chat.id)"
-                      class="absolute top-0 right-0 rounded-l-none opacity-0 group-hover:opacity-100 transition-opacity h-full w-auto hover:bg-red-100 hover:text-red-600"
-                      variant="ghost"
-                      size="sm"
-                    >
-                      <Trash2 class="w-3 h-3" />
-                    </Button>
-                  </div>
-                  <div
-                    v-if="chatHistory.length === 0"
-                    class="text-gray-500 text-sm text-center py-4"
-                  >
-                    No chat history yet
-                  </div>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+          <div class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+            {{ props.currentExercise ? getChatStats(props.currentExercise.name).userMessages : 0 }} user messages
+          </div>
           <Button
-            @click="startNewChat"
+            @click="clearCurrentChat"
             class="flex items-center gap-1 text-black bg-white hover:bg-gray-100 cursor-pointer border"
+            size="sm"
+            variant="outline"
           >
-            <Plus />
+            <Trash2 class="w-4 h-4" />
           </Button>
         </div>
       </div>
     </div>
+
     <div class="flex-grow flex flex-col">
       <div ref="chatContainer" class="flex-grow p-4 overflow-y-auto space-y-4">
+        <!-- Welcome message for new chats -->
+        <div v-if="currentMessages.length === 0" class="text-center py-8">
+          <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <MessageSquare class="w-8 h-8 text-blue-600" />
+          </div>
+          <h4 class="text-lg font-medium text-gray-900 mb-2">Start a conversation</h4>
+          <p class="text-sm text-gray-600 max-w-md mx-auto">
+            Ask me anything about <strong>{{ currentExercise?.name }}</strong>. I'm here to help guide you through this exercise.
+          </p>
+        </div>
+
+        <!-- Chat messages -->
         <div
-          v-for="(msg, index) in messages"
-          :key="index"
+          v-for="(msg, index) in currentMessages"
+          :key="`${msg.timestamp}-${index}`"
           class="flex"
           :class="{ 'justify-end': msg.role === 'user' }"
         >
           <div
             :class="[
-              'p-3 rounded-lg max-w-full break-words',
+              'p-3 rounded-lg max-w-[85%] break-words',
               msg.role === 'user'
-                ? 'bg-light text-black'
-                : 'text-gray-800 w-full',
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-800 shadow-sm border',
             ]"
           >
-            <pre class="whitespace-pre-wrap font-sans">{{ msg.content }}</pre>
+            <div class="flex items-start gap-2">
+              <div v-if="msg.role === 'assistant'" class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Bot class="w-3 h-3 text-green-600" />
+              </div>
+              <div class="flex-1">
+                <pre class="whitespace-pre-wrap font-sans text-sm leading-relaxed">{{ msg.content }}</pre>
+                <div class="text-xs opacity-70 mt-2">
+                  {{ formatMessageTime(msg.timestamp) }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading indicator -->
+        <div v-if="isLoading" class="flex">
+          <div class="bg-white text-gray-800 shadow-sm border p-3 rounded-lg max-w-[85%]">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                <Bot class="w-3 h-3 text-green-600" />
+              </div>
+              <div class="flex items-center gap-1">
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Input area -->
       <div class="p-4 border-t bg-white">
-        <div class="flex items-center space-x-2">
-          <Textarea
-            v-model="userInput"
-            placeholder="Type your message here..."
-            class="w-full flex-grow resize-none"
-            rows="2"
-            @keydown.enter.prevent="handleEnter"
-          />
+        <div class="flex items-end space-x-2">
+          <div class="flex-1">
+            <Textarea
+              v-model="userInput"
+              placeholder="Ask about this exercise, get guidance, or discuss your ideas..."
+              class="w-full resize-none"
+              rows="2"
+              @keydown.enter.prevent="handleEnter"
+              :disabled="isLoading || !currentExercise"
+            />
+          </div>
           <Button
-            class="cursor-pointer"
+            class="cursor-pointer flex-shrink-0"
             @click="sendMessage"
-            :disabled="isLoading || !userInput.trim()"
+            :disabled="isLoading || !userInput.trim() || !currentExercise"
           >
             <Send class="w-5 h-5" />
           </Button>
+        </div>
+        <div class="flex items-center justify-between mt-2">
+          <div class="text-xs text-gray-500">
+            Press Enter to send, Shift+Enter for new line
+          </div>
+          <div class="text-xs text-gray-500">
+            {{ userInput.length }}/1000
+          </div>
         </div>
       </div>
     </div>
@@ -104,36 +116,48 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted } from "vue";
-import { Send, Plus, Book, Trash2 } from "lucide-vue-next";
-import { Textarea } from "../ui/textarea";
-import { Button } from "../ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { ref, nextTick, watch, computed, onMounted } from "vue";
+import { Send, Trash2, MessageSquare, Bot } from "lucide-vue-next";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useExerciseChat } from "@/composables/useExerciseChat";
+import type { SelectedPinInfo } from "@/types/exercise";
 
-interface ChatMessage {
-  role: "user" | "assistant" | "system";
-  content: string;
-}
+const props = defineProps<{
+  currentExercise: SelectedPinInfo | null;
+}>();
 
-interface SavedChat {
-  id: string;
-  title: string;
-  messages: ChatMessage[];
-  timestamp: number;
-}
+const emit = defineEmits<{
+  (e: 'chat-updated', messageCount: number): void;
+}>();
+
+const {
+  currentMessages,
+  isLoading,
+  setCurrentExercise,
+  sendMessageToAI,
+  clearCurrentChat: clearChatSession,
+  getChatStats
+} = useExerciseChat();
 
 const userInput = ref<string>("");
-const messages = ref<ChatMessage[]>([]);
-const isLoading = ref<boolean>(false);
-const selectedModel = ref<string>("llama3.1");
 const chatContainer = ref<HTMLElement | null>(null);
-const chatHistory = ref<SavedChat[]>([]);
-const currentChatId = ref<string | null>(null);
 
-// Load chat history from localStorage
-onMounted(() => {
-  loadChatHistory();
-});
+// Watch for exercise changes
+watch(() => props.currentExercise, (newExercise) => {
+  if (newExercise) {
+    setCurrentExercise(newExercise);
+  }
+}, { immediate: true });
+
+// Watch for message changes to emit updates
+watch(currentMessages, (messages) => {
+  if (props.currentExercise) {
+    const stats = getChatStats(props.currentExercise.name);
+    emit('chat-updated', stats.userMessages);
+  }
+  scrollToBottom();
+}, { deep: true });
 
 const scrollToBottom = () => {
   nextTick(() => {
@@ -149,224 +173,63 @@ const handleEnter = (event: KeyboardEvent) => {
   }
 };
 
-const loadChatHistory = () => {
-  try {
-    const stored = localStorage.getItem("aidgpt-chat-history");
-    if (stored) {
-      chatHistory.value = JSON.parse(stored);
-    }
-  } catch (error) {
-    console.error("Error loading chat history:", error);
-    chatHistory.value = [];
-  }
-};
-
-const saveChatHistory = () => {
-  try {
-    localStorage.setItem(
-      "aidgpt-chat-history",
-      JSON.stringify(chatHistory.value)
-    );
-  } catch (error) {
-    console.error("Error saving chat history:", error);
-  }
-};
-
-const saveCurrentChatToHistory = () => {
-  if (messages.value.length === 0) return;
-
-  const chatToSave: SavedChat = {
-    id: currentChatId.value || generateChatId(),
-    title: generateChatTitle(messages.value),
-    messages: [...messages.value],
-    timestamp: Date.now(),
-  };
-
-  // If this is an existing chat, update it otherwise add new
-  const existingIndex = chatHistory.value.findIndex(
-    (chat) => chat.id === chatToSave.id
-  );
-  if (existingIndex !== -1) {
-    chatHistory.value[existingIndex] = chatToSave;
-  } else {
-    chatHistory.value.unshift(chatToSave);
-  }
-
-  saveChatHistory();
-};
-
-const generateChatId = (): string => {
-  return "chat_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
-};
-
-const generateChatTitle = (messages: ChatMessage[]): string => {
-  const firstUserMessage = messages.find((msg) => msg.role === "user");
-  if (firstUserMessage) {
-    return (
-      firstUserMessage.content.substring(0, 50) +
-      (firstUserMessage.content.length > 50 ? "..." : "")
-    );
-  }
-  return "New Chat";
-};
-
-const formatDate = (timestamp: number): string => {
-  const date = new Date(timestamp);
-  const now = new Date();
-  const diffTime = Math.abs(now.getTime() - date.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 1) {
-    return "Today";
-  } else if (diffDays === 2) {
-    return "Yesterday";
-  } else if (diffDays <= 7) {
-    return `${diffDays - 1} days ago`;
-  } else {
-    return date.toLocaleDateString();
-  }
-};
-
-const loadChatFromHistory = (chat: SavedChat) => {
-  // Prevent changing to a previous chat while a response is being generated because changing chats during response generation would insert the response into the chat being changed to instead of the original chat
-  if (isLoading.value) {
-    return;
-  }
-
-  // Save current chat to history if it has messages and is not already saved
-  if (messages.value.length > 0 && !currentChatId.value) {
-    saveCurrentChatToHistory();
-  }
-
-  messages.value = [...chat.messages];
-  currentChatId.value = chat.id;
-  scrollToBottom();
-};
-
-const getPreviousChatsContext = (): ChatMessage[] => {
-  // Get the last 3 chats for context (excluding current chat)
-  const relevantChats = chatHistory.value
-    .filter((chat) => chat.id !== currentChatId.value)
-    .slice(0, 3);
-
-  const contextMessages: ChatMessage[] = [];
-
-  relevantChats.forEach((chat, index) => {
-    // Add a context separator
-    contextMessages.push({
-      role: "system",
-      content: `Previous conversation ${index + 1}:`,
-    });
-
-    // Add the last few messages from each previous chat
-    const lastMessages = chat.messages.slice(-4); // Last 4 messages
-    contextMessages.push(...lastMessages);
-  });
-
-  return contextMessages;
-};
-
-const deleteChatFromHistory = (id: string) => {
-  chatHistory.value = chatHistory.value.filter((chat) => chat.id !== id);
-  saveChatHistory();
-
-  // If we're deleting the currently active chat, clear the current chat
-  if (currentChatId.value === id) {
-    currentChatId.value = null;
-  }
-};
-
 const sendMessage = async () => {
   const trimmedInput = userInput.value.trim();
-  if (!trimmedInput || isLoading.value) return;
+  if (!trimmedInput || isLoading.value || !props.currentExercise) return;
 
-  messages.value.push({ role: "user", content: trimmedInput });
+  const messageToSend = trimmedInput;
   userInput.value = "";
-  scrollToBottom();
-  isLoading.value = true;
-
-  // Get previous chats context
-  const previousChatsContext = getPreviousChatsContext();
-
-  const apiMessages: ChatMessage[] = [
-    {
-      role: "system",
-      content:
-        "You are a helpful and concise assistant. You can reference previous conversations when relevant.",
-    },
-    ...previousChatsContext, // Include previous chats context
-    { role: "system", content: "Current conversation:" },
-    ...messages.value.slice(-10), // Current conversation last 10 messages
-  ];
-
-  messages.value.push({ role: "assistant", content: "" });
-  scrollToBottom();
 
   try {
-    const response = await fetch("http://localhost:11434/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: selectedModel.value,
-        messages: apiMessages,
-        stream: true,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error("Failed to get reader from response body");
-    }
-
-    const decoder = new TextDecoder();
-    let currentAssistantMessageIndex = messages.value.length - 1;
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split("\n").filter((line) => line.trim() !== "");
-      for (const line of lines) {
-        try {
-          const parsed = JSON.parse(line);
-          if (parsed.message && parsed.message.content) {
-            messages.value[currentAssistantMessageIndex].content +=
-              parsed.message.content;
-            scrollToBottom();
-          }
-        } catch (e) {
-          console.error("Failed to parse JSON line:", line, e);
-        }
-      }
-    }
-
-    // Removed auto-save - chats are now only saved when new chat button is pressed
+    await sendMessageToAI(messageToSend);
   } catch (error) {
-    console.error("Error sending message to Ollama:", error);
-    messages.value[messages.value.length - 1].content =
-      "Error: Could not connect to Ollama or an API error occurred.";
-  } finally {
-    isLoading.value = false;
-    scrollToBottom();
+    console.error('Error sending message:', error);
   }
 };
 
-const startNewChat = () => {
-  // Save current chat to history if it has messages
-  if (messages.value.length > 0) {
-    saveCurrentChatToHistory();
+const clearCurrentChat = () => {
+  if (confirm('Are you sure you want to clear the chat history for this exercise?')) {
+    clearChatSession();
   }
-
-  // Start fresh
-  messages.value = [];
-  currentChatId.value = null;
-  scrollToBottom();
 };
+
+const formatMessageTime = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  
+  // If today, show time only
+  if (date.toDateString() === now.toDateString()) {
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
+  }
+  
+  // If this week, show day and time
+  const daysDiff = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysDiff < 7) {
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'short',
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
+  }
+  
+  // Otherwise show full date
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric',
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: false 
+  });
+};
+
+onMounted(() => {
+  if (props.currentExercise) {
+    setCurrentExercise(props.currentExercise);
+  }
+});
 </script>

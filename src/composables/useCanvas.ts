@@ -1,5 +1,6 @@
 import { ref, onMounted, nextTick, watch } from 'vue';
-import { useProjects, type SelectedPinInfo } from './useProjects';
+import { useProjects } from './useProjects';
+import type { SelectedPinInfo } from '@/types/exercise';
 import DoubleDiamond from '@/assets/DoubleDiamond.svg';
 
 export function useCanvas() {
@@ -29,7 +30,22 @@ export function useCanvas() {
 
   watch(currentProject, (project) => {
     if (project) {
-      selectedPins.value = getCurrentProjectSelectedPins();
+      const projectPins = getCurrentProjectSelectedPins();
+      selectedPins.value = projectPins;
+      
+      // Debug: Check project loaded pins
+      console.log('🔧 useCanvas Debug - Project loaded pins:', {
+        projectName: project.name,
+        projectId: project.id,
+        totalPins: projectPins.length,
+        pinsWithEthics: projectPins.filter(pin => !!pin.ethical).length,
+        samplePins: projectPins.slice(0, 3).map(pin => ({
+          name: pin.name,
+          hasEthical: !!pin.ethical,
+          ethicalKeys: pin.ethical ? Object.keys(pin.ethical) : 'none'
+        }))
+      });
+      
       nextTick(() => {
         if (diamondGridRef.value) {
           diamondGridRef.value.loadSelectedPins(selectedPins.value);

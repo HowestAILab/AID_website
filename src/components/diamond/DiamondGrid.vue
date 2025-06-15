@@ -234,7 +234,6 @@ import {
   watch,
   nextTick,
 } from "vue";
-import pinsData from "@/../dummy.json";
 import {
   Popover,
   PopoverContent,
@@ -243,20 +242,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { SECTION_LABEL_TEXTS } from "@/constants/app";
 import { useEthics } from "@/composables/useEthics";
+import { useExercises } from "@/composables/useExercises";
 
 const LOCAL_STORAGE_KEY_DIAMOND_EXERCISES = "diamondExercises";
 
-interface SelectedPinInfo {
-  name: string;
-  originalIndex: number;
-  order: number;
-  description: string;
-  location: {
-    phase: string;
-    step: string;
-    human_ai_scale: number;
-  };
-}
+import type { SelectedPinInfo } from '@/types/exercise';
 
 const emit = defineEmits<{
   (e: "selectedPinsChange", selectedPins: SelectedPinInfo[]): void;
@@ -340,15 +330,25 @@ interface PinConfig {
 }
 
 // Initialize pins ref with static data
-const { hasEthics } = useEthics();
-const pins = ref<PinConfig[]>(
-  (pinsData.exercise || []).map((exercise: any, index: number): PinConfig => {
+const { hasEthicsRequirement } = useEthics();
+const { getAllExercises, loadExercises } = useExercises();
+
+// Load exercises data
+loadExercises();
+
+const pins = ref<PinConfig[]>([]);
+
+// Initialize pins from useExercises data
+const initializePins = () => {
+  const exercises = getAllExercises.value;
+  pins.value = exercises.map((exercise: any, index: number): PinConfig => {
     // Calculate initial X position based on phase and step
     const x = calculatePhaseXPosition(exercise.location.phase, exercise.location.step, index);
     const initialY = 200;
 
-    const hasEthicsBefore = Boolean(hasEthics(exercise, 'before'));
-    const hasEthicsAfter = Boolean(hasEthics(exercise, 'after'));
+    const hasEthicsBefore = Boolean(hasEthicsRequirement(exercise, 'before'));
+    const hasEthicsAfter = Boolean(hasEthicsRequirement(exercise, 'after'));
+    
     return {
       isSelected: false,
       isAddedToDiamond: false,
@@ -373,8 +373,8 @@ const pins = ref<PinConfig[]>(
       description: exercise.description,
       location: exercise.location,
     };
-  })
-);
+  });
+};
 
 const selectedPinPopover = ref(false);
 const selectedPin = ref<PinConfig | null>(null);
@@ -456,13 +456,33 @@ function togglePinSelection(index: number | null) {
   }
 
   // Build selectedPinData in the order of selectedIndices
-  const selectedPinData = selectedIndices.map((idx) => ({
-    name: pins.value[idx].labelConfig.text,
-    originalIndex: idx,
-    order: pins.value[idx].order,
-    description: pins.value[idx].description,
-    location: pins.value[idx].location,
-  }));
+  const selectedPinData = selectedIndices.map((idx) => {
+    const exercise = getAllExercises.value[idx];
+    if (!exercise) {
+      console.warn(`Exercise not found at index ${idx}`);
+      return null;
+    }
+    
+    // Debug logging for ethics data
+    if (exercise.name === 'AI-Powered Trend Analysis' || exercise.name === 'AI-Assisted Technical Architecture Planning') {
+      console.log('🔧 DiamondGrid Exercise Debug:', {
+        name: exercise.name,
+        idx,
+        hasEthical: !!exercise.ethical,
+        ethicalData: exercise.ethical,
+        exerciseKeys: Object.keys(exercise)
+      });
+    }
+    
+    return {
+      name: exercise.name,
+      originalIndex: idx,
+      order: idx, // Use the index as order
+      description: exercise.description,
+      location: exercise.location,
+      ethical: exercise.ethical, // Include full ethics data from original source
+    };
+  }).filter(Boolean) as SelectedPinInfo[];
 
   emit("selectedPinsChange", selectedPinData);
 
@@ -693,12 +713,38 @@ watch([() => props.containerWidth, () => props.containerHeight], () => {
   });
 }, { immediate: true });
 
+// Watch for exercises data changes and re-initialize pins
+watch(getAllExercises, () => {
+  if (getAllExercises.value.length > 0) {
+    initializePins();
+    nextTick(() => {
+      calculatePinPositions();
+      emitLayoutUpdate();
+    });
+  }
+}, { immediate: true });
+
 // Watch for SVG scaling changes and emit layout updates
 watch([sectionLabels, addExercisesButtonCenterOffsets], () => {
   emitLayoutUpdate();
 }, { immediate: true });
 
 onMounted(() => {
+  // Initialize pins first
+  initializePins();
+  
+  // Debug: Check if exercises are loaded with ethics data
+  console.log('🔧 DiamondGrid Mount Debug - Exercises loaded:', {
+    totalExercises: getAllExercises.value.length,
+    firstFewExercises: getAllExercises.value.slice(0, 3).map(ex => ({
+      name: ex.name,
+      hasEthical: !!ex.ethical,
+      ethicalKeys: ex.ethical ? Object.keys(ex.ethical) : 'none'
+    })),
+    trendAnalysis: getAllExercises.value.find(ex => ex.name === 'AI-Powered Trend Analysis'),
+    techArchitecture: getAllExercises.value.find(ex => ex.name === 'AI-Assisted Technical Architecture Planning')
+  });
+  
   // Load diamond exercises state from local storage to determine visibility
   const savedDiamondExercises = localStorage.getItem(
     LOCAL_STORAGE_KEY_DIAMOND_EXERCISES

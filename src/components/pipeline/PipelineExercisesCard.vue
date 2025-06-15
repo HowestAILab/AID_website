@@ -22,13 +22,18 @@
     <div class="my-4"></div>
     
     <!-- Progress Indicators -->
-    <div v-if="hasEthics || isCompleted" class="mb-3 space-y-1">
+    <div v-if="hasEthics || isCompleted || (chatMessageCount !== undefined && chatMessageCount > 0)" class="mb-3 space-y-1">
       <div v-if="hasEthics" class="flex items-center gap-2 text-xs">
         <Shield class="w-3 h-3 text-purple-600" />
         <span class="text-on-light-accent">Ethics:</span>
         <span :class="ethicsCompleted ? 'text-green-600' : 'text-primary-accent'">
           {{ ethicsCompleted ? 'Completed' : 'Pending' }}
         </span>
+      </div>
+      <div v-if="chatMessageCount !== undefined && chatMessageCount > 0" class="flex items-center gap-2 text-xs">
+        <MessageSquare class="w-3 h-3 text-on-light-accent" />
+        <span class="text-on-light-accent">Chat:</span>
+        <span class="text-on-light-accent/70">{{ chatMessageCount }} user messages</span>
       </div>
       <div v-if="isCompleted" class="flex items-center gap-2 text-xs text-green-600">
         <CheckCircle2 class="w-3 h-3" />
@@ -62,7 +67,8 @@ import {
   SquareArrowOutUpRight,
   Info,
   CheckCircle2,
-  Shield
+  Shield,
+  MessageSquare
 } from "lucide-vue-next";
 
 const emit = defineEmits(['open-exercise', 'open-ethics']);
@@ -75,6 +81,7 @@ const props = defineProps<{
     hasEthics: boolean;
     ethicsCompleted: boolean;
     isCompleted: boolean;
+    chatMessageCount?: number;
 }>();
 
 const openExercise = () => {

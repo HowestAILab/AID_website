@@ -1,3 +1,10 @@
+export interface EthicsRequirement {
+  lens: string;
+  capital: string;
+  zoomingState: string;
+  questions: string[];
+}
+
 export interface Exercise {
   name: string;
   description: string;
@@ -6,10 +13,10 @@ export interface Exercise {
     step: string;
     human_ai_scale: number;
   };
-  prompt_example: any[];
+  prompt_example: string[];
   ethical: {
-    before: any[];
-    after: any[];
+    before: EthicsRequirement[] | EthicsRequirement;
+    after: EthicsRequirement[] | EthicsRequirement;
   };
   miro_board: string;
   isCustom?: boolean;
@@ -27,6 +34,10 @@ export interface SelectedPinInfo {
     phase: string;
     step: string;
     human_ai_scale: number;
+  };
+  ethical?: {
+    before: EthicsRequirement[] | EthicsRequirement;
+    after: EthicsRequirement[] | EthicsRequirement;
   };
 }
 

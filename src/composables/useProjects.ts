@@ -1,16 +1,7 @@
 import { ref, computed, watch } from 'vue';
+import type { SelectedPinInfo } from '@/types/exercise';
 
-export interface SelectedPinInfo {
-  name: string;
-  originalIndex: number;
-  order: number;
-  description: string;
-  location: {
-    phase: string;
-    step: string;
-    human_ai_scale: number;
-  };
-}
+export type { SelectedPinInfo };
 
 export interface Project {
   id: string;
@@ -31,10 +22,42 @@ const saveProjectsToStorage = (projectsData: Project[]) => {
   }
 };
 
+
+
 const loadProjectsFromStorage = (): Project[] => {
   try {
     const stored = localStorage.getItem(PROJECTS_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    const rawProjects = stored ? JSON.parse(stored) : [];
+    
+    // Debug: Check what's in storage
+    console.log('🔧 Projects Debug - Loaded from storage:', {
+      totalProjects: rawProjects.length,
+      sampleProject: rawProjects[0] ? {
+        name: rawProjects[0].name,
+        selectedPinsCount: rawProjects[0].selectedPins?.length || 0,
+        samplePins: rawProjects[0].selectedPins?.slice(0, 2)?.map((pin: any) => ({
+          name: pin.name,
+          hasEthical: !!pin.ethical,
+          keys: Object.keys(pin)
+        })) || []
+      } : 'No projects'
+    });
+    
+    // Check if any projects have pins without ethical data
+    const needsMigration = rawProjects.some((project: Project) => 
+      project.selectedPins.some(pin => pin.ethical === undefined)
+    );
+    
+    if (needsMigration) {
+      console.log('🔧 Projects need migration - clearing old data to force fresh selection');
+      // Clear projects that don't have ethics data - this forces users to re-select exercises
+      // which will include the proper ethics data
+      localStorage.removeItem(PROJECTS_STORAGE_KEY);
+      localStorage.removeItem(CURRENT_PROJECT_STORAGE_KEY);
+      return [];
+    }
+    
+    return rawProjects;
   } catch (error) {
     console.error('Failed to load projects from localStorage:', error);
     return [];

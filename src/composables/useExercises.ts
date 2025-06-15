@@ -17,10 +17,23 @@ export function useExercises() {
       : {};
 
     // Load static exercises (from imported JSON), apply saved diamond state
-    allStaticExercises.value = (dummyData.exercise || []).map((item: any) => ({
+    allStaticExercises.value = (dummyData.exercise || []).map((item: any, index: number) => ({
       ...item,
       isCustom: false,
+      originalIndex: index, // Preserve original index for tracking
     }));
+    
+    // Debug: Check if ethics data is properly loaded from dummy.json
+    console.log('🔧 useExercises Debug - Loaded from dummy.json:', {
+      totalExercises: allStaticExercises.value.length,
+      dummyDataSample: dummyData.exercise?.slice(0, 3).map(ex => ({
+        name: ex.name,
+        hasEthical: !!ex.ethical,
+        ethicalKeys: ex.ethical ? Object.keys(ex.ethical) : 'none'
+      })),
+      trendAnalysisFromDummy: dummyData.exercise?.find(ex => ex.name === 'AI-Powered Trend Analysis'),
+      trendAnalysisProcessed: allStaticExercises.value.find(ex => ex.name === 'AI-Powered Trend Analysis')
+    });
 
     // Load custom exercises from local storage and apply their diamond state
     const storedCustomExercises = localStorage.getItem(
@@ -38,6 +51,38 @@ export function useExercises() {
         localStorage.removeItem(LOCAL_STORAGE_KEYS.CUSTOM_EXERCISES);
       }
     }
+  };
+
+  // Get all exercises (static + custom) with proper indexing
+  const getAllExercises = computed(() => {
+    return allStaticExercises.value.map((exercise, index) => ({
+      ...exercise,
+      originalIndex: index, // Use the index from the static array
+    }));
+  });
+
+  // Get exercise by original index
+  const getExerciseByIndex = (index: number): Exercise | null => {
+    if (index >= 0 && index < allStaticExercises.value.length) {
+      return {
+        ...allStaticExercises.value[index],
+        originalIndex: index,
+      };
+    }
+    return null;
+  };
+
+  // Get exercise by name
+  const getExerciseByName = (name: string): Exercise | null => {
+    const exercise = allStaticExercises.value.find(ex => ex.name === name);
+    if (exercise) {
+      const index = allStaticExercises.value.indexOf(exercise);
+      return {
+        ...exercise,
+        originalIndex: index,
+      };
+    }
+    return null;
   };
 
   const getExercisesForCategory = (categoryName: string, phase: string) => {
@@ -146,6 +191,9 @@ export function useExercises() {
   return {
     allStaticExercises,
     customExercises,
+    getAllExercises,
+    getExerciseByIndex,
+    getExerciseByName,
     loadExercises,
     getExercisesForCategory,
     addNewExercise,

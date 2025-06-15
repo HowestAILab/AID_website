@@ -85,6 +85,7 @@
                 :has-ethics="exerciseHasEthics(exercise)"
                 :ethics-completed="exerciseEthicsCompleted(exercise)"
                 :is-completed="isExerciseCompleted(exercise.name)"
+                :chat-message-count="getChatMessageCount(exercise.name)"
                 @open-exercise="openExercise(exercise)"
                 @open-ethics="openEthicsForExercise(exercise)"
               />
@@ -124,6 +125,7 @@ import {
 import { Button } from "@/components/ui/button";
 import PipelineExercisesCard from "./PipelineExercisesCard.vue";
 import { usePipelineProgress } from "@/composables/usePipelineProgress";
+import { useExerciseChat } from "@/composables/useExerciseChat";
 import { useEthics } from "@/composables/useEthics";
 import type { SelectedPinInfo } from "@/types/exercise";
 
@@ -143,11 +145,8 @@ const {
   getPhaseProgress
 } = usePipelineProgress();
 
-const { 
-  hasEthics, 
-  isCompleted: isEthicsCompleted, 
-  ensureEthicalCheckFromExercise 
-} = useEthics();
+const { getChatStats } = useExerciseChat();
+const ethics = useEthics();
 
 // State
 const currentStep = ref(1);
@@ -168,7 +167,7 @@ const phaseExercises = computed(() => [
   { phase: "Deliver", exercises: props.selectedPins.filter(pin => pin.location.phase === "Deliver") },
 ]);
 
-// Helper functions
+// Helper functions - simplified
 const setCurrentStep = (step: number | undefined) => {
   if (step !== undefined) {
     currentStep.value = step;
@@ -205,16 +204,17 @@ const getStepClasses = (stepNumber: number) => {
 };
 
 const exerciseHasEthics = (exercise: SelectedPinInfo): boolean => {
-  return Boolean(hasEthics(exercise, 'before') || hasEthics(exercise, 'after'));
+  return ethics.hasEthicsRequirement(exercise, 'before') || ethics.hasEthicsRequirement(exercise, 'after');
 };
 
 const exerciseEthicsCompleted = (exercise: SelectedPinInfo): boolean => {
-  let completed = true;
-  if (hasEthics(exercise, 'before'))
-    completed = completed && isEthicsCompleted(exercise.name, 'before');
-  if (hasEthics(exercise, 'after'))
-    completed = completed && isEthicsCompleted(exercise.name, 'after');
-  return completed;
+  const status = ethics.getExerciseEthicsStatus(exercise);
+  return status.allCompleted || false;
+};
+
+const getChatMessageCount = (exerciseId: string): number => {
+  const stats = getChatStats(exerciseId);
+  return stats.userMessages;
 };
 
 // Event handlers

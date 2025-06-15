@@ -84,7 +84,7 @@
               <MessageSquare class="w-3 h-3 flex-shrink-0 text-on-light-accent" />
               <span class="text-on-light-accent">Chat:</span>
               <span class="text-on-light-accent/70">
-                {{ getChatHistoryCount(exercise.name) }} messages
+                {{ getChatHistoryCount(exercise.name) }} user messages
               </span>
             </div>
 
@@ -189,7 +189,7 @@
               <MessageSquare class="w-3 h-3 flex-shrink-0 text-on-light-accent" />
               <span class="text-on-light-accent">Chat:</span>
               <span class="text-on-light-accent/70">
-                {{ getChatHistoryCount(exercise.name) }} messages
+                {{ getChatHistoryCount(exercise.name) }} user messages
               </span>
             </div>
 
@@ -262,6 +262,7 @@ import {
   Plus
 } from 'lucide-vue-next';
 import { usePipelineProgress } from '@/composables/usePipelineProgress';
+import { useExerciseChat } from '@/composables/useExerciseChat';
 import { useEthics } from '@/composables/useEthics';
 import type { SelectedPinInfo } from '@/types/exercise';
 
@@ -284,7 +285,8 @@ const {
   getPhaseProgress
 } = usePipelineProgress();
 
-const { hasEthics, isCompleted: isEthicsCompleted } = useEthics();
+const { getChatStats } = useExerciseChat();
+const ethics = useEthics();
 
 const phases = ['Discover', 'Define', 'Develop', 'Deliver'];
 
@@ -296,27 +298,23 @@ const completedCount = computed(() =>
 const totalCount = computed(() => props.selectedPins.length);
 const currentExercise = computed(() => getCurrentExercise(props.selectedPins));
 
-// Helper functions
+// Helper functions - simplified
 const isCurrentExercise = (exercise: SelectedPinInfo): boolean => {
   return currentExercise.value?.originalIndex === exercise.originalIndex;
 };
 
 const exerciseHasEthics = (exercise: SelectedPinInfo): boolean => {
-  return Boolean(hasEthics(exercise, 'before') || hasEthics(exercise, 'after'));
+  return ethics.hasEthicsRequirement(exercise, 'before') || ethics.hasEthicsRequirement(exercise, 'after');
 };
 
 const exerciseEthicsCompleted = (exercise: SelectedPinInfo): boolean => {
-  let completed = true;
-  if (hasEthics(exercise, 'before'))
-    completed = completed && isEthicsCompleted(exercise.name, 'before');
-  if (hasEthics(exercise, 'after'))
-    completed = completed && isEthicsCompleted(exercise.name, 'after');
-  return completed;
+  const status = ethics.getExerciseEthicsStatus(exercise);
+  return status.allCompleted || false;
 };
 
 const getChatHistoryCount = (exerciseId: string): number => {
-  const progress = getExerciseProgress(exerciseId);
-  return progress?.chatHistory?.length || 0;
+  const stats = getChatStats(exerciseId);
+  return stats.userMessages;
 };
 
 const formatCompletionDate = (exerciseId: string): string => {

@@ -453,28 +453,59 @@ const toggleCollapse = () => {
   }
 };
 
-const handleExportProject = () => {
+const handleExportProject = async () => {
   if (
     currentProject.value &&
     currentProject.value.selectedPins &&
     currentProject.value.selectedPins.length > 0
   ) {
-    const projectData = {
-      name: currentProject.value.name,
-      description: currentProject.value.description,
-      createdDate: currentProject.value.createdDate,
-      selectedPins: currentProject.value.selectedPins,
-    };
-    const jsonString = JSON.stringify(projectData, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${currentProject.value.name || "project"}-export.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+      // Import composables dynamically to avoid circular dependencies
+      const { useExerciseChat } = await import('@/composables/useExerciseChat');
+      const { useEthics } = await import('@/composables/useEthics');
+      const { usePipelineProgress } = await import('@/composables/usePipelineProgress');
+      
+      const exerciseChat = useExerciseChat();
+      const ethics = useEthics();
+      const pipelineProgress = usePipelineProgress();
+
+      const projectData = {
+        // Basic project info
+        name: currentProject.value.name,
+        description: currentProject.value.description,
+        createdDate: currentProject.value.createdDate,
+        selectedPins: currentProject.value.selectedPins,
+        
+        // Enhanced data
+        exerciseChatSessions: exerciseChat.exportChatSessions(),
+        ethicsData: ethics.ethicsData.value,
+        pipelineProgress: pipelineProgress.exportPipelineData(),
+        
+        // Export metadata
+        exportedAt: new Date().toISOString(),
+        version: '2.0' // Updated version to reflect enhanced export
+      };
+
+      const jsonString = JSON.stringify(projectData, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${currentProject.value.name || "project"}-export-v2.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success("Export Successful", {
+        description: "Project exported with chat history and ethics data.",
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error("Export Error", {
+        description: "Failed to export project data. Please try again.",
+      });
+    }
   } else {
     toast.error("Export Error", {
       description:
