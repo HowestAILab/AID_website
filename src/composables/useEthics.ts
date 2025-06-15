@@ -290,6 +290,47 @@ export function useEthics() {
   const ethicsModalOpen = computed(() => ethicsModal.value?.open || false);
   const currentEthicsData = computed(() => ethicsModal.value);
 
+  // Get completed ethics data for a specific exercise and timing
+  const getCompletedEthicsData = (exerciseId: string, timing: 'before' | 'after') => {
+    const key = getEthicsKey(exerciseId, timing);
+    const data = ethicsData.value[key];
+    return data?.completed ? data : null;
+  };
+
+  // Update ethics responses for already completed ethics
+  const updateEthicsResponses = (exerciseId: string, timing: 'before' | 'after', responses: Record<string, any>) => {
+    const key = getEthicsKey(exerciseId, timing);
+    const existingData = ethicsData.value[key];
+    
+    if (existingData?.completed) {
+      ethicsData.value[key] = {
+        ...existingData,
+        responses,
+        completedAt: Date.now() // Update completion time
+      };
+      return true;
+    }
+    return false;
+  };
+
+  // Check if an exercise has any completed ethics
+  const hasCompletedEthics = (exerciseId: string): boolean => {
+    const beforeKey = getEthicsKey(exerciseId, 'before');
+    const afterKey = getEthicsKey(exerciseId, 'after');
+    return !!(ethicsData.value[beforeKey]?.completed || ethicsData.value[afterKey]?.completed);
+  };
+
+  // Get all completed ethics for an exercise
+  const getExerciseCompletedEthics = (exerciseId: string) => {
+    const beforeKey = getEthicsKey(exerciseId, 'before');
+    const afterKey = getEthicsKey(exerciseId, 'after');
+    
+    return {
+      before: ethicsData.value[beforeKey]?.completed ? ethicsData.value[beforeKey] : null,
+      after: ethicsData.value[afterKey]?.completed ? ethicsData.value[afterKey] : null
+    };
+  };
+
   return {
     // Data
     ethicsData: computed(() => ethicsData.value),
@@ -304,6 +345,12 @@ export function useEthics() {
     handleEthicsCompleted,
     handleEthicsCancel,
     isEthicsCompleted,
+    
+    // New viewer support functions
+    getCompletedEthicsData,
+    updateEthicsResponses,
+    hasCompletedEthics,
+    getExerciseCompletedEthics,
     
     // For backwards compatibility with existing components
     getEthicsSettings,
@@ -332,6 +379,17 @@ export function useEthics() {
       if (existingData) {
         ethicsData.value[key] = {
           ...existingData,
+          completed: true,
+          responses,
+          completedAt: Date.now()
+        };
+      } else {
+        // Create new entry if it doesn't exist
+        ethicsData.value[key] = {
+          exerciseId,
+          timing,
+          questions: [], // Will be populated when needed
+          settings: { lens: 'virtue', capital: 'human', zoomingState: 'in' },
           completed: true,
           responses,
           completedAt: Date.now()

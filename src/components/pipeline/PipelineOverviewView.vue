@@ -69,7 +69,11 @@
           <!-- Progress Indicators -->
           <div class="space-y-2">
             <!-- Ethics Status -->
-            <div v-if="exerciseHasEthics(exercise)" class="flex items-center gap-2 text-xs">
+            <div 
+              v-if="exerciseHasEthics(exercise)" 
+              class="flex items-center gap-2 text-xs cursor-pointer hover:bg-gray-100 rounded p-1 -m-1 transition-colors"
+              @click.stop="handleEthicsClick(exercise)"
+            >
               <Shield class="w-3 h-3 flex-shrink-0 text-purple-600" />
               <span class="text-on-light-accent">Ethics:</span>
               <span 
@@ -77,6 +81,10 @@
               >
                 {{ exerciseEthicsCompleted(exercise) ? 'Completed' : 'Pending' }}
               </span>
+              <Eye 
+                v-if="exerciseEthicsCompleted(exercise)"
+                class="w-3 h-3 text-gray-400 ml-auto"
+              />
             </div>
 
             <!-- Chat History -->
@@ -174,7 +182,11 @@
           <!-- Progress Indicators -->
           <div class="space-y-2">
             <!-- Ethics Status -->
-            <div v-if="exerciseHasEthics(exercise)" class="flex items-center gap-2 text-xs">
+            <div 
+              v-if="exerciseHasEthics(exercise)" 
+              class="flex items-center gap-2 text-xs cursor-pointer hover:bg-gray-100 rounded p-1 -m-1 transition-colors"
+              @click.stop="handleEthicsClick(exercise)"
+            >
               <Shield class="w-3 h-3 flex-shrink-0 text-purple-600" />
               <span class="text-on-light-accent">Ethics:</span>
               <span 
@@ -182,6 +194,10 @@
               >
                 {{ exerciseEthicsCompleted(exercise) ? 'Completed' : 'Pending' }}
               </span>
+              <Eye 
+                v-if="exerciseEthicsCompleted(exercise)"
+                class="w-3 h-3 text-gray-400 ml-auto"
+              />
             </div>
 
             <!-- Chat History -->
@@ -247,11 +263,20 @@
         </div>
       </div>
     </div>
+
+      <!-- Ethics Viewer Modal -->
+  <EthicsViewerModal
+    v-if="selectedEthicsExercise"
+    :open="ethicsModalOpen"
+    :exercise="selectedEthicsExercise"
+    @update:open="ethicsModalOpen = $event"
+    @edit-ethics="handleEthicsEdit"
+  />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, withDefaults } from 'vue';
+import { computed, withDefaults, ref } from 'vue';
 import { 
   CheckCircle2, 
   Clock, 
@@ -259,11 +284,13 @@ import {
   Shield, 
   MessageSquare, 
   Target,
-  Plus
+  Plus,
+  Eye
 } from 'lucide-vue-next';
 import { usePipelineProgress } from '@/composables/usePipelineProgress';
 import { useExerciseChat } from '@/composables/useExerciseChat';
 import { useEthics } from '@/composables/useEthics';
+import EthicsViewerModal from '@/components/ethics/EthicsViewerModal.vue';
 import type { SelectedPinInfo } from '@/types/exercise';
 
 const props = withDefaults(defineProps<{
@@ -275,6 +302,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (e: 'open-exercise', exercise: SelectedPinInfo, index: number): void;
+  (e: 'edit-ethics', exercise: SelectedPinInfo, timing: 'before' | 'after'): void;
 }>();
 
 const { 
@@ -297,6 +325,10 @@ const completedCount = computed(() =>
 );
 const totalCount = computed(() => props.selectedPins.length);
 const currentExercise = computed(() => getCurrentExercise(props.selectedPins));
+
+// Local state for ethics modal
+const ethicsModalOpen = ref(false);
+const selectedEthicsExercise = ref<SelectedPinInfo | null>(null);
 
 // Helper functions - simplified
 const isCurrentExercise = (exercise: SelectedPinInfo): boolean => {
@@ -344,6 +376,24 @@ const getHumanAiScaleStyle = (scale: number): string => {
 
 const openExercise = (exercise: SelectedPinInfo, index: number) => {
   emit('open-exercise', exercise, index);
+};
+
+const handleEthicsClick = (exercise: SelectedPinInfo) => {
+  const status = ethics.getExerciseEthicsStatus(exercise);
+  
+  if (status.beforeCompleted || status.afterCompleted) {
+    // Show viewer modal for completed ethics
+    selectedEthicsExercise.value = exercise;
+    ethicsModalOpen.value = true;
+  } else {
+    // Navigate to exercise for pending ethics
+    const index = props.selectedPins.findIndex(p => p.originalIndex === exercise.originalIndex);
+    openExercise(exercise, index);
+  }
+};
+
+const handleEthicsEdit = (exercise: SelectedPinInfo, timing: 'before' | 'after') => {
+  emit('edit-ethics', exercise, timing);
 };
 </script>
 

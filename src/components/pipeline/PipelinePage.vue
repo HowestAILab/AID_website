@@ -6,6 +6,7 @@
         :exercise="currentExercise"
         :all-exercises="selectedPins"
         :current-exercise-index="currentExerciseIndex"
+        :pending-ethics-viewer="pendingEthicsViewerOpen"
         @back="handleBackToPipeline"
         @navigate-to-exercise="handleNavigateToExercise"
       />
@@ -72,6 +73,7 @@
         :selected-pins="selectedPins"
         :mode="'full'"
         @open-exercise="handleOpenExerciseFromOverview"
+        @edit-ethics="handleEditEthicsFromOverview"
       />
 
       <!-- Phases View -->
@@ -127,8 +129,7 @@ const currentView = ref<'overview' | 'phases'>('overview');
 // Exercise detail state
 const currentExercise = ref<SelectedPinInfo | null>(null);
 const currentExerciseIndex = ref<number>(0);
-
-// Ethics handling is now done in PipelineExercisePage
+const pendingEthicsViewerOpen = ref<{ timing: 'before' | 'after' } | null>(null);
 
 // View preference key
 const VIEW_PREFERENCE_KEY = 'pipelineViewPreference';
@@ -187,6 +188,19 @@ const handleNavigateToExercise = (exerciseIndex: number) => {
 
 const handleOpenExerciseFromOverview = (exercise: SelectedPinInfo) => {
   openExercise(exercise);
+};
+
+const handleEditEthicsFromOverview = (exercise: SelectedPinInfo, timing: 'before' | 'after') => {
+  // Navigate to exercise and mark that we want to open the ethics viewer
+  pendingEthicsViewerOpen.value = { timing };
+  openExercise(exercise);
+  
+  // Clear the pending state after a brief delay to allow the exercise page to load
+  nextTick(() => {
+    setTimeout(() => {
+      pendingEthicsViewerOpen.value = null;
+    }, 100);
+  });
 };
 
 // Ethics handling - simplified

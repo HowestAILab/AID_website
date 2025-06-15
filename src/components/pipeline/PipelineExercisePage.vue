@@ -109,6 +109,18 @@
             @click="handleEthicsBadgeClick(exercise)"
           />
 
+          <!-- View Ethics Button for completed ethics -->
+          <Button
+            v-if="exerciseEthicsStatus.hasAnyRequirement && (exerciseEthicsStatus.beforeCompleted || exerciseEthicsStatus.afterCompleted)"
+            @click="openEthicsViewer()"
+            variant="outline"
+            size="sm"
+            class="text-xs"
+          >
+            <Eye class="w-4 h-4 mr-2" />
+            View Ethics
+          </Button>
+
           <!-- Completion Status -->
           <div class="ml-auto flex items-center gap-2">
             <div v-if="isExerciseCompleted(exercise.name)" class="flex items-center gap-2 text-green-600">
@@ -220,12 +232,22 @@
 
         <!-- Main Content Area -->
         <div class="flex-1 min-h-0">
-          <div class="bg-gray-200 h-full flex items-center justify-center">
+          <div v-if="!showEthicsViewer" class="bg-gray-200 h-full flex items-center justify-center">
             <div class="text-center">
               <p class="text-gray-600 mb-2">Miro Board Integration</p>
               <p class="text-sm text-gray-500">Exercise workspace will be embedded here</p>
               <p class="text-xs text-gray-400 mt-2">Use the AI chat to discuss ideas and get guidance</p>
             </div>
+          </div>
+          
+          <!-- Ethics Detailed Viewer -->
+          <div v-else class="h-full overflow-y-auto p-6">
+            <EthicsDetailedViewer
+              :exercise="exercise"
+              :initial-timing="ethicsViewerTiming"
+              @close="closeEthicsViewer"
+              @trigger-ethics="handleEthicsViewerTrigger"
+            />
           </div>
         </div>
       </div>
@@ -276,6 +298,7 @@ import {
   RotateCcw,
   Shield,
   MessageSquare,
+  Eye,
 } from "lucide-vue-next";
 import {
   ResizableHandle,
@@ -293,6 +316,7 @@ import { useExerciseChat } from "@/composables/useExerciseChat";
 import type { SelectedPinInfo } from "@/types/exercise";
 import type { ChatMessage as ExerciseChatMessage } from "@/composables/useExerciseChat";
 import type { ChatMessage as EthicsChatMessage } from "@/components/ethics/EthicsModal.vue";
+import EthicsDetailedViewer from "@/components/ethics/EthicsDetailedViewer.vue";
 
 type DriveType = "human" | "human-ai" | "ai";
 
@@ -300,6 +324,7 @@ const props = defineProps<{
   exercise: SelectedPinInfo;
   allExercises: SelectedPinInfo[];
   currentExerciseIndex: number;
+  pendingEthicsViewer?: { timing: 'before' | 'after' } | null;
 }>();
 
 const emit = defineEmits<{
@@ -325,6 +350,8 @@ const {
 // Local state
 const currentChatMessageCount = ref(0);
 const ethicsBlockingMessage = ref<string | null>(null);
+const showEthicsViewer = ref(false);
+const ethicsViewerTiming = ref<'before' | 'after' | undefined>(undefined);
 
 // Computed properties
 const derivedDriveType = computed<DriveType>(() => {
@@ -481,11 +508,33 @@ const handleEthicsBadgeClick = (exercise: SelectedPinInfo) => {
   const rawChatHistory = exercise.name === props.exercise.name ? currentMessages.value : getExerciseMessages(exercise.name);
   const currentChatHistory = convertChatMessages(rawChatHistory);
   
-  if (status.beforeRequired && !status.beforeCompleted) {
+  // Check if we have completed ethics to view
+  if (status.beforeCompleted || status.afterCompleted) {
+    // Open the viewer with the first completed timing
+    const timing = status.beforeCompleted ? 'before' : 'after';
+    openEthicsViewer(timing);
+  } else if (status.beforeRequired && !status.beforeCompleted) {
     ethics.triggerEthicsCheck(exercise, 'before', currentChatHistory);
   } else if (status.afterRequired && !status.afterCompleted) {
     ethics.triggerEthicsCheck(exercise, 'after', currentChatHistory);
   }
+};
+
+const openEthicsViewer = (timing?: 'before' | 'after') => {
+  ethicsViewerTiming.value = timing;
+  showEthicsViewer.value = true;
+};
+
+const closeEthicsViewer = () => {
+  showEthicsViewer.value = false;
+  ethicsViewerTiming.value = undefined;
+};
+
+const handleEthicsViewerTrigger = (exercise: SelectedPinInfo, timing: 'before' | 'after') => {
+  const rawChatHistory = exercise.name === props.exercise.name ? currentMessages.value : getExerciseMessages(exercise.name);
+  const currentChatHistory = convertChatMessages(rawChatHistory);
+  ethics.triggerEthicsCheck(exercise, timing, currentChatHistory);
+  closeEthicsViewer();
 };
 
 const handleChatUpdated = (messageCount: number) => {
@@ -498,7 +547,11 @@ const handleChatUpdated = (messageCount: number) => {
 onMounted(() => {
   setCurrentExercise(props.exercise);
   currentChatMessageCount.value = currentMessages.value.length;
-
+  
+  // Check for pending ethics viewer open
+  if (props.pendingEthicsViewer) {
+    openEthicsViewer(props.pendingEthicsViewer.timing);
+  }
 });
 
 watch(() => props.exercise, (newExercise) => {
@@ -511,6 +564,12 @@ watch(() => props.exercise, (newExercise) => {
   
   // Clear any blocking messages when switching exercises
   ethicsBlockingMessage.value = null;
+});
 
+// Watch for pending ethics viewer changes
+watch(() => props.pendingEthicsViewer, (newPending) => {
+  if (newPending) {
+    openEthicsViewer(newPending.timing);
+  }
 });
 </script> 
