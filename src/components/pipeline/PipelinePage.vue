@@ -11,7 +11,7 @@
         @navigate-to-exercise="handleNavigateToExercise"
       />
     </template>
-    
+
     <!-- Pipeline Views -->
     <template v-else>
       <!-- Header with Controls -->
@@ -28,33 +28,35 @@
 
         <!-- View Toggle and Actions -->
         <div class="flex items-center gap-2">
-          <div class="flex bg-white/50 rounded-lg p-1 border border-on-light-accent/20">
-            <button
-              @click="setCurrentView('overview')"
-              :class="[
-                'px-3 py-1 text-sm font-medium rounded-md transition-colors',
-                currentView === 'overview' 
-                  ? 'bg-white text-on-light-default shadow-sm border border-on-light-accent/20' 
-                  : 'text-on-light-accent hover:text-on-light-default hover:bg-white/50'
-              ]"
-            >
-              <List class="w-4 h-4 mr-2 inline" />
-              Overview
-            </button>
+          <div
+            class="flex bg-white/50 rounded-lg p-1 border border-on-light-accent/20"
+          >
             <button
               @click="setCurrentView('phases')"
               :class="[
                 'px-3 py-1 text-sm font-medium rounded-md transition-colors',
-                currentView === 'phases' 
-                  ? 'bg-white text-on-light-default shadow-sm border border-on-light-accent/20' 
-                  : 'text-on-light-accent hover:text-on-light-default hover:bg-white/50'
+                currentView === 'phases'
+                  ? 'bg-white text-on-light-default shadow-sm border border-on-light-accent/20'
+                  : 'text-on-light-accent hover:text-on-light-default hover:bg-white/50',
               ]"
             >
               <Grid3X3 class="w-4 h-4 mr-2 inline" />
               Phases
             </button>
+            <button
+              @click="setCurrentView('overview')"
+              :class="[
+                'px-3 py-1 text-sm font-medium rounded-md transition-colors',
+                currentView === 'overview'
+                  ? 'bg-white text-on-light-default shadow-sm border border-on-light-accent/20'
+                  : 'text-on-light-accent hover:text-on-light-default hover:bg-white/50',
+              ]"
+            >
+              <List class="w-4 h-4 mr-2 inline" />
+              Overview
+            </button>
           </div>
-          
+
           <!-- Continue Current Exercise Button -->
           <Button
             v-if="currentExerciseToWork && selectedPins.length > 0"
@@ -85,19 +87,14 @@
         @go-to-diamond="$emit('close')"
       />
     </template>
-    
+
     <!-- Ethics handling is now done in PipelineExercisePage -->
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from "vue";
-import { 
-  ArrowLeft, 
-  List, 
-  Grid3X3, 
-  Play
-} from "lucide-vue-next";
+import { ArrowLeft, List, Grid3X3, Play } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import PipelineOverviewView from "./PipelineOverviewView.vue";
 import PipelinePhasesView from "./PipelinePhasesView.vue";
@@ -115,29 +112,29 @@ const emit = defineEmits<{
 }>();
 
 // Composables
-const { 
-  getCurrentExercise
-} = usePipelineProgress();
+const { getCurrentExercise } = usePipelineProgress();
 
 // Ethics handling is now done in PipelineExercisePage
 
 const { getPendingExerciseOpen } = usePipelineNavigation();
 
 // View state
-const currentView = ref<'overview' | 'phases'>('overview');
+const currentView = ref<"overview" | "phases">("phases");
 
 // Exercise detail state
 const currentExercise = ref<SelectedPinInfo | null>(null);
 const currentExerciseIndex = ref<number>(0);
-const pendingEthicsViewerOpen = ref<{ timing: 'before' | 'after' } | null>(null);
+const pendingEthicsViewerOpen = ref<{ timing: "before" | "after" } | null>(
+  null
+);
 
 // View preference key
-const VIEW_PREFERENCE_KEY = 'pipelineViewPreference';
+const VIEW_PREFERENCE_KEY = "pipelineViewPreference";
 
 onMounted(() => {
   // Load user preference if it exists
   const savedView = localStorage.getItem(VIEW_PREFERENCE_KEY);
-  if (savedView === 'overview' || savedView === 'phases') {
+  if (savedView === "overview" || savedView === "phases") {
     currentView.value = savedView;
   }
 
@@ -151,17 +148,21 @@ onMounted(() => {
 });
 
 // Computed properties
-const currentExerciseToWork = computed(() => getCurrentExercise(props.selectedPins));
+const currentExerciseToWork = computed(() =>
+  getCurrentExercise(props.selectedPins)
+);
 
 // Helper functions
-const setCurrentView = (view: 'overview' | 'phases') => {
+const setCurrentView = (view: "overview" | "phases") => {
   currentView.value = view;
   localStorage.setItem(VIEW_PREFERENCE_KEY, view);
 };
 
 // Exercise navigation
 const openExercise = (exercise: SelectedPinInfo) => {
-  const index = props.selectedPins.findIndex(pin => pin.originalIndex === exercise.originalIndex);
+  const index = props.selectedPins.findIndex(
+    (pin) => pin.originalIndex === exercise.originalIndex
+  );
   if (index >= 0) {
     currentExercise.value = exercise;
     currentExerciseIndex.value = index;
@@ -190,11 +191,14 @@ const handleOpenExerciseFromOverview = (exercise: SelectedPinInfo) => {
   openExercise(exercise);
 };
 
-const handleEditEthicsFromOverview = (exercise: SelectedPinInfo, timing: 'before' | 'after') => {
+const handleEditEthicsFromOverview = (
+  exercise: SelectedPinInfo,
+  timing: "before" | "after"
+) => {
   // Navigate to exercise and mark that we want to open the ethics viewer
   pendingEthicsViewerOpen.value = { timing };
   openExercise(exercise);
-  
+
   // Clear the pending state after a brief delay to allow the exercise page to load
   nextTick(() => {
     setTimeout(() => {

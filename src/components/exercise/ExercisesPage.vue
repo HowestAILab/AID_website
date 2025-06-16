@@ -65,13 +65,20 @@
             :key="exercise.name + '-' + index"
           >
             <div class="relative">
-              <ExerciseCard
+              <UnifiedExerciseCard
                 :title="exercise.name"
                 :description="exercise.description"
                 :driveType="getDriveType(exercise.location?.human_ai_scale)"
                 :originalIndex="getOriginalExerciseIndex(exercise)"
-                :isInPipeline="isExerciseInPipeline(exercise, getOriginalExerciseIndex)"
-                @togglePipeline="togglePipelineSelection"
+                :isInPipeline="
+                  isExerciseInPipeline(exercise, getOriginalExerciseIndex)
+                "
+                :hasEthics="exerciseHasEthics(exercise)"
+                :hasEthicsBefore="exerciseHasEthicsBefore(exercise)"
+                :hasEthicsAfter="exerciseHasEthicsAfter(exercise)"
+                mode="exercises"
+                @toggle-pipeline="togglePipelineSelection"
+                @ethics-click="handleEthicsClick(exercise)"
               />
               <div
                 v-if="exercise.isCustom"
@@ -110,12 +117,16 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import Tabs from "../layout/Tabs.vue";
-import ExerciseCard from "./ExerciseCard.vue";
+import UnifiedExerciseCard from "./UnifiedExerciseCard.vue";
 import AddExerciseDialog from "./AddExerciseDialog.vue";
 import { ArrowLeft, CirclePlus, Trash2, SquarePen } from "lucide-vue-next";
 
 // Import types
-import type { SelectedPinInfo, Exercise, DriveType } from "../../types/exercise";
+import type {
+  SelectedPinInfo,
+  Exercise,
+  DriveType,
+} from "../../types/exercise";
 
 // Import constants
 import { TAB_NAMES, PHASE_CATEGORY_MAPPING } from "../../constants/exercises";
@@ -124,6 +135,9 @@ import { TAB_NAMES, PHASE_CATEGORY_MAPPING } from "../../constants/exercises";
 import { useExercises } from "../../composables/useExercises";
 import { usePipeline } from "../../composables/usePipeline";
 import { useExerciseDialog } from "../../composables/useExerciseDialog";
+import { useEthics } from "../../composables/useEthics";
+import { usePipelineProgress } from "../../composables/usePipelineProgress";
+import { useExerciseChat } from "../../composables/useExerciseChat";
 
 const tabNames = TAB_NAMES;
 
@@ -166,6 +180,10 @@ const {
   closeDialog,
 } = useExerciseDialog();
 
+const ethics = useEthics();
+const { isExerciseCompleted, getExerciseProgress } = usePipelineProgress();
+const { getChatStats } = useExerciseChat();
+
 // Computed properties
 const categoriesForCurrentPhase = computed(() => {
   return PHASE_CATEGORY_MAPPING[props.phase] || [];
@@ -176,10 +194,74 @@ const getExercisesForCategory = (categoryName: string) => {
 };
 
 const getDriveType = (scale: number | undefined): DriveType => {
-  if (scale === undefined) return 'human';
-  if (scale >= 0 && scale <= 3) return 'human';
-  if (scale >= 4 && scale <= 7) return 'human-ai';
-  return 'ai';
+  if (scale === undefined) return "human";
+  if (scale >= 0 && scale <= 3) return "human";
+  if (scale >= 4 && scale <= 7) return "human-ai";
+  return "ai";
+};
+
+// Helper functions for exercise status and ethics
+const exerciseHasEthics = (exercise: Exercise): boolean => {
+  // Convert exercise to SelectedPinInfo format for ethics check
+  const exerciseInfo = {
+    name: exercise.name,
+    originalIndex: getOriginalExerciseIndex(exercise),
+    location: exercise.location || {},
+    ethical: exercise.ethical,
+  };
+  return (
+    ethics.hasEthicsRequirement(exerciseInfo as any, "before") ||
+    ethics.hasEthicsRequirement(exerciseInfo as any, "after")
+  );
+};
+
+const exerciseEthicsCompleted = (exercise: Exercise): boolean => {
+  const exerciseInfo = {
+    name: exercise.name,
+    originalIndex: getOriginalExerciseIndex(exercise),
+    location: exercise.location || {},
+    ethical: exercise.ethical,
+  };
+  const status = ethics.getExerciseEthicsStatus(exerciseInfo as any);
+  return status.allCompleted || false;
+};
+
+const exerciseHasEthicsBefore = (exercise: Exercise): boolean => {
+  const exerciseInfo = {
+    name: exercise.name,
+    originalIndex: getOriginalExerciseIndex(exercise),
+    location: exercise.location || {},
+    ethical: exercise.ethical,
+  };
+  return ethics.hasEthicsRequirement(exerciseInfo as any, "before");
+};
+
+const exerciseHasEthicsAfter = (exercise: Exercise): boolean => {
+  const exerciseInfo = {
+    name: exercise.name,
+    originalIndex: getOriginalExerciseIndex(exercise),
+    location: exercise.location || {},
+    ethical: exercise.ethical,
+  };
+  return ethics.hasEthicsRequirement(exerciseInfo as any, "after");
+};
+
+const getChatMessageCount = (exerciseId: string): number => {
+  const stats = getChatStats(exerciseId);
+  return stats.userMessages;
+};
+
+const formatCompletionDate = (exerciseId: string): string => {
+  const progress = getExerciseProgress(exerciseId);
+  if (!progress?.completedAt) return "";
+
+  const date = new Date(progress.completedAt);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 // Event handlers
@@ -191,13 +273,29 @@ const handleEditExercise = (exercise: Exercise) => {
   openEditDialog(exercise);
 };
 
-const handleAddNewExercise = (exerciseData: { name: string; description: string; location?: { phase?: string; step?: string; human_ai_scale?: number } }) => {
-  addNewExercise(exerciseData, props.phase, currentCategoryForDialog.value ?? "");
+const handleAddNewExercise = (exerciseData: {
+  name: string;
+  description: string;
+  location?: { phase?: string; step?: string; human_ai_scale?: number };
+}) => {
+  addNewExercise(
+    exerciseData,
+    props.phase,
+    currentCategoryForDialog.value ?? ""
+  );
   closeDialog();
 };
 
-const handleEditExistingExercise = (exerciseData: { name: string; description: string; location?: { phase?: string; step?: string; human_ai_scale?: number } }) => {
-  editExistingExercise(exerciseData, props.phase, currentCategoryForDialog.value ?? "");
+const handleEditExistingExercise = (exerciseData: {
+  name: string;
+  description: string;
+  location?: { phase?: string; step?: string; human_ai_scale?: number };
+}) => {
+  editExistingExercise(
+    exerciseData,
+    props.phase,
+    currentCategoryForDialog.value ?? ""
+  );
   closeDialog();
 };
 
@@ -205,9 +303,15 @@ const handleDeleteExercise = (exerciseToDelete: Exercise) => {
   deleteExercise(exerciseToDelete);
 };
 
+const handleEthicsClick = (exercise: Exercise) => {
+  // For exercises page, we might want to navigate to the exercise or show ethics modal
+  // For now, let's just log it - you can implement specific behavior as needed
+  console.log("Ethics clicked for exercise:", exercise.name);
+};
+
 // Lifecycle
 onMounted(() => {
   loadExercises();
   updateSelectedPinsFromProp();
 });
-</script> 
+</script>

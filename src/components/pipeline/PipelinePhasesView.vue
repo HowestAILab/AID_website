@@ -32,7 +32,9 @@
                 {{ step.title }}
               </StepperTitle>
               <div class="text-xs text-on-light-accent mt-1">
-                {{ getPhaseProgress(selectedPins, step.title).completed }}/{{ getPhaseProgress(selectedPins, step.title).total }}
+                {{ getPhaseProgress(selectedPins, step.title).completed }}/{{
+                  getPhaseProgress(selectedPins, step.title).total
+                }}
               </div>
             </div>
 
@@ -53,20 +55,33 @@
           class="border border-on-light-accent/20 rounded-lg shadow-sm"
         >
           <!-- Phase Header -->
-          <div class="bg-light px-4 py-3 border-b border-on-light-accent/20 rounded-t-lg">
+          <div
+            class="bg-light px-4 py-3 border-b border-on-light-accent/20 rounded-t-lg"
+          >
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <h3 class="text-lg font-semibold text-primary-accent">
                   {{ phaseItem.phase }} Phase
                 </h3>
                 <div class="text-sm text-on-light-accent">
-                  {{ getPhaseProgress(selectedPins, phaseItem.phase).completed }} of {{ getPhaseProgress(selectedPins, phaseItem.phase).total }} completed
+                  {{
+                    getPhaseProgress(selectedPins, phaseItem.phase).completed
+                  }}
+                  of
+                  {{ getPhaseProgress(selectedPins, phaseItem.phase).total }}
+                  completed
                 </div>
               </div>
-              <div class="w-24 bg-white/50 rounded-full h-2 border border-on-light-accent/20">
-                <div 
+              <div
+                class="w-24 bg-white/50 rounded-full h-2 border border-on-light-accent/20"
+              >
+                <div
                   class="bg-primary-accent h-2 rounded-full transition-all duration-300"
-                  :style="{ width: getPhaseProgress(selectedPins, phaseItem.phase).percentage + '%' }"
+                  :style="{
+                    width:
+                      getPhaseProgress(selectedPins, phaseItem.phase)
+                        .percentage + '%',
+                  }"
                 ></div>
               </div>
             </div>
@@ -75,17 +90,21 @@
           <!-- Exercise Cards -->
           <div class="p-4">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <PipelineExercisesCard
+              <UnifiedExerciseCard
                 v-for="exercise in phaseItem.exercises"
                 :key="exercise.originalIndex"
                 :title="exercise.name"
-                :stage="exercise.location.step"
                 :description="exercise.description"
                 :originalIndex="exercise.originalIndex"
-                :has-ethics="exerciseHasEthics(exercise)"
-                :ethics-completed="exerciseEthicsCompleted(exercise)"
-                :is-completed="isExerciseCompleted(exercise.name)"
-                :chat-message-count="getChatMessageCount(exercise.name)"
+                :phase="exercise.location.phase"
+                :step="exercise.location.step"
+                :humanAiScale="exercise.location.human_ai_scale"
+                :isCompleted="isExerciseCompleted(exercise.name)"
+                :hasEthics="exerciseHasEthics(exercise)"
+                :ethicsCompleted="exerciseEthicsCompleted(exercise)"
+                :chatMessageCount="getChatMessageCount(exercise.name)"
+                :completionDate="formatCompletionDate(exercise.name)"
+                mode="pipeline-phases"
                 @open-exercise="openExercise(exercise)"
                 @open-ethics="openEthicsForExercise(exercise)"
               />
@@ -95,16 +114,23 @@
       </div>
 
       <!-- Empty State -->
-      <div 
-        v-if="selectedPins.length === 0"
-        class="text-center py-12"
-      >
-        <div class="w-16 h-16 bg-light rounded-full flex items-center justify-center mx-auto mb-4 border border-on-light-accent/20">
+      <div v-if="selectedPins.length === 0" class="text-center py-12">
+        <div
+          class="w-16 h-16 bg-light rounded-full flex items-center justify-center mx-auto mb-4 border border-on-light-accent/20"
+        >
           <Plus class="w-8 h-8 text-on-light-accent/60" />
         </div>
-        <h3 class="text-lg font-medium text-on-light-default mb-2">No exercises in pipeline</h3>
-        <p class="text-on-light-accent mb-4">Add exercises from the diamond to get started with your pipeline.</p>
-        <Button @click="$emit('go-to-diamond')" variant="outline" class="border-on-light-accent text-on-light-accent hover:bg-light">
+        <h3 class="text-lg font-medium text-on-light-default mb-2">
+          No exercises in pipeline
+        </h3>
+        <p class="text-on-light-accent mb-4">
+          Add exercises from the diamond to get started with your pipeline.
+        </p>
+        <Button
+          @click="$emit('go-to-diamond')"
+          variant="outline"
+          class="border-on-light-accent text-on-light-accent hover:bg-light"
+        >
           Go to Diamond
         </Button>
       </div>
@@ -123,7 +149,7 @@ import {
   StepperTrigger,
 } from "@/components/ui/stepper";
 import { Button } from "@/components/ui/button";
-import PipelineExercisesCard from "./PipelineExercisesCard.vue";
+import UnifiedExerciseCard from "@/components/exercise/UnifiedExerciseCard.vue";
 import { usePipelineProgress } from "@/composables/usePipelineProgress";
 import { useExerciseChat } from "@/composables/useExerciseChat";
 import { useEthics } from "@/composables/useEthics";
@@ -140,10 +166,8 @@ const emit = defineEmits<{
 }>();
 
 // Composables
-const { 
-  isExerciseCompleted, 
-  getPhaseProgress
-} = usePipelineProgress();
+const { isExerciseCompleted, getExerciseProgress, getPhaseProgress } =
+  usePipelineProgress();
 
 const { getChatStats } = useExerciseChat();
 const ethics = useEthics();
@@ -153,18 +177,54 @@ const currentStep = ref(1);
 
 // Steps configuration
 const steps = [
-  { id: 1, title: "Discover", description: "Research and understand the problem space" },
-  { id: 2, title: "Define", description: "Synthesize insights and define the challenge" },
-  { id: 3, title: "Develop", description: "Ideate and create potential solutions" },
-  { id: 4, title: "Deliver", description: "Test, refine, and implement the solution" },
+  {
+    id: 1,
+    title: "Discover",
+    description: "Research and understand the problem space",
+  },
+  {
+    id: 2,
+    title: "Define",
+    description: "Synthesize insights and define the challenge",
+  },
+  {
+    id: 3,
+    title: "Develop",
+    description: "Ideate and create potential solutions",
+  },
+  {
+    id: 4,
+    title: "Deliver",
+    description: "Test, refine, and implement the solution",
+  },
 ];
 
 // Computed properties
 const phaseExercises = computed(() => [
-  { phase: "Discover", exercises: props.selectedPins.filter(pin => pin.location.phase === "Discover") },
-  { phase: "Define", exercises: props.selectedPins.filter(pin => pin.location.phase === "Define") },
-  { phase: "Develop", exercises: props.selectedPins.filter(pin => pin.location.phase === "Develop") },
-  { phase: "Deliver", exercises: props.selectedPins.filter(pin => pin.location.phase === "Deliver") },
+  {
+    phase: "Discover",
+    exercises: props.selectedPins.filter(
+      (pin) => pin.location.phase === "Discover"
+    ),
+  },
+  {
+    phase: "Define",
+    exercises: props.selectedPins.filter(
+      (pin) => pin.location.phase === "Define"
+    ),
+  },
+  {
+    phase: "Develop",
+    exercises: props.selectedPins.filter(
+      (pin) => pin.location.phase === "Develop"
+    ),
+  },
+  {
+    phase: "Deliver",
+    exercises: props.selectedPins.filter(
+      (pin) => pin.location.phase === "Deliver"
+    ),
+  },
 ]);
 
 // Helper functions - simplified
@@ -181,30 +241,34 @@ const isStepCompleted = (phase: string): boolean => {
 
 const getStepVariant = (stepNumber: number) => {
   const phase = steps[stepNumber - 1]?.title;
-  if (!phase) return 'outline';
-  
+  if (!phase) return "outline";
+
   const progress = getPhaseProgress(props.selectedPins, phase);
-  if (progress.completed === progress.total && progress.total > 0) return 'default';
-  if (progress.completed > 0) return 'secondary';
-  return 'outline';
+  if (progress.completed === progress.total && progress.total > 0)
+    return "default";
+  if (progress.completed > 0) return "secondary";
+  return "outline";
 };
 
 const getStepClasses = (stepNumber: number) => {
   const phase = steps[stepNumber - 1]?.title;
-  if (!phase) return 'text-on-light-accent/60 border-on-light-accent/30';
-  
+  if (!phase) return "text-on-light-accent/60 border-on-light-accent/30";
+
   const progress = getPhaseProgress(props.selectedPins, phase);
   if (progress.completed === progress.total && progress.total > 0) {
-    return 'bg-primary-accent text-white hover:bg-primary-accent/90 border-primary-accent';
+    return "bg-primary-accent text-white hover:bg-primary-accent/90 border-primary-accent";
   }
   if (progress.completed > 0) {
-    return 'bg-primary-accent/20 text-primary-accent hover:bg-primary-accent/30 border-primary-accent/30';
+    return "bg-primary-accent/20 text-primary-accent hover:bg-primary-accent/30 border-primary-accent/30";
   }
-  return 'text-on-light-accent/60 border-on-light-accent/30 hover:bg-light';
+  return "text-on-light-accent/60 border-on-light-accent/30 hover:bg-light";
 };
 
 const exerciseHasEthics = (exercise: SelectedPinInfo): boolean => {
-  return ethics.hasEthicsRequirement(exercise, 'before') || ethics.hasEthicsRequirement(exercise, 'after');
+  return (
+    ethics.hasEthicsRequirement(exercise, "before") ||
+    ethics.hasEthicsRequirement(exercise, "after")
+  );
 };
 
 const exerciseEthicsCompleted = (exercise: SelectedPinInfo): boolean => {
@@ -217,12 +281,25 @@ const getChatMessageCount = (exerciseId: string): number => {
   return stats.userMessages;
 };
 
+const formatCompletionDate = (exerciseId: string): string => {
+  const progress = getExerciseProgress(exerciseId);
+  if (!progress?.completedAt) return "";
+
+  const date = new Date(progress.completedAt);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 // Event handlers
 const openExercise = (exercise: SelectedPinInfo) => {
-  emit('open-exercise', exercise);
+  emit("open-exercise", exercise);
 };
 
 const openEthicsForExercise = (exercise: SelectedPinInfo) => {
-  emit('open-ethics', exercise);
+  emit("open-ethics", exercise);
 };
-</script> 
+</script>
