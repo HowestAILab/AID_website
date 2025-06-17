@@ -222,7 +222,7 @@
         style="scroll-behavior: smooth"
       >
         <div
-          v-for="(exercise, index) in selectedPins"
+          v-for="(exercise, index) in chronologicallyOrderedPins"
           :key="exercise.originalIndex"
           class="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex-shrink-0 w-80 min-w-0"
           :class="getCardStateClasses(exercise)"
@@ -435,6 +435,35 @@ const overallProgress = computed(() =>
 );
 const currentExercise = computed(() => getCurrentExercise(props.selectedPins));
 const exercisesByPhase = computed(() => getExercisesByPhase());
+
+// Sort exercises in timeline order (following phase sequence but respecting user ordering within phases)
+const chronologicallyOrderedPins = computed(() => {
+  const phaseOrder = ["Discover", "Define", "Develop", "Deliver"];
+
+  // Group exercises by phase while preserving their order within each phase
+  const exercisesByPhase: Record<string, SelectedPinInfo[]> = {};
+
+  // Initialize phase groups
+  phaseOrder.forEach((phase) => {
+    exercisesByPhase[phase] = [];
+  });
+
+  // Group exercises by phase in the order they appear in selectedPins
+  props.selectedPins.forEach((exercise) => {
+    const phase = exercise.location.phase;
+    if (exercisesByPhase[phase]) {
+      exercisesByPhase[phase].push(exercise);
+    }
+  });
+
+  // Combine phases in correct order, preserving user order within each phase
+  const result: SelectedPinInfo[] = [];
+  phaseOrder.forEach((phase) => {
+    result.push(...exercisesByPhase[phase]);
+  });
+
+  return result;
+});
 
 // Phase colors for visual distinction
 const getPhaseColor = (phase: string) => {

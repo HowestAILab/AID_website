@@ -28,7 +28,7 @@
         style="scroll-behavior: smooth"
       >
         <UnifiedExerciseCard
-          v-for="(exercise, index) in selectedPins"
+          v-for="(exercise, index) in chronologicallyOrderedPins"
           :key="exercise.originalIndex"
           :title="exercise.name"
           :description="exercise.description"
@@ -67,7 +67,7 @@
       <!-- Grid Layout for PipelinePage -->
       <div class="grid gap-4 auto-fit-minmax">
         <UnifiedExerciseCard
-          v-for="(exercise, index) in selectedPins"
+          v-for="(exercise, index) in chronologicallyOrderedPins"
           :key="exercise.originalIndex"
           :title="exercise.name"
           :description="exercise.description"
@@ -197,12 +197,42 @@ const completedCount = computed(
 );
 const totalCount = computed(() => props.selectedPins.length);
 
-// Get current exercise (first uncompleted or last one)
+// Sort exercises in timeline order (following phase sequence but respecting user ordering within phases)
+const chronologicallyOrderedPins = computed(() => {
+  const phaseOrder = ["Discover", "Define", "Develop", "Deliver"];
+
+  // Group exercises by phase while preserving their order within each phase
+  const exercisesByPhase: Record<string, SelectedPinInfo[]> = {};
+
+  // Initialize phase groups
+  phaseOrder.forEach((phase) => {
+    exercisesByPhase[phase] = [];
+  });
+
+  // Group exercises by phase in the order they appear in selectedPins
+  props.selectedPins.forEach((exercise) => {
+    const phase = exercise.location.phase;
+    if (exercisesByPhase[phase]) {
+      exercisesByPhase[phase].push(exercise);
+    }
+  });
+
+  // Combine phases in correct order, preserving user order within each phase
+  const result: SelectedPinInfo[] = [];
+  phaseOrder.forEach((phase) => {
+    result.push(...exercisesByPhase[phase]);
+  });
+
+  return result;
+});
+
+// Get current exercise (first uncompleted or last one) from chronologically ordered pins
 const getCurrentExercise = (pins: SelectedPinInfo[]) => {
-  const uncompletedExercise = pins.find(
+  const orderedPins = chronologicallyOrderedPins.value;
+  const uncompletedExercise = orderedPins.find(
     (pin) => !isExerciseCompleted(pin.name)
   );
-  return uncompletedExercise || pins[pins.length - 1];
+  return uncompletedExercise || orderedPins[orderedPins.length - 1];
 };
 
 const currentExercise = computed(() => getCurrentExercise(props.selectedPins));
@@ -247,7 +277,11 @@ const formatCompletionDate = (exerciseId: string): string => {
 };
 
 const openExercise = (exercise: SelectedPinInfo, index: number) => {
-  emit("open-exercise", exercise, index);
+  // Find the original index in the selectedPins array
+  const originalIndex = props.selectedPins.findIndex(
+    (pin) => pin.originalIndex === exercise.originalIndex
+  );
+  emit("open-exercise", exercise, originalIndex);
 };
 
 const handleEthicsClick = (exercise: SelectedPinInfo) => {
@@ -259,10 +293,10 @@ const handleEthicsClick = (exercise: SelectedPinInfo) => {
     ethicsModalOpen.value = true;
   } else {
     // Navigate to exercise for pending ethics
-    const index = props.selectedPins.findIndex(
-      (p) => p.originalIndex === exercise.originalIndex
+    const originalIndex = props.selectedPins.findIndex(
+      (pin) => pin.originalIndex === exercise.originalIndex
     );
-    openExercise(exercise, index);
+    openExercise(exercise, originalIndex);
   }
 };
 
