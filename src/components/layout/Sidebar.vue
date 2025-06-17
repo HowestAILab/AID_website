@@ -41,13 +41,13 @@
           <span :class="{ hidden: isCollapsed }">Overview</span>
         </a>
 
-        <!-- Diamond with sub-items -->
+        <!-- Project dropdown with sub-items -->
         <div class="space-y-1">
           <Popover v-model:open="showDiamondPopover" v-if="isCollapsed">
             <PopoverTrigger asChild>
               <a
                 href="#"
-                @click.prevent="handleDiamondClick"
+                @click.prevent="handleProjectClick"
                 @mouseenter="handleDiamondMouseEnter"
                 @mouseleave="handleDiamondMouseLeave"
                 :class="[
@@ -58,7 +58,7 @@
                     : 'hover:bg-gray-100',
                 ]"
               >
-                <Gem class="w-6 h-6" />
+                <FileText class="w-6 h-6" />
               </a>
             </PopoverTrigger>
             <PopoverContent
@@ -94,8 +94,8 @@
                     activeItem === 'diamond' ? 'bg-light' : 'hover:bg-gray-100',
                   ]"
                 >
-                  <RectangleHorizontal class="w-4 h-4 mr-3" />
-                  <span>Canvas</span>
+                  <Gem class="w-4 h-4 mr-3" />
+                  <span>Diamond</span>
                 </a>
                 <a
                   href="#"
@@ -143,20 +143,19 @@
           <a
             v-else
             href="#"
-            @click.prevent="handleDiamondClick"
+            @click.prevent="handleProjectClick"
             :class="[
               'flex items-center text-sm font-medium rounded-full text-[#1C170D] transition-colors',
               isCollapsed ? 'p-2 justify-center' : 'px-3 py-2.5',
+              activeItem === 'diamond' ||
               activeItem === 'diamond-exercises' ||
               activeItem === 'diamond-pipeline' ||
               activeItem === 'diamond-reflexion'
                 ? 'bg-white border border-primary-accent hover:bg-gray-50'
-                : activeItem === 'diamond'
-                ? 'bg-light hover:bg-light/80'
                 : 'hover:bg-gray-100',
             ]"
           >
-            <Gem :class="[isCollapsed ? 'w-6 h-6' : 'w-5 h-5 mr-3']" />
+            <FileText :class="[isCollapsed ? 'w-6 h-6' : 'w-5 h-5 mr-3']" />
             <span
               :class="['truncate', { hidden: isCollapsed }]"
               :title="currentProject?.name"
@@ -173,6 +172,17 @@
           </a>
 
           <div v-if="!isCollapsed && isDiamondExpanded" class="ml-8 space-y-1">
+            <a
+              href="#"
+              @click.prevent="setActive('diamond')"
+              :class="[
+                'flex items-center text-sm font-medium rounded-full text-[#1C170D] px-3 py-2',
+                activeItem === 'diamond' ? 'bg-light' : 'hover:bg-gray-100',
+              ]"
+            >
+              <Gem class="w-4 h-4 mr-3" />
+              <span>Diamond</span>
+            </a>
             <a
               href="#"
               @click.prevent="setActive('diamond-exercises')"
@@ -418,8 +428,9 @@ const setActive = (item: ActiveItem) => {
   }
 };
 
-const handleDiamondClick = () => {
-  setActive("diamond");
+const handleProjectClick = () => {
+  // Toggle the dropdown expansion
+  isDiamondExpanded.value = !isDiamondExpanded.value;
 };
 
 const handleDiamondMouseLeave = () => {
@@ -461,10 +472,12 @@ const handleExportProject = async () => {
   ) {
     try {
       // Import composables dynamically to avoid circular dependencies
-      const { useExerciseChat } = await import('@/composables/useExerciseChat');
-      const { useEthics } = await import('@/composables/useEthics');
-      const { usePipelineProgress } = await import('@/composables/usePipelineProgress');
-      
+      const { useExerciseChat } = await import("@/composables/useExerciseChat");
+      const { useEthics } = await import("@/composables/useEthics");
+      const { usePipelineProgress } = await import(
+        "@/composables/usePipelineProgress"
+      );
+
       const exerciseChat = useExerciseChat();
       const ethics = useEthics();
       const pipelineProgress = usePipelineProgress();
@@ -475,15 +488,15 @@ const handleExportProject = async () => {
         description: currentProject.value.description,
         createdDate: currentProject.value.createdDate,
         selectedPins: currentProject.value.selectedPins,
-        
+
         // Enhanced data
         exerciseChatSessions: exerciseChat.exportChatSessions(),
         ethicsData: ethics.ethicsData.value,
         pipelineProgress: pipelineProgress.exportPipelineData(),
-        
+
         // Export metadata
         exportedAt: new Date().toISOString(),
-        version: '2.0' // Updated version to reflect enhanced export
+        version: "2.0", // Updated version to reflect enhanced export
       };
 
       const jsonString = JSON.stringify(projectData, null, 2);
@@ -501,7 +514,7 @@ const handleExportProject = async () => {
         description: "Project exported with chat history and ethics data.",
       });
     } catch (error) {
-      console.error('Export error:', error);
+      console.error("Export error:", error);
       toast.error("Export Error", {
         description: "Failed to export project data. Please try again.",
       });
