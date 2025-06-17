@@ -44,13 +44,53 @@ export function usePipeline(
     emit("selectedPinsChange", selectedPinData);
   };
 
-  // Handle reordering of pins in the pipeline
+  // Handle reordering of pins in the pipeline (with phase restrictions)
   const handleReorderPins = (fromIndex: number, toIndex: number) => {
     const updatedPins = [...props.selectedPins];
-    const [movedPin] = updatedPins.splice(fromIndex, 1);
-    updatedPins.splice(toIndex, 0, movedPin);
+    const movedPin = updatedPins[fromIndex];
+    const targetPin = updatedPins[toIndex];
+    
+    // Check if the move is within the same phase
+    if (movedPin.location.phase !== targetPin.location.phase) {
+      console.warn(`Cannot move exercise "${movedPin.name}" from ${movedPin.location.phase} phase to ${targetPin.location.phase} phase`);
+      return; // Don't allow cross-phase moves
+    }
+    
+    const [movedExercise] = updatedPins.splice(fromIndex, 1);
+    updatedPins.splice(toIndex, 0, movedExercise);
     
     emit("selectedPinsChange", updatedPins);
+  };
+
+  // Check if drag target is valid (same phase)
+  const canDropAtIndex = (draggedIndex: number, targetIndex: number): boolean => {
+    if (draggedIndex === targetIndex) return false;
+    
+    const draggedExercise = props.selectedPins[draggedIndex];
+    const targetExercise = props.selectedPins[targetIndex];
+    
+    return draggedExercise.location.phase === targetExercise.location.phase;
+  };
+
+  // Get exercises grouped by phase in correct order
+  const getExercisesByPhase = () => {
+    const phaseOrder = ['Discover', 'Define', 'Develop', 'Deliver'];
+    const groupedByPhase: Record<string, typeof props.selectedPins> = {};
+    
+    // Group exercises by phase
+    props.selectedPins.forEach(exercise => {
+      const phase = exercise.location.phase;
+      if (!groupedByPhase[phase]) {
+        groupedByPhase[phase] = [];
+      }
+      groupedByPhase[phase].push(exercise);
+    });
+    
+    // Return phases in correct order with their exercises
+    return phaseOrder.map(phase => ({
+      phase,
+      exercises: groupedByPhase[phase] || []
+    })).filter(group => group.exercises.length > 0);
   };
 
   // Check if exercise is in pipeline
@@ -64,6 +104,8 @@ export function usePipeline(
     updateSelectedPinsFromProp,
     togglePipelineSelection,
     handleReorderPins,
+    canDropAtIndex,
+    getExercisesByPhase,
     isExerciseInPipeline,
   };
 } 

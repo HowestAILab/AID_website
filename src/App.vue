@@ -22,7 +22,7 @@
                 class="absolute bottom-0 bg-gray-300 w-px"
                 :style="{
                   left: offset + 'px',
-                  top: fullHeightLineIndices.includes(index as 0 | 2 | 4 | 6 | 8)
+                  top: isFullHeightLine(index)
                     ? '0px'
                     : labelBarCalculatedTop + 'px',
                   bottom: '0px',
@@ -31,7 +31,7 @@
             </template>
 
             <Tabs
-              :tabs="tabs as unknown as string[]"
+              :tabs="[...tabs]"
               :active-tab="activeTab"
               :grid-layout="gridLayoutForTabs"
               :is-grid-mode="true"
@@ -85,7 +85,7 @@
             :phase="currentPhase"
             :selected-pins="selectedPins"
             @close="handleBackToDiamond"
-            @update:phase="(phase: string) => currentPhase = phase"
+            @update:phase="(phase) => (currentPhase = phase)"
             @selected-pins-change="handleSelectedPinsChange"
           />
           <OverviewPage
@@ -202,9 +202,9 @@ const svgBounds = ref({ left: 0, top: 0, width: 0, height: 0 });
 // Calculate vertical line offsets based on section labels
 const calculatedVerticalLineOffsets = computed(() => {
   if (sectionLabels.value.length === 0) return [];
-  
+
   const offsets: number[] = [];
-  
+
   // Add vertical lines at section boundaries
   for (let i = 0; i < sectionLabels.value.length; i++) {
     const section = sectionLabels.value[i];
@@ -213,39 +213,57 @@ const calculatedVerticalLineOffsets = computed(() => {
     }
     offsets.push(section.left + section.width); // Line at end of each section
   }
-  
+
   return offsets;
 });
 
 // Compute grid layout data for tabs
 const gridLayoutForTabs = computed(() => {
   if (sectionLabels.value.length === 0 || !svgBounds.value.width) return null;
-  
+
   return {
     sectionLabels: sectionLabels.value,
     svgBounds: svgBounds.value,
   };
 });
 
+// Helper function to check if a line index is full height
+const isFullHeightLine = (index: number): boolean => {
+  return fullHeightLineIndices.includes(index as 0 | 2 | 4 | 6 | 8);
+};
+
+// Handle expanding pipeline
 const handleExpandPipeline = () => {
   // Pipeline expansion is now handled by CurrentPipelineSection
 };
 
-// Handle reordering of pins in the pipeline
+// Handle reordering of pins in the pipeline (with phase restrictions)
 const handleReorderPins = (fromIndex: number, toIndex: number) => {
   const updatedPins = [...selectedPins.value];
-  const [movedPin] = updatedPins.splice(fromIndex, 1);
-  updatedPins.splice(toIndex, 0, movedPin);
-  
+  const movedPin = updatedPins[fromIndex];
+  const targetPin = updatedPins[toIndex];
+
+  // Check if the move is within the same phase
+  if (movedPin.location.phase !== targetPin.location.phase) {
+    console.warn("Cannot move exercise to different phase");
+    return; // Don't allow cross-phase moves
+  }
+
+  const [movedExercise] = updatedPins.splice(fromIndex, 1);
+  updatedPins.splice(toIndex, 0, movedExercise);
+
   handleSelectedPinsChange(updatedPins);
 };
 
 // Handle opening exercise from pipeline
-const handleOpenExerciseFromPipeline = (exercise: SelectedPinInfo, index: number) => {
+const handleOpenExerciseFromPipeline = (
+  exercise: SelectedPinInfo,
+  index: number
+) => {
   // Set the pending exercise to open
   setPendingExerciseOpen(exercise, index);
   // Navigate to pipeline page and the exercise will be opened automatically
-  handleNavigate('pipeline');
+  handleNavigate("pipeline");
 };
 
 // Handle layout updates from DiamondGrid
@@ -255,22 +273,23 @@ const handleLayoutUpdate = (layout: {
   svgBounds: { left: number; top: number; width: number; height: number };
 }) => {
   sectionLabels.value = layout.sectionLabels;
-  addExercisesButtonCenterOffsets.value = layout.addExercisesButtonCenterOffsets;
+  addExercisesButtonCenterOffsets.value =
+    layout.addExercisesButtonCenterOffsets;
   svgBounds.value = layout.svgBounds;
 };
 
 // Wrapper functions that include layout updates
 const updateLayoutWithConfigs = () => {
   updateLayout(buttonRefs);
-  
+
   // Calculate actual available dimensions from the main element
   if (mainElementRef.value) {
     const mainWidth = mainElementRef.value.clientWidth;
     const mainHeight = mainElementRef.value.clientHeight;
-    
+
     // Account for the tabs height (approximately 40px) and label bar (40px)
     const availableHeight = mainHeight - 80;
-    
+
     updateContainerDimensions(mainWidth, Math.max(availableHeight, 400));
   } else {
     // Fallback to default dimensions
