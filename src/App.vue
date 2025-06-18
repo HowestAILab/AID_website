@@ -110,6 +110,14 @@
             <p class="text-gray-500">Tools page</p>
             <!-- Todo tools page -->
           </div>
+          <Button
+            v-if="currentPage === 'diamond' && isPipelineReady"
+            @click="handleNavigate('pipeline')"
+            class="absolute bottom-6 right-6 z-50 bg-primary-accent hover:bg-primary-accent/90 text-white"
+          >
+            <Play class="w-4 h-4 mr-2" />
+            Go to Pipeline
+          </Button>
         </main>
       </div>
 
@@ -140,6 +148,8 @@ import PipelinePage from "./components/pipeline/PipelinePage.vue";
 import ReflexionPage from "./components/project/ReflexionPage.vue";
 import LoginPage from "./components/layout/LoginPage.vue";
 import { Toaster } from "@/components/ui/sonner";
+import { Button } from "@/components/ui/button";
+import { Play } from "lucide-vue-next";
 import { TABS } from "@/constants/app";
 
 import { useAuth } from "@/composables/useAuth";
@@ -194,6 +204,17 @@ const {
 
 const { setPendingExerciseOpen, setCurrentActiveExercise } =
   usePipelineNavigation();
+
+const isPipelineReady = computed(() => {
+  if (selectedPins.value.length < 4) return false;
+  const phases = new Set(selectedPins.value.map((p) => p.location.phase));
+  return (
+    phases.has("Discover") &&
+    phases.has("Define") &&
+    phases.has("Develop") &&
+    phases.has("Deliver")
+  );
+});
 
 // Layout data from DiamondGrid
 const sectionLabels = ref<{ text: string; left: number; width: number }[]>([]);
