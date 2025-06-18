@@ -10,9 +10,10 @@
   </div>
   <apexchart
     v-else
-    class="w-[80%]"
+    class="w-full h-full"
     type="bar"
-    height="400"
+    height="100%"
+    width="100%"
     :options="chartOptions"
     :series="chartSeries"
   />
@@ -101,7 +102,6 @@ const maxStackedCount = computed(() => {
 const chartOptions = computed(() => ({
   chart: {
     type: "bar",
-    height: 400,
     stacked: true,
     toolbar: {
       show: false,
