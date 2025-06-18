@@ -22,7 +22,7 @@
 
       <div class="w-px h-6 bg-gray-300"></div>
 
-       <!-- Action Buttons -->
+      <!-- Action Buttons -->
       <div class="flex items-center gap-2">
         <button
           v-for="tool in actionTools"
@@ -86,7 +86,11 @@
     </div>
 
     <!-- Canvas Container -->
-    <div ref="canvasContainer" class="flex-1 relative overflow-hidden">
+    <div
+      ref="canvasContainer"
+      class="flex-1 relative overflow-hidden"
+      :key="canvasRerenderKey"
+    >
       <v-stage
         ref="stageRef"
         :config="stageConfig"
@@ -426,10 +430,10 @@ import {
   Undo2,
   Redo2,
 } from "lucide-vue-next";
-import type { KonvaEventObject } from 'konva/lib/Node';
-import type { Stage } from 'konva/lib/Stage';
-import type { Shape } from 'konva/lib/Shape';
-import type { Transformer } from 'konva/lib/shapes/Transformer';
+import type { KonvaEventObject } from "konva/lib/Node";
+import type { Stage } from "konva/lib/Stage";
+import type { Shape } from "konva/lib/Shape";
+import type { Transformer } from "konva/lib/shapes/Transformer";
 import CanvasModal from "./CanvasModal.vue";
 import empathyMappingSvg from "@/assets/F1L1 Empathy mapping FLAT.svg";
 
@@ -477,8 +481,8 @@ interface LineObject {
   points: number[];
   stroke: string;
   strokeWidth: number;
-  lineCap: 'round' | 'butt' | 'square';
-  lineJoin: 'round' | 'bevel' | 'miter';
+  lineCap: "round" | "butt" | "square";
+  lineJoin: "round" | "bevel" | "miter";
   draggable: boolean;
 }
 
@@ -491,6 +495,12 @@ const transformerRef = ref();
 const fullscreenTransformerRef = ref();
 const textEditorRef = ref<HTMLTextAreaElement | null>(null);
 const imageUrlInputRef = ref<HTMLInputElement>();
+
+// Use ResizeObserver for robust container size updates
+let resizeObserver: ResizeObserver | null = null;
+
+// Key to force rerender of canvas container
+const canvasRerenderKey = ref(0);
 
 // Canvas state
 const stageWidth = ref(800);
@@ -520,8 +530,20 @@ const tools = [
 ];
 
 const actionTools = [
-  { id: 'undo', name: 'Undo', icon: Undo2, action: handleUndo, disabled: computed(() => historyStep.value <= 0) },
-  { id: 'redo', name: 'Redo', icon: Redo2, action: handleRedo, disabled: computed(() => historyStep.value >= history.value.length - 1) },
+  {
+    id: "undo",
+    name: "Undo",
+    icon: Undo2,
+    action: handleUndo,
+    disabled: computed(() => historyStep.value <= 0),
+  },
+  {
+    id: "redo",
+    name: "Redo",
+    icon: Redo2,
+    action: handleRedo,
+    disabled: computed(() => historyStep.value >= history.value.length - 1),
+  },
 ];
 
 const activeTool = ref("select");
@@ -542,14 +564,14 @@ const currentLine = ref<any | null>(null);
 const isEditingText = ref(false);
 const currentTextEdit = ref<any>({
   id: null,
-  text: '',
+  text: "",
   x: 0,
   y: 0,
   width: 0,
   height: 0,
   fontSize: 18,
-  fontFamily: 'Arial',
-  fill: '#000000',
+  fontFamily: "Arial",
+  fill: "#000000",
 });
 
 // Image input modal
@@ -583,9 +605,9 @@ const transformerConfig = computed(() => ({
 }));
 
 const textEditorStyle = computed(() => {
-  if (!isEditingText.value) return { display: 'none' };
+  if (!isEditingText.value) return { display: "none" };
   const stage = getStage();
-  if (!stage) return { display: 'none' };
+  if (!stage) return { display: "none" };
 
   const scale = stage.scaleX();
   const position = {
@@ -594,8 +616,8 @@ const textEditorStyle = computed(() => {
   };
 
   return {
-    display: 'block',
-    position: 'absolute' as 'absolute',
+    display: "block",
+    position: "absolute" as "absolute",
     top: `${position.y}px`,
     left: `${position.x}px`,
     width: `${currentTextEdit.value.width * scale}px`,
@@ -672,6 +694,27 @@ const initializeCanvas = () => {
   backgroundX.value = (containerWidth - backgroundWidth.value) / 2;
   backgroundY.value = (containerHeight - backgroundHeight.value) / 2;
 };
+
+// Setup ResizeObserver for canvasContainer
+const setupResizeObserver = () => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
+  if (canvasContainer.value) {
+    resizeObserver = new ResizeObserver(() => {
+      initializeCanvas();
+    });
+    resizeObserver.observe(canvasContainer.value);
+  }
+};
+
+// Watch for fullscreen toggle to re-initialize canvas size
+watch(isFullscreen, async (val) => {
+  await nextTick();
+  setupResizeObserver();
+  initializeCanvas();
+});
 
 const loadBackgroundImage = () => {
   const img = new Image();
@@ -847,9 +890,9 @@ const createNewText = (x: number, y: number) => {
     id,
     x,
     y,
-    text: 'Type something...',
+    text: "Type something...",
     fontSize: 18,
-    fontFamily: 'Arial',
+    fontFamily: "Arial",
     fill: currentColor.value,
     draggable: true,
     width: 150,
@@ -862,15 +905,15 @@ const createNewText = (x: number, y: number) => {
 };
 
 const editText = (textObj: TextObject) => {
-  if (activeTool.value !== 'text' && activeTool.value !== 'select') return;
-  
+  if (activeTool.value !== "text" && activeTool.value !== "select") return;
+
   // Find the text object in our array to make sure we have the reactive version
-  const objectInArray = textObjects.value.find(t => t.id === textObj.id);
+  const objectInArray = textObjects.value.find((t) => t.id === textObj.id);
   if (!objectInArray) return;
 
   // Hide the Konva text object while editing
   const originalText = objectInArray.text;
-  objectInArray.text = '';
+  objectInArray.text = "";
 
   isEditingText.value = true;
   currentTextEdit.value = {
@@ -889,12 +932,16 @@ const editText = (textObj: TextObject) => {
 const finishTextEdit = () => {
   if (!isEditingText.value) return;
 
-  const editedObj = textObjects.value.find(t => t.id === currentTextEdit.value.id);
+  const editedObj = textObjects.value.find(
+    (t) => t.id === currentTextEdit.value.id
+  );
 
   if (editedObj) {
-    if (currentTextEdit.value.text.trim() === '') {
+    if (currentTextEdit.value.text.trim() === "") {
       // If text is empty, remove the object
-      const index = textObjects.value.findIndex(t => t.id === currentTextEdit.value.id);
+      const index = textObjects.value.findIndex(
+        (t) => t.id === currentTextEdit.value.id
+      );
       if (index > -1) {
         textObjects.value.splice(index, 1);
       }
@@ -908,7 +955,7 @@ const finishTextEdit = () => {
   }
 
   isEditingText.value = false;
-  currentTextEdit.value = { id: null, text: '' };
+  currentTextEdit.value = { id: null, text: "" };
   saveState();
 };
 
@@ -919,13 +966,13 @@ const updateTextareaSize = () => {
   const stage = getStage();
   if (!stage) return;
   const scale = stage.scaleX();
-  
+
   // Temporarily reset height to auto to get the new scroll height
-  textarea.style.height = 'auto';
+  textarea.style.height = "auto";
   const newHeight = textarea.scrollHeight;
 
   // also calculate width
-  textarea.style.width = 'auto';
+  textarea.style.width = "auto";
   textarea.style.width = `${textarea.scrollWidth}px`;
   const newWidth = textarea.scrollWidth;
 
@@ -1031,7 +1078,11 @@ const saveCanvas = () => {
 function saveState() {
   const state = {
     texts: JSON.parse(JSON.stringify(textObjects.value)),
-    images: JSON.parse(JSON.stringify(imageObjects.value.map(img => ({ ...img, image: undefined })))),
+    images: JSON.parse(
+      JSON.stringify(
+        imageObjects.value.map((img) => ({ ...img, image: undefined }))
+      )
+    ),
     lines: JSON.parse(JSON.stringify(drawingLines.value)),
   };
 
@@ -1066,12 +1117,12 @@ function restoreState(fromHistory = true) {
     img.src = imgConfig.src;
     img.crossOrigin = "anonymous";
     img.onload = () => {
-      const existing = imageObjects.value.find(i => i.id === imgConfig.id);
+      const existing = imageObjects.value.find((i) => i.id === imgConfig.id);
       if (existing) {
         existing.image = img;
         // Redraw layer after image loads
         layerRef.value?.getNode().batchDraw();
-        fullscreenStageRef.value?.getNode().findOne('Layer').batchDraw();
+        fullscreenStageRef.value?.getNode().findOne("Layer").batchDraw();
       }
     };
     return { ...imgConfig, image: img };
@@ -1120,8 +1171,15 @@ onMounted(() => {
 
   loadFromLocalStorage();
 
+  // Setup ResizeObserver for initial mount
+  nextTick(() => {
+    setupResizeObserver();
+    initializeCanvas();
+  });
+
   return () => {
     window.removeEventListener("resize", handleResize);
+    if (resizeObserver) resizeObserver.disconnect();
   };
 });
 </script>
@@ -1129,13 +1187,21 @@ onMounted(() => {
 <style scoped>
 /* Animation classes for smooth modal transitions */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes zoomIn {
-  from { transform: scale(0.95); }
-  to { transform: scale(1); }
+  from {
+    transform: scale(0.95);
+  }
+  to {
+    transform: scale(1);
+  }
 }
 
 .animate-in {
