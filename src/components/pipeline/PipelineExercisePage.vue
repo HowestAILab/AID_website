@@ -437,15 +437,15 @@ const goToNextExercise = () => {
 
 const requestExerciseChange = (targetIndex: number) => {
   // Check for post-ethics on the CURRENT exercise before navigating away.
+  // Show the modal but don't block navigation - user can dismiss and still navigate
   const currentStatus = ethics.getExerciseEthicsStatus(props.exercise);
   if (currentStatus.afterRequired && !currentStatus.afterCompleted) {
+    // Show ethics modal as a reminder, but allow navigation regardless
     pendingNavigationIndex.value = targetIndex;
     openEthicsModalForExercise(props.exercise);
-    return;
   }
 
-  // If no post-ethics block, navigate immediately.
-  // The pre-ethics check for the target exercise will be handled by the watcher.
+  // Navigate immediately - ethics modal is shown as optional reminder
   emit("navigate-to-exercise", targetIndex);
 };
 
@@ -460,25 +460,18 @@ const markAsIncomplete = () => {
 
 // Modal Close Handler for Pending Navigation
 const handleModalClose = () => {
-  if (pendingNavigationIndex.value !== null) {
-    // A navigation was pending. Check if the requirement is now met.
-    const currentStatus = ethics.getExerciseEthicsStatus(props.exercise);
-    if (!currentStatus.afterRequired || currentStatus.afterCompleted) {
-      // Requirement met, proceed with navigation.
-      emit("navigate-to-exercise", pendingNavigationIndex.value);
-    }
-    // Whether it was met or not, we clear the pending navigation.
-    // If not met, the navigation is simply cancelled.
-    pendingNavigationIndex.value = null;
-  }
+  // Clear any pending navigation when modal closes
+  // Don't check requirements - user can navigate freely
+  pendingNavigationIndex.value = null;
   ethics.handleEthicsCancel();
 };
 
 // Ethics event handlers
 const handleEthicsSubmit = (data: any) => {
   ethics.handleEthicsSubmit(data);
-  // The check for pending navigation will happen when the modal closes.
   ethicsBlockingMessage.value = null;
+  // Clear pending navigation since user has engaged with ethics
+  pendingNavigationIndex.value = null;
 };
 
 const handleCancel = () => {
@@ -558,6 +551,7 @@ const initializeAndCheckEthics = (exercise: SelectedPinInfo) => {
   pendingNavigationIndex.value = null; // Reset pending navigation on new page.
 
   // Check for pre-ethics requirement on the newly loaded exercise
+  // Show the modal but don't block the user - they can dismiss and continue
   const status = ethics.getExerciseEthicsStatus(exercise);
   if (status.beforeRequired && !status.beforeCompleted) {
     nextTick(() => {
