@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue';
 import { useProjects } from './useProjects';
+import { usePipelineNavigation } from './usePipelineNavigation';
 import type { DriveType, Exercise } from '@/types/exercise';
 
 interface SelectedPin {
@@ -18,6 +19,7 @@ const CURRENT_PAGE_STORAGE_KEY = 'aid-current-page';
 
 export function useNavigation() {
   const { currentProject, hasProjects } = useProjects();
+  const { setCurrentActiveExercise } = usePipelineNavigation();
   
   const currentPage = ref('overview');
   const currentPhase = ref('Discover');
@@ -79,6 +81,11 @@ export function useNavigation() {
   });
 
   const handleNavigate = (page: string) => {
+    // Clear current active exercise when navigating away from pipeline
+    if (currentPage.value === 'pipeline' && page !== 'pipeline') {
+      setCurrentActiveExercise(null);
+    }
+    
     // If no project is selected, stay on overview
     if ((page === 'diamond' || page === 'exercises' || page === 'pipeline' || page === 'reflexion') && !currentProject.value) {
       currentPage.value = 'overview';
@@ -104,6 +111,10 @@ export function useNavigation() {
   };
 
   const handleBackToDiamond = () => {
+    // Clear current active exercise when leaving pipeline
+    if (currentPage.value === 'pipeline') {
+      setCurrentActiveExercise(null);
+    }
     currentPage.value = 'diamond';
     currentPhase.value = '';
   };

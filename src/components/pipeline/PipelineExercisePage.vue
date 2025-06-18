@@ -39,7 +39,7 @@
                     <span
                       class="bg-[#F59E0C] text-white font-semibold rounded-sm px-2 py-0.5 text-sm shrink-0"
                     >
-                      {{ index + 1 }}
+                      {{ pipelineExercise.originalIndex + 1 }}
                     </span>
                     <div class="flex-1 min-w-0">
                       <span class="font-medium block truncate">{{

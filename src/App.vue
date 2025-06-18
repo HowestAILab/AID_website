@@ -192,7 +192,8 @@ const {
   setupResizeListener,
 } = useLayout();
 
-const { setPendingExerciseOpen } = usePipelineNavigation();
+const { setPendingExerciseOpen, setCurrentActiveExercise } =
+  usePipelineNavigation();
 
 // Layout data from DiamondGrid
 const sectionLabels = ref<{ text: string; left: number; width: number }[]>([]);

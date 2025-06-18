@@ -4,7 +4,7 @@
     <template v-if="currentExercise">
       <PipelineExercisePage
         :exercise="currentExercise"
-        :all-exercises="selectedPins"
+        :all-exercises="chronologicallyOrderedPins"
         :current-exercise-index="currentExerciseIndex"
         :pending-ethics-viewer="pendingEthicsViewerOpen"
         @back="handleBackToPipeline"
@@ -72,7 +72,7 @@
       <!-- Overview View -->
       <PipelineOverviewView
         v-if="currentView === 'overview'"
-        :selected-pins="selectedPins"
+        :selected-pins="chronologicallyOrderedPins"
         :mode="'full'"
         @open-exercise="handleOpenExerciseFromOverview"
         @edit-ethics="handleEditEthicsFromOverview"
@@ -81,7 +81,7 @@
       <!-- Phases View -->
       <PipelinePhasesView
         v-else-if="currentView === 'phases'"
-        :selected-pins="selectedPins"
+        :selected-pins="chronologicallyOrderedPins"
         @open-exercise="openExercise"
         @open-ethics="openEthicsForExercise"
         @go-to-diamond="$emit('close')"
@@ -116,7 +116,8 @@ const { getCurrentExercise } = usePipelineProgress();
 
 // Ethics handling is now done in PipelineExercisePage
 
-const { getPendingExerciseOpen } = usePipelineNavigation();
+const { getPendingExerciseOpen, setCurrentActiveExercise } =
+  usePipelineNavigation();
 
 // View state
 const currentView = ref<"overview" | "phases">("phases");
@@ -152,6 +153,35 @@ const currentExerciseToWork = computed(() =>
   getCurrentExercise(props.selectedPins)
 );
 
+// Sort exercises in timeline order (following phase sequence but respecting user ordering within phases)
+const chronologicallyOrderedPins = computed(() => {
+  const phaseOrder = ["Discover", "Define", "Develop", "Deliver"];
+
+  // Group exercises by phase while preserving their order within each phase
+  const exercisesByPhase: Record<string, SelectedPinInfo[]> = {};
+
+  // Initialize phase groups
+  phaseOrder.forEach((phase) => {
+    exercisesByPhase[phase] = [];
+  });
+
+  // Group exercises by phase in the order they appear in selectedPins
+  props.selectedPins.forEach((exercise) => {
+    const phase = exercise.location.phase;
+    if (exercisesByPhase[phase]) {
+      exercisesByPhase[phase].push(exercise);
+    }
+  });
+
+  // Combine phases in correct order, preserving user order within each phase
+  const result: SelectedPinInfo[] = [];
+  phaseOrder.forEach((phase) => {
+    result.push(...exercisesByPhase[phase]);
+  });
+
+  return result;
+});
+
 // Helper functions
 const setCurrentView = (view: "overview" | "phases") => {
   currentView.value = view;
@@ -160,12 +190,13 @@ const setCurrentView = (view: "overview" | "phases") => {
 
 // Exercise navigation
 const openExercise = (exercise: SelectedPinInfo) => {
-  const index = props.selectedPins.findIndex(
+  const index = chronologicallyOrderedPins.value.findIndex(
     (pin) => pin.originalIndex === exercise.originalIndex
   );
   if (index >= 0) {
     currentExercise.value = exercise;
     currentExerciseIndex.value = index;
+    setCurrentActiveExercise(exercise);
   }
 };
 
@@ -178,12 +209,17 @@ const openCurrentExercise = () => {
 const handleBackToPipeline = () => {
   currentExercise.value = null;
   currentExerciseIndex.value = 0;
+  setCurrentActiveExercise(null);
 };
 
 const handleNavigateToExercise = (exerciseIndex: number) => {
-  if (exerciseIndex >= 0 && exerciseIndex < props.selectedPins.length) {
+  if (
+    exerciseIndex >= 0 &&
+    exerciseIndex < chronologicallyOrderedPins.value.length
+  ) {
     currentExerciseIndex.value = exerciseIndex;
-    currentExercise.value = props.selectedPins[exerciseIndex];
+    currentExercise.value = chronologicallyOrderedPins.value[exerciseIndex];
+    setCurrentActiveExercise(chronologicallyOrderedPins.value[exerciseIndex]);
   }
 };
 
@@ -211,7 +247,9 @@ const handleEditEthicsFromOverview = (
 const openEthicsForExercise = (exercise: SelectedPinInfo) => {
   // Since PipelinePhasesView now handles ethics directly with UnifiedEthicsModal,
   // this function should not be called. However, if it is called, open the exercise.
-  console.warn('openEthicsForExercise called in PipelinePage - this should be handled in PipelinePhasesView directly');
+  console.warn(
+    "openEthicsForExercise called in PipelinePage - this should be handled in PipelinePhasesView directly"
+  );
   openExercise(exercise);
 };
 </script>

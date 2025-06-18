@@ -123,6 +123,9 @@
                         selectedPins.findIndex(
                           (p) => p.originalIndex === exercise.originalIndex
                         ),
+                    'bg-primary-accent border-primary-accent ring-2 ring-primary-accent/50':
+                      currentActiveExercise?.originalIndex ===
+                      exercise.originalIndex,
                     'opacity-30':
                       draggedIndex !== null &&
                       draggedIndex !==
@@ -138,7 +141,13 @@
                   }"
                 >
                   <span
-                    class="text-gray-800 text-xs transform -rotate-45 font-bold"
+                    class="text-xs transform -rotate-45 font-bold"
+                    :class="
+                      currentActiveExercise?.originalIndex ===
+                      exercise.originalIndex
+                        ? 'text-white'
+                        : 'text-gray-800'
+                    "
                   >
                     {{ exercise.originalIndex + 1 }}
                   </span>
@@ -386,6 +395,7 @@ import { usePipeline } from "@/composables/usePipeline";
 import { useExercises } from "@/composables/useExercises";
 import { useExerciseChat } from "@/composables/useExerciseChat";
 import { useEthics } from "@/composables/useEthics";
+import { usePipelineNavigation } from "@/composables/usePipelineNavigation";
 import type { SelectedPinInfo } from "@/types/exercise";
 
 const props = defineProps<{
@@ -410,6 +420,7 @@ const {
 } = usePipelineProgress();
 const { getChatStats } = useExerciseChat();
 const ethics = useEthics();
+const { getCurrentActiveExercise } = usePipelineNavigation();
 
 const { allStaticExercises } = useExercises();
 const { canDropAtIndex, getExercisesByPhase } = usePipeline(
@@ -435,6 +446,7 @@ const overallProgress = computed(() =>
 );
 const currentExercise = computed(() => getCurrentExercise(props.selectedPins));
 const exercisesByPhase = computed(() => getExercisesByPhase());
+const currentActiveExercise = computed(() => getCurrentActiveExercise());
 
 // Sort exercises in timeline order (following phase sequence but respecting user ordering within phases)
 const chronologicallyOrderedPins = computed(() => {
@@ -566,7 +578,15 @@ const handleDrop = (event: DragEvent, toIndex: number) => {
 const getCardStateClasses = (exercise: SelectedPinInfo) => {
   const classes = [];
 
-  if (isCurrentExercise(exercise) && !isExerciseCompleted(exercise.name)) {
+  // Check if this is the currently active exercise in the pipeline page
+  if (currentActiveExercise.value?.originalIndex === exercise.originalIndex) {
+    classes.push(
+      "ring-2 ring-orange-500 ring-opacity-50 border-orange-500/50 bg-orange-50 border-orange-200"
+    );
+  } else if (
+    isCurrentExercise(exercise) &&
+    !isExerciseCompleted(exercise.name)
+  ) {
     classes.push(
       "ring-2 ring-primary-accent ring-opacity-50 border-primary-accent/30 bg-blue-50 border-blue-200"
     );

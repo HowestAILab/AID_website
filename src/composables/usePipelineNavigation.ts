@@ -7,6 +7,7 @@ interface PendingExerciseOpen {
 }
 
 const pendingExerciseOpen = ref<PendingExerciseOpen | null>(null)
+const currentActiveExercise = ref<SelectedPinInfo | null>(null)
 
 export function usePipelineNavigation() {
   const setPendingExerciseOpen = (exercise: SelectedPinInfo, index: number) => {
@@ -23,9 +24,19 @@ export function usePipelineNavigation() {
     pendingExerciseOpen.value = null
   }
 
+  const setCurrentActiveExercise = (exercise: SelectedPinInfo | null) => {
+    currentActiveExercise.value = exercise
+  }
+
+  const getCurrentActiveExercise = () => {
+    return currentActiveExercise.value
+  }
+
   return {
     setPendingExerciseOpen,
     getPendingExerciseOpen,
-    clearPendingExerciseOpen
+    clearPendingExerciseOpen,
+    setCurrentActiveExercise,
+    getCurrentActiveExercise
   }
 } 
