@@ -44,6 +44,22 @@ export function useExercises() {
         const parsedExercises: Exercise[] = JSON.parse(storedCustomExercises);
         customExercises.value = parsedExercises.map((ex) => ({
           ...ex,
+          // Ensure all required fields exist for backward compatibility
+          how_to_run: ex.how_to_run || [
+            "This is a custom exercise",
+            "Follow your defined process",
+            "Document your findings"
+          ],
+          expected_outcomes: ex.expected_outcomes || [
+            "Custom defined outcomes",
+            "Process insights",
+            "Documentation of results"
+          ],
+          human_ai_collaboration: ex.human_ai_collaboration || {
+            human_role: "Lead the exercise and make key decisions",
+            ai_role: "Provide support and suggestions as needed",
+            collaboration_notes: "Customize the collaboration approach based on your needs"
+          }
         }));
       } catch (e) {
         console.error("Error parsing custom exercises from local storage:", e);
@@ -118,6 +134,21 @@ export function useExercises() {
       prompt_example: [],
       ethical: { before: [], after: [] },
       miro_board: "",
+      how_to_run: [
+        "This is a custom exercise",
+        "Follow your defined process",
+        "Document your findings"
+      ],
+      expected_outcomes: [
+        "Custom defined outcomes",
+        "Process insights",
+        "Documentation of results"
+      ],
+      human_ai_collaboration: {
+        human_role: "Lead the exercise and make key decisions",
+        ai_role: "Provide support and suggestions as needed",
+        collaboration_notes: "Customize the collaboration approach based on your needs"
+      },
       isCustom: true,
     };
     customExercises.value.push(newExercise);
@@ -152,6 +183,21 @@ export function useExercises() {
         prompt_example: [],
         ethical: { before: [], after: [] },
         miro_board: "",
+        how_to_run: [
+          "This is a custom exercise",
+          "Follow your defined process",
+          "Document your findings"
+        ],
+        expected_outcomes: [
+          "Custom defined outcomes",
+          "Process insights",
+          "Documentation of results"
+        ],
+        human_ai_collaboration: {
+          human_role: "Lead the exercise and make key decisions",
+          ai_role: "Provide support and suggestions as needed",
+          collaboration_notes: "Customize the collaboration approach based on your needs"
+        },
         isCustom: true,
       };
       localStorage.setItem(

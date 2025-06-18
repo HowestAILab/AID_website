@@ -89,12 +89,17 @@
 
         <!-- Exercise Info -->
         <div class="px-6 flex items-center gap-4 mb-2">
-          <p
-            class="text-sm bg-[#F59E0C] text-white font-semibold rounded-sm px-2 py-0.5"
-          >
-            {{ currentExerciseIndex + 1 }} of {{ allExercises.length }}
-          </p>
-          <h2 class="text-2xl font-semibold">{{ exercise.name }}</h2>
+          <div class="flex items-center gap-2">
+            <h2 class="text-2xl font-semibold">{{ exercise.name }}</h2>
+            <!-- Info icon for exercise details -->
+            <button
+              @click="openExerciseDetails"
+              class="p-1 rounded-full hover:bg-gray-100 transition-colors"
+              title="View exercise details"
+            >
+              <Info class="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
 
           <!-- Drive Type Badge -->
           <div
@@ -171,55 +176,6 @@
         </div>
 
         <!-- Exercise Description -->
-        <div class="px-6 text-gray-600 mb-4">
-          <p>{{ exercise.description }}</p>
-
-          <!-- Ethics blocking warning -->
-          <div
-            v-if="ethicsBlockingMessage"
-            class="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-md"
-          >
-            <div class="flex items-center gap-2 text-purple-800">
-              <Shield class="w-4 h-4" />
-              <span class="font-medium">Ethics Review Required</span>
-            </div>
-            <p class="text-sm text-purple-700 mt-1">
-              {{ ethicsBlockingMessage }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Progress Indicators -->
-        <div class="px-6 mb-4">
-          <div class="flex items-center gap-6 text-sm">
-            <!-- Ethics Status -->
-            <div
-              v-if="exerciseEthicsStatus.hasAnyRequirement"
-              class="flex items-center gap-2"
-            >
-              <Shield class="w-4 h-4" />
-              <span class="text-gray-600">Ethics:</span>
-              <span
-                :class="
-                  exerciseEthicsStatus.allCompleted
-                    ? 'text-green-600 font-medium'
-                    : 'text-orange-600'
-                "
-              >
-                {{ getEthicsStatusText() }}
-              </span>
-            </div>
-
-            <!-- Chat Messages -->
-            <div class="flex items-center gap-2">
-              <MessageSquare class="w-4 h-4" />
-              <span class="text-gray-600">Chat:</span>
-              <span class="text-gray-500"
-                >{{ currentChatMessageCount }} user messages</span
-              >
-            </div>
-          </div>
-        </div>
 
         <!-- Main Content Area -->
         <div class="flex-1 min-h-0">
@@ -262,10 +218,26 @@
     @submit="handleEthicsSubmit"
     @cancel="handleCancel"
   />
+
+  <!-- Exercise Specific Modal -->
+  <component
+    v-if="showExerciseModal && exerciseData"
+    :is="ExerciseSpecificModal"
+    :open="showExerciseModal"
+    :exercise="exerciseData"
+    @update:open="showExerciseModal = $event"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watch, nextTick } from "vue";
+import {
+  computed,
+  ref,
+  onMounted,
+  watch,
+  nextTick,
+  defineAsyncComponent,
+} from "vue";
 import {
   ArrowLeft,
   UserRound,
@@ -280,6 +252,7 @@ import {
   Shield,
   MessageSquare,
   Eye,
+  Info,
 } from "lucide-vue-next";
 import {
   ResizableHandle,
@@ -298,8 +271,14 @@ import UnifiedEthicsModal from "@/components/ethics/UnifiedEthicsModal.vue";
 import { usePipelineProgress } from "@/composables/usePipelineProgress";
 import { useEthics } from "@/composables/useEthics";
 import { useExerciseChat } from "@/composables/useExerciseChat";
+import { useExercises } from "@/composables/useExercises";
 import type { SelectedPinInfo } from "@/types/exercise";
 import CustomCanvas from "@/components/canvas/CustomCanvas.vue";
+
+// Lazy load the modal component
+const ExerciseSpecificModal = defineAsyncComponent(
+  () => import("@/components/exercise/ExerciseSpecificModal.vue")
+);
 
 type DriveType = "human" | "human-ai" | "ai";
 
@@ -326,10 +305,13 @@ const {
   setCurrentExercise,
 } = useExerciseChat();
 
+const { getExerciseByIndex } = useExercises();
+
 // Local state
 const currentChatMessageCount = ref(0);
 const ethicsBlockingMessage = ref<string | null>(null);
 const pendingNavigationIndex = ref<number | null>(null);
+const showExerciseModal = ref(false);
 
 // Computed properties
 const derivedDriveType = computed<DriveType>(() => {
@@ -371,6 +353,41 @@ const canGoNext = computed(
 const exerciseEthicsStatus = computed(() => {
   return ethics.getExerciseEthicsStatus(props.exercise);
 });
+
+// Get exercise data for the modal
+const exerciseData = computed(() => {
+  // Try to get exercise from useExercises composable first
+  const exerciseFromComposable = getExerciseByIndex(
+    props.exercise.originalIndex
+  );
+
+  if (exerciseFromComposable) {
+    return exerciseFromComposable;
+  }
+
+  // Fallback: construct exercise object from available props
+  return {
+    name: props.exercise.name,
+    description: props.exercise.description,
+    location: props.exercise.location,
+    prompt_example: ["Information not available for this exercise"],
+    ethical: props.exercise.ethical || { before: [], after: [] },
+    miro_board: "",
+    how_to_run: ["Information not available for this exercise"],
+    expected_outcomes: ["Information not available for this exercise"],
+    human_ai_collaboration: {
+      human_role: "Information not available for this exercise",
+      ai_role: "Information not available for this exercise",
+      collaboration_notes: "Information not available for this exercise",
+    },
+    originalIndex: props.exercise.originalIndex,
+  };
+});
+
+// Exercise Modal Functions
+const openExerciseDetails = () => {
+  showExerciseModal.value = true;
+};
 
 // Helper functions
 const convertChatMessages = (messages: any[]) => {

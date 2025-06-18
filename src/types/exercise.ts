@@ -19,6 +19,13 @@ export interface Exercise {
     after: EthicsRequirement[] | EthicsRequirement;
   };
   miro_board: string;
+  how_to_run: string[];
+  expected_outcomes: string[];
+  human_ai_collaboration: {
+    human_role: string;
+    ai_role: string;
+    collaboration_notes: string;
+  };
   isCustom?: boolean;
   originalIndex?: number;
 }

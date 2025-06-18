@@ -15,9 +15,18 @@
       <PopoverContent v-if="selectedPin" class="w-80">
         <div class="space-y-4">
           <div class="space-y-2">
-            <h4 class="font-medium leading-none">
-              {{ selectedPin.labelConfig.text }}
-            </h4>
+            <div class="flex items-start justify-between">
+              <h4 class="font-medium leading-none flex-1">
+                {{ selectedPin.labelConfig.text }}
+              </h4>
+              <button
+                @click="openExerciseModal"
+                class="p-1 rounded-full hover:bg-gray-100 transition-colors ml-2"
+                title="View exercise details"
+              >
+                <Info class="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
             <p class="text-sm text-muted-foreground">
               {{ selectedPin.description }}
             </p>
@@ -39,13 +48,22 @@
       </PopoverContent>
     </Popover>
 
+    <!-- Exercise Specific Modal -->
+    <Suspense>
+      <component
+        :is="ExerciseSpecificModal"
+        v-model:open="exerciseModalOpen"
+        :exercise="selectedExercise"
+      />
+    </Suspense>
+
     <!-- Diamond Grid Container -->
-    <div 
+    <div
       ref="gridContainerRef"
       class="relative w-full h-full"
-      :style="{ 
+      :style="{
         minHeight: '0',
-        width: '100%'
+        width: '100%',
       }"
     >
       <!-- Background SVG - positioned and scaled based on actual SVG dimensions -->
@@ -56,7 +74,7 @@
           top: svgScale.top + 'px',
           width: svgScale.width + 'px',
           height: svgScale.height + 'px',
-          zIndex: 1
+          zIndex: 1,
         }"
       >
         <img
@@ -64,58 +82,65 @@
           :src="imageObj.src"
           alt="Double Diamond"
           class="w-full h-full pointer-events-none"
-          :style="{ 
+          :style="{
             width: '100%',
-            height: '100%'
+            height: '100%',
           }"
         />
       </div>
 
       <!-- Horizontal Lines - aligned with the SVG -->
-      <div class="absolute inset-0" style="z-index: 2;">
-        <div 
+      <div class="absolute inset-0" style="z-index: 2">
+        <div
           class="absolute border-t border-gray-300"
-          :style="{ 
-            top: (svgScale.top + humanLineY) + 'px',
+          :style="{
+            top: svgScale.top + humanLineY + 'px',
             left: svgScale.left + 'px',
-            width: svgScale.width + 'px'
+            width: svgScale.width + 'px',
           }"
         ></div>
-        <div 
+        <div
           class="absolute border-t border-gray-300"
-          :style="{ 
-            top: (svgScale.top + humanAiLineY) + 'px',
+          :style="{
+            top: svgScale.top + humanAiLineY + 'px',
             left: svgScale.left + 'px',
-            width: svgScale.width + 'px'
+            width: svgScale.width + 'px',
           }"
         ></div>
-        <div 
+        <div
           class="absolute border-t border-gray-300"
-          :style="{ 
-            top: (svgScale.top + aiLineY) + 'px',
+          :style="{
+            top: svgScale.top + aiLineY + 'px',
             left: svgScale.left + 'px',
-            width: svgScale.width + 'px'
+            width: svgScale.width + 'px',
           }"
         ></div>
       </div>
 
       <!-- Axis Labels -->
-      <div class="absolute text-xs text-gray-600 font-medium" style="z-index: 3;" :style="{ left: (svgScale.left - 10) + 'px', top: (svgScale.top - 10) + 'px' }">
-        <div 
+      <div
+        class="absolute text-xs text-gray-600 font-medium"
+        style="z-index: 3"
+        :style="{
+          left: svgScale.left - 10 + 'px',
+          top: svgScale.top - 10 + 'px',
+        }"
+      >
+        <div
           class="absolute whitespace-nowrap -translate-x-full pr-4"
-          :style="{ top: (humanLineY) + 'px' }"
+          :style="{ top: humanLineY + 'px' }"
         >
           human axis
         </div>
-        <div 
+        <div
           class="absolute whitespace-nowrap -translate-x-full pr-4"
-          :style="{ top: (humanAiLineY) + 'px' }"
+          :style="{ top: humanAiLineY + 'px' }"
         >
           human+ai axis
         </div>
-        <div 
+        <div
           class="absolute whitespace-nowrap -translate-x-full pr-4"
-          :style="{ top: (aiLineY) + 'px' }"
+          :style="{ top: aiLineY + 'px' }"
         >
           ai axis
         </div>
@@ -128,13 +153,15 @@
             v-if="pin.isAddedToDiamond"
             class="absolute flex items-center transition-opacity duration-200"
             :class="{
-              'opacity-50': hoveredColumnIndex !== null && !isPinInColumn(i, hoveredColumnIndex)
+              'opacity-50':
+                hoveredColumnIndex !== null &&
+                !isPinInColumn(i, hoveredColumnIndex),
             }"
             :style="{
               left: pin.config.x + 'px',
               top: pin.config.y + 'px',
               transform: 'translate(-50%, -50%)',
-              zIndex: 30
+              zIndex: 30,
             }"
           >
             <!-- Pin Circle/Diamond -->
@@ -149,10 +176,10 @@
                 :style="{
                   backgroundColor: pin.config.fill,
                   borderColor: pin.config.stroke,
-                  borderWidth: pin.config.strokeWidth + 'px'
+                  borderWidth: pin.config.strokeWidth + 'px',
                 }"
               >
-                <span 
+                <span
                   class="text-sm font-medium text-gray-700 transform -rotate-45"
                 >
                   {{ i + 1 }}
@@ -161,7 +188,13 @@
                 <span
                   v-if="pin.hasEthicsBefore || pin.hasEthicsAfter"
                   class="absolute -top-1 -right-1 w-3 h-3 rounded-full"
-                  :class="pin.hasEthicsBefore && pin.hasEthicsAfter ? 'bg-purple-600' : (pin.hasEthicsBefore ? 'bg-red-500' : 'bg-blue-500')"
+                  :class="
+                    pin.hasEthicsBefore && pin.hasEthicsAfter
+                      ? 'bg-purple-600'
+                      : pin.hasEthicsBefore
+                      ? 'bg-red-500'
+                      : 'bg-blue-500'
+                  "
                 />
               </div>
               <!-- Unselected state: circle -->
@@ -172,31 +205,38 @@
                   backgroundColor: pin.config.fill,
                   borderColor: pin.config.stroke,
                   borderWidth: pin.config.strokeWidth + 'px',
-                  width: (pin.config.radius * 2) + 'px',
-                  height: (pin.config.radius * 2) + 'px'
+                  width: pin.config.radius * 2 + 'px',
+                  height: pin.config.radius * 2 + 'px',
                 }"
               >
-                <span 
-                  class="text-sm font-medium text-gray-700"
-                >
+                <span class="text-sm font-medium text-gray-700">
                   {{ i + 1 }}
                 </span>
                 <!-- Ethics indicator for unselected -->
                 <span
                   v-if="pin.hasEthicsBefore || pin.hasEthicsAfter"
                   class="absolute -top-1 -right-1 w-3 h-3 rounded-full"
-                  :class="pin.hasEthicsBefore && pin.hasEthicsAfter ? 'bg-purple-600' : (pin.hasEthicsBefore ? 'bg-red-500' : 'bg-blue-500')"
+                  :class="
+                    pin.hasEthicsBefore && pin.hasEthicsAfter
+                      ? 'bg-purple-600'
+                      : pin.hasEthicsBefore
+                      ? 'bg-red-500'
+                      : 'bg-blue-500'
+                  "
                 />
               </div>
             </div>
 
             <!-- Hover Label -->
             <div
-              v-if="hoveredColumnIndex !== null && isPinInColumn(i, hoveredColumnIndex)"
+              v-if="
+                hoveredColumnIndex !== null &&
+                isPinInColumn(i, hoveredColumnIndex)
+              "
               class="absolute left-full ml-2 bg-white px-2 py-1 rounded shadow-lg border text-sm whitespace-nowrap z-10"
               :style="{
                 top: '50%',
-                transform: 'translateY(-50%)'
+                transform: 'translateY(-50%)',
               }"
             >
               {{ pin.labelConfig.text }}
@@ -206,14 +246,14 @@
       </div>
 
       <!-- Add invisible column hover areas -->
-      <div class="absolute inset-0 pointer-events-none" style="z-index: 25;">
-        <div 
-          v-for="(section, index) in sectionLabels" 
+      <div class="absolute inset-0 pointer-events-none" style="z-index: 25">
+        <div
+          v-for="(section, index) in sectionLabels"
           :key="'section-' + index"
           class="absolute top-0 bottom-0 pointer-events-auto"
           :style="{
             left: section.left + 'px',
-            width: section.width + 'px'
+            width: section.width + 'px',
           }"
           @mouseenter="hoveredColumnIndex = index"
           @mouseleave="hoveredColumnIndex = null"
@@ -233,6 +273,7 @@ import {
   defineExpose,
   watch,
   nextTick,
+  defineAsyncComponent,
 } from "vue";
 import {
   Popover,
@@ -240,21 +281,25 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { Info } from "lucide-vue-next";
 import { SECTION_LABEL_TEXTS } from "@/constants/app";
 import { useEthics } from "@/composables/useEthics";
 import { useExercises } from "@/composables/useExercises";
+import type { SelectedPinInfo } from "@/types/exercise";
+import type { Exercise } from "@/types/exercise";
 
 const LOCAL_STORAGE_KEY_DIAMOND_EXERCISES = "diamondExercises";
 
-import type { SelectedPinInfo } from '@/types/exercise';
-
 const emit = defineEmits<{
   (e: "selectedPinsChange", selectedPins: SelectedPinInfo[]): void;
-  (e: "layoutUpdate", layout: {
-    sectionLabels: { text: string; left: number; width: number }[];
-    addExercisesButtonCenterOffsets: number[];
-    svgBounds: { left: number; top: number; width: number; height: number };
-  }): void;
+  (
+    e: "layoutUpdate",
+    layout: {
+      sectionLabels: { text: string; left: number; width: number }[];
+      addExercisesButtonCenterOffsets: number[];
+      svgBounds: { left: number; top: number; width: number; height: number };
+    }
+  ): void;
 }>();
 
 const props = defineProps<{
@@ -271,32 +316,35 @@ const SVG_HEIGHT = 420;
 
 // Computed properties for SVG scaling and positioning
 const svgScale = computed(() => {
-  if (!props.containerWidth || !props.containerHeight) return { width: SVG_WIDTH, height: SVG_HEIGHT, left: 0, top: 0 };
-  
+  if (!props.containerWidth || !props.containerHeight)
+    return { width: SVG_WIDTH, height: SVG_HEIGHT, left: 0, top: 0 };
+
   // Calculate available space (with 10% padding on each side)
   const paddingPercent = 0.08;
   const availableWidth = props.containerWidth * (1 - 2 * paddingPercent);
   const availableHeight = props.containerHeight * 0.95; // Use 95% of total height
-  
+
   // Calculate scale to fit SVG within available space while maintaining aspect ratio
   const scaleX = availableWidth / SVG_WIDTH;
   const scaleY = availableHeight / SVG_HEIGHT;
   const scale = Math.min(scaleX, scaleY);
-  
+
   // Calculate actual rendered SVG dimensions
   const renderedWidth = SVG_WIDTH * scale;
   const renderedHeight = SVG_HEIGHT * scale;
-  
+
   // Center horizontally and position with minimal top margin
-  const leftOffset = props.containerWidth * paddingPercent + (availableWidth - renderedWidth) / 2;
+  const leftOffset =
+    props.containerWidth * paddingPercent +
+    (availableWidth - renderedWidth) / 2;
   const topOffset = props.containerHeight * 0.025; // 2.5% from top (smaller margin)
-  
+
   return {
     width: renderedWidth,
     height: renderedHeight,
     left: leftOffset,
     top: topOffset,
-    scale
+    scale,
   };
 });
 
@@ -343,12 +391,16 @@ const initializePins = () => {
   const exercises = getAllExercises.value;
   pins.value = exercises.map((exercise: any, index: number): PinConfig => {
     // Calculate initial X position based on phase and step
-    const x = calculatePhaseXPosition(exercise.location.phase, exercise.location.step, index);
+    const x = calculatePhaseXPosition(
+      exercise.location.phase,
+      exercise.location.step,
+      index
+    );
     const initialY = 200;
 
-    const hasEthicsBefore = Boolean(hasEthicsRequirement(exercise, 'before'));
-    const hasEthicsAfter = Boolean(hasEthicsRequirement(exercise, 'after'));
-    
+    const hasEthicsBefore = Boolean(hasEthicsRequirement(exercise, "before"));
+    const hasEthicsAfter = Boolean(hasEthicsRequirement(exercise, "after"));
+
     return {
       isSelected: false,
       isAddedToDiamond: false,
@@ -383,32 +435,47 @@ const pinTriggerRef = ref<HTMLElement | null>(null);
 const selectedPinPosition = ref({ x: 0, y: 0 });
 const hoveredColumnIndex = ref<number | null>(null);
 
-// Line Y positions - repositioned to top, center, bottom
-const horizontalLineYFraction1 = 0.25;   // Top (human axis, moved closer to center)
-const horizontalLineYFraction2 = 0.5;    // Center (human+ai axis)
-const horizontalLineYFraction3 = 0.75;   // Bottom (ai axis, moved closer to center)
+// Exercise modal state
+const exerciseModalOpen = ref(false);
+const selectedExercise = ref<Exercise | null>(null);
 
-const humanLineY = computed(() => svgScale.value.height * horizontalLineYFraction1);
-const humanAiLineY = computed(() => svgScale.value.height * horizontalLineYFraction2);
-const aiLineY = computed(() => svgScale.value.height * horizontalLineYFraction3);
+// Dynamic component import
+const ExerciseSpecificModal = defineAsyncComponent(
+  () => import("@/components/exercise/ExerciseSpecificModal.vue")
+);
+
+// Line Y positions - repositioned to top, center, bottom
+const horizontalLineYFraction1 = 0.25; // Top (human axis, moved closer to center)
+const horizontalLineYFraction2 = 0.5; // Center (human+ai axis)
+const horizontalLineYFraction3 = 0.75; // Bottom (ai axis, moved closer to center)
+
+const humanLineY = computed(
+  () => svgScale.value.height * horizontalLineYFraction1
+);
+const humanAiLineY = computed(
+  () => svgScale.value.height * horizontalLineYFraction2
+);
+const aiLineY = computed(
+  () => svgScale.value.height * horizontalLineYFraction3
+);
 
 // Section labels based on SVG scaling - 8 sections total (4 phases × 2 steps)
 const sectionLabels = computed(() => {
   const svgLeft = svgScale.value.left;
   const svgWidth = svgScale.value.width;
   const sectionWidth = svgWidth / 8; // 8 equal sections
-  
+
   const labels: { text: string; left: number; width: number }[] = [];
-  
+
   // Create 8 sections based on the section label texts
   for (let i = 0; i < SECTION_LABEL_TEXTS.length; i++) {
     labels.push({
       text: SECTION_LABEL_TEXTS[i],
-      left: svgLeft + (i * sectionWidth),
+      left: svgLeft + i * sectionWidth,
       width: sectionWidth,
     });
   }
-  
+
   return labels;
 });
 
@@ -417,12 +484,12 @@ const addExercisesButtonCenterOffsets = computed(() => {
   const svgLeft = svgScale.value.left;
   const svgWidth = svgScale.value.width;
   const phaseWidth = svgWidth / 4;
-  
+
   return [
-    svgLeft + (phaseWidth * 0.5), // Discover center
-    svgLeft + (phaseWidth * 1.5), // Define center  
-    svgLeft + (phaseWidth * 2.5), // Develop center
-    svgLeft + (phaseWidth * 3.5), // Deliver center
+    svgLeft + phaseWidth * 0.5, // Discover center
+    svgLeft + phaseWidth * 1.5, // Define center
+    svgLeft + phaseWidth * 2.5, // Develop center
+    svgLeft + phaseWidth * 3.5, // Deliver center
   ];
 });
 
@@ -436,6 +503,14 @@ function handlePinClick(index: number) {
   };
 
   selectedPinPopover.value = true;
+}
+
+function openExerciseModal() {
+  if (selectedPinIndex.value !== null) {
+    const exercise = getAllExercises.value[selectedPinIndex.value];
+    selectedExercise.value = exercise;
+    exerciseModalOpen.value = true;
+  }
 }
 
 let selectedIndices: number[] = [];
@@ -456,33 +531,38 @@ function togglePinSelection(index: number | null) {
   }
 
   // Build selectedPinData in the order of selectedIndices
-  const selectedPinData = selectedIndices.map((idx) => {
-    const exercise = getAllExercises.value[idx];
-    if (!exercise) {
-      console.warn(`Exercise not found at index ${idx}`);
-      return null;
-    }
-    
-    // Debug logging for ethics data
-    if (exercise.name === 'AI-Powered Trend Analysis' || exercise.name === 'AI-Assisted Technical Architecture Planning') {
-      console.log('🔧 DiamondGrid Exercise Debug:', {
+  const selectedPinData = selectedIndices
+    .map((idx) => {
+      const exercise = getAllExercises.value[idx];
+      if (!exercise) {
+        console.warn(`Exercise not found at index ${idx}`);
+        return null;
+      }
+
+      // Debug logging for ethics data
+      if (
+        exercise.name === "AI-Powered Trend Analysis" ||
+        exercise.name === "AI-Assisted Technical Architecture Planning"
+      ) {
+        console.log("🔧 DiamondGrid Exercise Debug:", {
+          name: exercise.name,
+          idx,
+          hasEthical: !!exercise.ethical,
+          ethicalData: exercise.ethical,
+          exerciseKeys: Object.keys(exercise),
+        });
+      }
+
+      return {
         name: exercise.name,
-        idx,
-        hasEthical: !!exercise.ethical,
-        ethicalData: exercise.ethical,
-        exerciseKeys: Object.keys(exercise)
-      });
-    }
-    
-    return {
-      name: exercise.name,
-      originalIndex: idx,
-      order: idx, // Use the index as order
-      description: exercise.description,
-      location: exercise.location,
-      ethical: exercise.ethical, // Include full ethics data from original source
-    };
-  }).filter(Boolean) as SelectedPinInfo[];
+        originalIndex: idx,
+        order: idx, // Use the index as order
+        description: exercise.description,
+        location: exercise.location,
+        ethical: exercise.ethical, // Include full ethics data from original source
+      };
+    })
+    .filter(Boolean) as SelectedPinInfo[];
 
   emit("selectedPinsChange", selectedPinData);
 
@@ -502,21 +582,24 @@ defineExpose({
   togglePinSelected: togglePinSelection,
   loadSelectedPins: (projectSelectedPins: SelectedPinInfo[]) => {
     // Clear current selections
-    pins.value.forEach(pin => {
+    pins.value.forEach((pin) => {
       pin.isSelected = false;
     });
-    
+
     // Set selected pins based on project state
     const projectSelectedIndices: number[] = [];
-    projectSelectedPins.forEach(pinInfo => {
-      if (pinInfo.originalIndex >= 0 && pinInfo.originalIndex < pins.value.length) {
+    projectSelectedPins.forEach((pinInfo) => {
+      if (
+        pinInfo.originalIndex >= 0 &&
+        pinInfo.originalIndex < pins.value.length
+      ) {
         pins.value[pinInfo.originalIndex].isSelected = true;
         projectSelectedIndices.push(pinInfo.originalIndex);
       }
     });
-    
+
     selectedIndices = projectSelectedIndices;
-  }
+  },
 });
 
 // Emit layout update to parent components
@@ -557,10 +640,13 @@ const calculatePinPositions = () => {
 
   // 1. Group pins by cell (phase, step, quantized scale)
   const cellMap = new Map<string, number[]>(); // key -> array of pin indices
-  const quantizeScale = (scale: number) => Math.round(scale * (NUM_LEVELS - 1) / 10) / ((NUM_LEVELS - 1) / 10); // quantize to NUM_LEVELS
+  const quantizeScale = (scale: number) =>
+    Math.round((scale * (NUM_LEVELS - 1)) / 10) / ((NUM_LEVELS - 1) / 10); // quantize to NUM_LEVELS
 
   pins.value.forEach((pin, idx) => {
-    const key = `${pin.location.phase}-${pin.location.step}-${quantizeScale(pin.location.human_ai_scale)}`;
+    const key = `${pin.location.phase}-${pin.location.step}-${quantizeScale(
+      pin.location.human_ai_scale
+    )}`;
     if (!cellMap.has(key)) cellMap.set(key, []);
     cellMap.get(key)!.push(idx);
   });
@@ -571,7 +657,7 @@ const calculatePinPositions = () => {
     const [phase, step, scaleStr] = key.split("-");
     const scale = parseFloat(scaleStr);
     // Map scale (0-10) to level (0-9)
-    const level = Math.round(scale * (NUM_LEVELS - 1) / 10);
+    const level = Math.round((scale * (NUM_LEVELS - 1)) / 10);
     // Calculate Y for this level (spread across full SVG height)
     const frac = level / (NUM_LEVELS - 1); // 0 to 1
     const baseY = yMin + frac * (yMax - yMin);
@@ -623,128 +709,153 @@ const calculatePinPositions = () => {
 // Helper to get section bounds for a phase+step
 function getSectionBounds(phase: string, step: string) {
   const gridMapping: Record<string, Record<string, number>> = {
-    'Discover': {
-      'Prepare': 0,
-      'Discover': 1,
+    Discover: {
+      Prepare: 0,
+      Discover: 1,
     },
-    'Define': {
-      'Define': 2,
-      'Synthesise': 3,
+    Define: {
+      Define: 2,
+      Synthesise: 3,
     },
-    'Develop': {
-      'Prepare': 4,
-      'Develop': 5,
+    Develop: {
+      Prepare: 4,
+      Develop: 5,
     },
-    'Deliver': {
-      'Deliver': 6,
-      'Synthesise': 7,
-    }
+    Deliver: {
+      Deliver: 6,
+      Synthesise: 7,
+    },
   };
   const sectionIndex = gridMapping[phase]?.[step];
   if (sectionIndex === undefined) {
     console.warn(`Unknown phase/step combination: ${phase}/${step}`);
     // fallback
     const svgLeft = svgScale.value.left;
-    return { sectionStart: svgLeft + 100, sectionEnd: svgLeft + 200, padding: 0 };
+    return {
+      sectionStart: svgLeft + 100,
+      sectionEnd: svgLeft + 200,
+      padding: 0,
+    };
   }
   const svgLeft = svgScale.value.left;
   const svgWidth = svgScale.value.width;
   const sectionWidth = svgWidth / 8;
-  const sectionStart = svgLeft + (sectionIndex * sectionWidth);
+  const sectionStart = svgLeft + sectionIndex * sectionWidth;
   const sectionEnd = sectionStart + sectionWidth;
   const padding = sectionWidth * 0.1;
   return { sectionStart, sectionEnd, padding };
 }
 
 // calculatePhaseXPosition is now only used for initial dummy positions
-function calculatePhaseXPosition(phase: string, step: string, exerciseIndex: number): number {
+function calculatePhaseXPosition(
+  phase: string,
+  step: string,
+  exerciseIndex: number
+): number {
   // Map phase+step combinations to grid sections (0-7)
   const gridMapping: Record<string, Record<string, number>> = {
-    'Discover': {
-      'Prepare': 0,      // prepare
-      'Discover': 1,     // discover  
+    Discover: {
+      Prepare: 0, // prepare
+      Discover: 1, // discover
     },
-    'Define': {
-      'Define': 2,       // define
-      'Synthesise': 3,   // synthesise
+    Define: {
+      Define: 2, // define
+      Synthesise: 3, // synthesise
     },
-    'Develop': {
-      'Prepare': 4,      // prepare
-      'Develop': 5,      // develop
+    Develop: {
+      Prepare: 4, // prepare
+      Develop: 5, // develop
     },
-    'Deliver': {
-      'Deliver': 6,      // deliver
-      'Synthesise': 7,   // synthesise
-    }
+    Deliver: {
+      Deliver: 6, // deliver
+      Synthesise: 7, // synthesise
+    },
   };
-  
+
   // Get the grid section index
   const sectionIndex = gridMapping[phase]?.[step];
   if (sectionIndex === undefined) {
     console.warn(`Unknown phase/step combination: ${phase}/${step}`);
     return svgScale.value.left + 100; // Fallback position
   }
-  
+
   // Get SVG positioning and dimensions
   const svgLeft = svgScale.value.left;
   const svgWidth = svgScale.value.width;
   const sectionWidth = svgWidth / 8; // 8 equal grid sections
-  
+
   // Calculate the grid cell boundaries
-  const sectionStart = svgLeft + (sectionIndex * sectionWidth);
+  const sectionStart = svgLeft + sectionIndex * sectionWidth;
   const sectionEnd = sectionStart + sectionWidth;
-  
+
   // Add random positioning within the grid cell (with padding from edges)
   const padding = sectionWidth * 0.1; // 10% padding on each side
-  const randomPosition = sectionStart + padding + (Math.random() * (sectionWidth - 2 * padding));
-  
+  const randomPosition =
+    sectionStart + padding + Math.random() * (sectionWidth - 2 * padding);
+
   // Ensure the position stays within bounds
   const minX = sectionStart + padding;
   const maxX = sectionEnd - padding;
-  
+
   return Math.max(minX, Math.min(maxX, randomPosition));
 }
 
 // Watch for container dimension changes and recalculate positions
-watch([() => props.containerWidth, () => props.containerHeight], () => {
-  nextTick(() => {
-    calculatePinPositions();
-    emitLayoutUpdate();
-  });
-}, { immediate: true });
-
-// Watch for exercises data changes and re-initialize pins
-watch(getAllExercises, () => {
-  if (getAllExercises.value.length > 0) {
-    initializePins();
+watch(
+  [() => props.containerWidth, () => props.containerHeight],
+  () => {
     nextTick(() => {
       calculatePinPositions();
       emitLayoutUpdate();
     });
-  }
-}, { immediate: true });
+  },
+  { immediate: true }
+);
+
+// Watch for exercises data changes and re-initialize pins
+watch(
+  getAllExercises,
+  () => {
+    if (getAllExercises.value.length > 0) {
+      initializePins();
+      nextTick(() => {
+        calculatePinPositions();
+        emitLayoutUpdate();
+      });
+    }
+  },
+  { immediate: true }
+);
 
 // Watch for SVG scaling changes and emit layout updates
-watch([sectionLabels, addExercisesButtonCenterOffsets], () => {
-  emitLayoutUpdate();
-}, { immediate: true });
+watch(
+  [sectionLabels, addExercisesButtonCenterOffsets],
+  () => {
+    emitLayoutUpdate();
+  },
+  { immediate: true }
+);
 
 onMounted(() => {
   // Initialize pins first
   initializePins();
-  
+
   // Debug: Check if exercises are loaded with ethics data
-  console.log('🔧 DiamondGrid Mount Debug - Exercises loaded:', {
+  console.log("🔧 DiamondGrid Mount Debug - Exercises loaded:", {
     totalExercises: getAllExercises.value.length,
-    firstFewExercises: getAllExercises.value.slice(0, 3).map(ex => ({
+    firstFewExercises: getAllExercises.value.slice(0, 3).map((ex) => ({
       name: ex.name,
       hasEthical: !!ex.ethical,
-      ethicalKeys: ex.ethical ? Object.keys(ex.ethical) : 'none'
+      ethicalKeys: ex.ethical ? Object.keys(ex.ethical) : "none",
     })),
-    trendAnalysis: getAllExercises.value.find(ex => ex.name === 'AI-Powered Trend Analysis'),
-    techArchitecture: getAllExercises.value.find(ex => ex.name === 'AI-Assisted Technical Architecture Planning')
+    trendAnalysis: getAllExercises.value.find(
+      (ex) => ex.name === "AI-Powered Trend Analysis"
+    ),
+    techArchitecture: getAllExercises.value.find(
+      (ex) => ex.name === "AI-Assisted Technical Architecture Planning"
+    ),
   });
-  
+
   // Load diamond exercises state from local storage to determine visibility
   const savedDiamondExercises = localStorage.getItem(
     LOCAL_STORAGE_KEY_DIAMOND_EXERCISES
@@ -760,4 +871,4 @@ onMounted(() => {
 
   calculatePinPositions();
 });
-</script> 
+</script>

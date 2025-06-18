@@ -13,7 +13,28 @@
                 "before": [],
                 "after": []
             },
-            "miro_board": "https://miro.com/app/board/xyz123"
+            "miro_board": "https://miro.com/app/board/xyz123",
+            "how_to_run": [
+                "Define your research objectives and key questions",
+                "Recruit participants from your target user group",
+                "Prepare an interview guide with open-ended questions",
+                "Conduct 1-on-1 interviews in a comfortable setting",
+                "Record sessions (with permission) for later analysis",
+                "Take detailed notes during the conversation",
+                "Follow up with clarifying questions when needed"
+            ],
+            "expected_outcomes": [
+                "Deep insights into user needs and pain points",
+                "Understanding of user motivations and behaviors",
+                "Quotes and stories that bring user perspective to life",
+                "Identification of unmet needs and opportunities",
+                "Validation or challenge of initial assumptions"
+            ],
+            "human_ai_collaboration": {
+                "human_role": "Leads the conversation, builds rapport, asks follow-up questions, interprets non-verbal cues",
+                "ai_role": "Not applicable for this fully human-centered approach",
+                "collaboration_notes": "This exercise relies entirely on human empathy and conversation skills"
+            }
         },
         {
             "name": "Brainstorm",
@@ -28,7 +49,29 @@
                 "before": [],
                 "after": []
             },
-            "miro_board": "https://miro.com/app/board/xyz123"
+            "miro_board": "https://miro.com/app/board/xyz123",
+            "how_to_run": [
+                "Set clear objectives for the brainstorming session",
+                "Gather a diverse team of 5-8 participants",
+                "Create a comfortable, distraction-free environment",
+                "Start with a warm-up exercise to get creative juices flowing",
+                "Present the challenge or problem statement clearly",
+                "Encourage wild ideas and build on others' suggestions",
+                "Use techniques like mind mapping or sticky note ideation",
+                "Keep the energy high and maintain time boundaries"
+            ],
+            "expected_outcomes": [
+                "A large quantity of diverse ideas and concepts",
+                "Novel solutions that might not emerge from individual thinking",
+                "Team alignment and shared understanding of the challenge",
+                "Increased team creativity and collaboration",
+                "Building blocks for further development and refinement"
+            ],
+            "human_ai_collaboration": {
+                "human_role": "Facilitates discussion, builds on ideas, provides context and domain expertise",
+                "ai_role": "Can suggest related concepts, provide quick research, help organize ideas",
+                "collaboration_notes": "AI assists in expanding thinking but humans drive the creative process"
+            }
         },
         {
             "name": "Insight Scraping",
@@ -43,7 +86,29 @@
                 "before": [],
                 "after": []
             },
-            "miro_board": "https://miro.com/app/board/xyz123"
+            "miro_board": "https://miro.com/app/board/xyz123",
+            "how_to_run": [
+                "Define specific insight areas and data sources to target",
+                "Set up AI-powered web scraping tools and APIs",
+                "Configure data collection parameters and filters",
+                "Run automated data gathering across multiple sources",
+                "Use AI to analyze patterns and extract key insights",
+                "Clean and validate the collected data",
+                "Generate reports and visualizations of findings",
+                "Review insights for relevance and actionability"
+            ],
+            "expected_outcomes": [
+                "Large-scale data collection from diverse sources",
+                "Automated identification of trends and patterns",
+                "Time-efficient insight generation at scale",
+                "Discovery of unexpected connections and opportunities",
+                "Data-driven foundation for decision making"
+            ],
+            "human_ai_collaboration": {
+                "human_role": "Defines objectives, validates insights, interprets contextual meaning",
+                "ai_role": "Performs automated data collection, pattern recognition, and initial analysis",
+                "collaboration_notes": "AI handles heavy data processing while humans provide strategic direction"
+            }
         },
         {
             "name": "Automated Research",
@@ -58,7 +123,29 @@
                 "before": [],
                 "after": []
             },
-            "miro_board": "https://miro.com/app/board/xyz123"
+            "miro_board": "https://miro.com/app/board/xyz123",
+            "how_to_run": [
+                "Define research questions and scope clearly",
+                "Select appropriate AI research tools and databases",
+                "Set up search parameters and inclusion criteria",
+                "Deploy AI agents to gather relevant sources",
+                "Use AI to synthesize and summarize findings",
+                "Cross-reference information across multiple sources",
+                "Human review for accuracy and bias detection",
+                "Compile findings into actionable research reports"
+            ],
+            "expected_outcomes": [
+                "Comprehensive literature reviews in reduced timeframes",
+                "Identification of key trends and market opportunities",
+                "Competitive landscape analysis and benchmarking",
+                "Evidence-based insights for strategic decisions",
+                "Reduced manual research workload"
+            ],
+            "human_ai_collaboration": {
+                "human_role": "Defines research questions, validates findings, provides domain expertise",
+                "ai_role": "Conducts systematic search, synthesizes large volumes of information",
+                "collaboration_notes": "AI accelerates research while humans ensure quality and relevance"
+            }
         },
         {
             "name": "User Testing",
@@ -73,7 +160,29 @@
                 "before": [],
                 "after": []
             },
-            "miro_board": "https://miro.com/app/board/xyz123"
+            "miro_board": "https://miro.com/app/board/xyz123",
+            "how_to_run": [
+                "Define testing objectives and success criteria",
+                "Recruit representative users from target audience",
+                "Prepare test scenarios and tasks",
+                "Set up testing environment and recording equipment",
+                "Conduct moderated or unmoderated testing sessions",
+                "Observe user behavior and take detailed notes",
+                "Gather post-session feedback through surveys or interviews",
+                "Analyze results and prioritize insights for implementation"
+            ],
+            "expected_outcomes": [
+                "Validation of design decisions and user flows",
+                "Identification of usability issues and pain points",
+                "Quantitative metrics on task completion and user satisfaction",
+                "Qualitative insights into user expectations and behaviors",
+                "Evidence-based recommendations for product improvements"
+            ],
+            "human_ai_collaboration": {
+                "human_role": "Facilitates sessions, interprets user emotions and behaviors, builds rapport",
+                "ai_role": "Can assist with basic analytics and pattern recognition in large datasets",
+                "collaboration_notes": "Primarily human-led with minimal AI involvement to maintain authentic user interactions"
+            }
         },
         {
             "name": "Performance Analytics",
@@ -88,7 +197,29 @@
                 "before": [],
                 "after": []
             },
-            "miro_board": "https://miro.com/app/board/xyz123"
+            "miro_board": "https://miro.com/app/board/xyz123",
+            "how_to_run": [
+                "Set up comprehensive analytics tracking and data collection",
+                "Deploy AI-powered analytics tools and dashboards",
+                "Configure automated reporting and alerting systems",
+                "Collect multi-source data (user behavior, performance, feedback)",
+                "Use AI to identify patterns and anomalies in the data",
+                "Generate automated insights and recommendations",
+                "Human analysis to contextualize findings",
+                "Create actionable improvement plans based on insights"
+            ],
+            "expected_outcomes": [
+                "Real-time visibility into product performance and user behavior",
+                "Automated detection of issues and optimization opportunities",
+                "Data-driven insights for continuous product improvement",
+                "Predictive analytics for future user needs and trends",
+                "Reduced time to identify and respond to user issues"
+            ],
+            "human_ai_collaboration": {
+                "human_role": "Interprets business context, validates insights, makes strategic decisions",
+                "ai_role": "Processes large datasets, identifies patterns, generates automated reports",
+                "collaboration_notes": "AI provides the analytical power while humans provide strategic interpretation"
+            }
         },
         {
             "name": "AI-Powered Trend Analysis",
@@ -125,7 +256,29 @@
                     ]
                 }
             },
-            "miro_board": "https://miro.com/app/board/xyz123"
+            "miro_board": "https://miro.com/app/board/xyz123",
+            "how_to_run": [
+                "Define specific market sectors and trend categories to analyze",
+                "Configure AI tools to access relevant data sources and APIs",
+                "Set up automated data collection from social media, news, patents, and market reports",
+                "Deploy machine learning models to identify patterns and emerging signals",
+                "Use natural language processing to analyze sentiment and themes",
+                "Cross-reference findings across multiple data sources for validation",
+                "Generate trend reports with confidence scores and supporting evidence",
+                "Human expert review to contextualize and validate AI-identified trends"
+            ],
+            "expected_outcomes": [
+                "Comprehensive overview of current market trends and emerging patterns",
+                "Early identification of disruptive technologies and market shifts",
+                "Data-driven insights into user behavior evolution and preferences",
+                "Competitive intelligence and market positioning opportunities",
+                "Evidence-based foundation for strategic planning and innovation"
+            ],
+            "human_ai_collaboration": {
+                "human_role": "Defines analysis scope, validates findings, provides domain expertise and strategic context",
+                "ai_role": "Processes vast amounts of data, identifies patterns, performs sentiment analysis, generates insights",
+                "collaboration_notes": "AI excels at processing large datasets while humans provide strategic interpretation and validate relevance"
+            }
         },
         {
             "name": "AI-Assisted Technical Architecture Planning",
@@ -162,7 +315,29 @@
                     ]
                 }
             },
-            "miro_board": "https://miro.com/app/board/xyz123"
+            "miro_board": "https://miro.com/app/board/xyz123",
+            "how_to_run": [
+                "Gather comprehensive system requirements and constraints",
+                "Input requirements into AI architecture analysis tools",
+                "Use AI to evaluate different architectural patterns and technologies",
+                "Generate multiple architecture options with trade-off analysis",
+                "AI-powered assessment of scalability, security, and performance implications",
+                "Cross-reference recommendations with industry best practices",
+                "Human architect review for feasibility and organizational fit",
+                "Iterative refinement based on technical team feedback"
+            ],
+            "expected_outcomes": [
+                "Multiple viable technical architecture options with detailed analysis",
+                "Comprehensive evaluation of technology choices and trade-offs",
+                "Scalability and performance projections for different scenarios",
+                "Risk assessment and mitigation strategies for each approach",
+                "Detailed implementation roadmap and resource requirements"
+            ],
+            "human_ai_collaboration": {
+                "human_role": "Provides requirements context, validates technical feasibility, makes final architectural decisions",
+                "ai_role": "Analyzes patterns, suggests technologies, evaluates trade-offs, generates documentation",
+                "collaboration_notes": "AI accelerates analysis and option generation while humans provide judgment and validation"
+            }
         }
     ],
     "project": [

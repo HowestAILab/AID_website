@@ -60,6 +60,15 @@
 
       <!-- Status Icon -->
       <div class="flex items-center gap-1 flex-shrink-0">
+        <!-- Info icon for exercise details -->
+        <button
+          @click.stop="openExerciseDetails"
+          class="p-1 rounded-full hover:bg-gray-100 transition-colors"
+          title="View exercise details"
+        >
+          <Info class="w-4 h-4 text-gray-600" />
+        </button>
+
         <!-- Pipeline status icons -->
         <template v-if="showStatusIcons">
           <CheckCircle2 v-if="isCompleted" class="w-5 h-5 text-green-600" />
@@ -198,11 +207,20 @@
         Completed {{ completionDate }}
       </p>
     </div>
+
+    <!-- Exercise Specific Modal -->
+    <Suspense>
+      <component
+        :is="ExerciseSpecificModal"
+        v-model:open="exerciseModalOpen"
+        :exercise="fullExerciseData"
+      />
+    </Suspense>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, withDefaults } from "vue";
+import { computed, withDefaults, ref, defineAsyncComponent } from "vue";
 import {
   CheckCircle2,
   Clock,
@@ -219,7 +237,8 @@ import {
   CirclePlus,
   CircleMinus,
 } from "lucide-vue-next";
-import type { DriveType } from "@/types/exercise";
+import type { DriveType, Exercise } from "@/types/exercise";
+import { useExercises } from "@/composables/useExercises";
 
 export interface UnifiedExerciseCardProps {
   // Basic exercise info
@@ -253,6 +272,9 @@ export interface UnifiedExerciseCardProps {
   hasEthicsAfter?: boolean;
   chatMessageCount?: number;
   completionDate?: string;
+
+  // Full exercise data for modal
+  exerciseData?: Exercise;
 }
 
 const props = withDefaults(defineProps<UnifiedExerciseCardProps>(), {
@@ -267,12 +289,77 @@ const props = withDefaults(defineProps<UnifiedExerciseCardProps>(), {
   chatMessageCount: 0,
 });
 
+// Use the exercises composable to get full exercise data
+const { getExerciseByIndex, loadExercises } = useExercises();
+
+// Ensure exercises are loaded
+loadExercises();
+
+// Get full exercise data using originalIndex
+const fullExerciseData = computed(() => {
+  // First priority: use the passed exerciseData prop if available
+  if (props.exerciseData) {
+    return props.exerciseData;
+  }
+
+  // Second priority: try to get from exercises composable using originalIndex
+  if (props.originalIndex >= 0) {
+    const exerciseFromComposable = getExerciseByIndex(props.originalIndex);
+    if (exerciseFromComposable) {
+      return exerciseFromComposable;
+    }
+  }
+
+  // Fallback: create a basic exercise object from available props
+  // This handles custom exercises and edge cases
+  return {
+    name: props.title,
+    description: props.description,
+    location: {
+      phase: props.phase || "Unknown",
+      step: props.step || "Unknown",
+      human_ai_scale: props.humanAiScale || 5,
+    },
+    prompt_example: [],
+    ethical: { before: [], after: [] },
+    miro_board: "",
+    how_to_run: [
+      "This exercise's detailed information is not available",
+      "Please refer to the exercise description above",
+    ],
+    expected_outcomes: [
+      "Outcomes will depend on your specific implementation",
+      "Follow best practices for this type of exercise",
+    ],
+    human_ai_collaboration: {
+      human_role:
+        "Lead the exercise and make key decisions based on the exercise type",
+      ai_role:
+        "Provide support and analysis as appropriate for the exercise scale",
+      collaboration_notes: `This exercise has a human-AI scale of ${
+        props.humanAiScale || 5
+      }/10`,
+    },
+    originalIndex: props.originalIndex,
+    isCustom: props.originalIndex < 0,
+  } as Exercise;
+});
+
+// Exercise modal state
+const exerciseModalOpen = ref(false);
+
+// Dynamic component import
+const ExerciseSpecificModal = defineAsyncComponent(
+  () => import("@/components/exercise/ExerciseSpecificModal.vue")
+);
+
 const emit = defineEmits<{
   (e: "click", exercise: UnifiedExerciseCardProps): void;
   (e: "toggle-pipeline", originalIndex: number): void;
   (e: "open-exercise"): void;
   (e: "open-ethics"): void;
   (e: "ethics-click"): void;
+  (e: "open-exercise-details"): void;
 }>();
 
 // Computed properties for conditional rendering
@@ -387,6 +474,11 @@ const handleCardClick = () => {
 
 const handleEthicsClick = () => {
   emit("ethics-click");
+};
+
+const openExerciseDetails = () => {
+  // fullExerciseData will always return something now (either real data or fallback)
+  exerciseModalOpen.value = true;
 };
 </script>
 

@@ -76,6 +76,7 @@
                 :hasEthics="exerciseHasEthics(exercise)"
                 :hasEthicsBefore="exerciseHasEthicsBefore(exercise)"
                 :hasEthicsAfter="exerciseHasEthicsAfter(exercise)"
+                :exerciseData="exercise"
                 mode="exercises"
                 @toggle-pipeline="togglePipelineSelection"
                 @ethics-click="handleEthicsClick(exercise)"
