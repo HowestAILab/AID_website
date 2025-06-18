@@ -135,6 +135,21 @@
         </Button>
       </div>
     </div>
+
+    <!-- Unified Ethics Modal -->
+    <UnifiedEthicsModal
+      v-if="ethics.unifiedEthicsModal.value"
+      :open="ethics.ethicsModalOpen.value"
+      :mode="ethics.unifiedEthicsModal.value.mode"
+      :exercise-name="ethics.unifiedEthicsModal.value.exerciseId"
+      :timing="ethics.unifiedEthicsModal.value.timing"
+      :exercise-context="ethics.unifiedEthicsModal.value.exerciseContext"
+      :chat-history="ethics.unifiedEthicsModal.value.chatHistory || []"
+      :existing-ethics-data="ethics.unifiedEthicsModal.value.existingEthicsData"
+      @update:open="handleEthicsModalOpenChange"
+      @submit="handleEthicsSubmit"
+      @cancel="handleEthicsCancel"
+    />
   </div>
 </template>
 
@@ -150,6 +165,7 @@ import {
 } from "@/components/ui/stepper";
 import { Button } from "@/components/ui/button";
 import UnifiedExerciseCard from "@/components/exercise/UnifiedExerciseCard.vue";
+import UnifiedEthicsModal from "@/components/ethics/UnifiedEthicsModal.vue";
 import { usePipelineProgress } from "@/composables/usePipelineProgress";
 import { useExerciseChat } from "@/composables/useExerciseChat";
 import { useEthics } from "@/composables/useEthics";
@@ -294,12 +310,59 @@ const formatCompletionDate = (exerciseId: string): string => {
   });
 };
 
+// Helper function to convert chat messages to the format expected by UnifiedEthicsModal
+const convertChatMessages = (messages: any[]) => {
+  return messages
+    .filter((msg) => msg.role !== "system")
+    .map((msg) => ({
+      role: msg.role as "user" | "assistant",
+      content: msg.content,
+      timestamp: msg.timestamp || Date.now(),
+    }));
+};
+
 // Event handlers
 const openExercise = (exercise: SelectedPinInfo) => {
   emit("open-exercise", exercise);
 };
 
 const openEthicsForExercise = (exercise: SelectedPinInfo) => {
-  emit("open-ethics", exercise);
+  const status = ethics.getExerciseEthicsStatus(exercise);
+  const { getExerciseMessages } = useExerciseChat();
+
+  // Get chat history for this exercise
+  const rawChatHistory = getExerciseMessages(exercise.name) || [];
+  const currentChatHistory = convertChatMessages(rawChatHistory);
+
+  if (status.beforeCompleted || status.afterCompleted) {
+    // Show unified modal for viewing completed ethics
+    const timing = status.beforeCompleted ? "before" : "after";
+    ethics.openEthicsModal(exercise, timing, "view", currentChatHistory);
+  } else if (status.beforeRequired && !status.beforeCompleted) {
+    // Show unified modal for completing before ethics
+    ethics.openEthicsModal(exercise, "before", "new", currentChatHistory);
+  } else if (status.afterRequired && !status.afterCompleted) {
+    // Show unified modal for completing after ethics
+    ethics.openEthicsModal(exercise, "after", "new", currentChatHistory);
+  } else {
+    // No ethics requirements - navigate to exercise
+    emit("open-exercise", exercise);
+  }
+};
+
+// Ethics modal handlers
+const handleEthicsSubmit = (data: any) => {
+  const pendingNav = ethics.handleEthicsSubmit(data);
+  // Could handle any pending navigation here if needed
+};
+
+const handleEthicsCancel = () => {
+  ethics.handleEthicsCancel();
+};
+
+const handleEthicsModalOpenChange = (open: boolean) => {
+  if (!open) {
+    ethics.handleEthicsCancel();
+  }
 };
 </script>

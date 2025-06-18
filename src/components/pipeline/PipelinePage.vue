@@ -207,10 +207,11 @@ const handleEditEthicsFromOverview = (
   });
 };
 
-// Ethics handling - simplified
+// Ethics handling
 const openEthicsForExercise = (exercise: SelectedPinInfo) => {
-  // Ethics are now handled in PipelineExercisePage
-  // For now, just open the exercise directly
+  // Since PipelinePhasesView now handles ethics directly with UnifiedEthicsModal,
+  // this function should not be called. However, if it is called, open the exercise.
+  console.warn('openEthicsForExercise called in PipelinePage - this should be handled in PipelinePhasesView directly');
   openExercise(exercise);
 };
 </script>

@@ -6,48 +6,62 @@ import type { EthicalSettings, EthicalLens, MainCapital } from '@/types/ethics';
 interface EthicsData {
   exerciseId: string;
   timing: 'before' | 'after';
-  questions: string[];
-  settings: {
-    lens: string;
-    capital: string;
-    zoomingState: string;
-  };
-  completed: boolean;
-  responses?: Record<string, any>;
-  completedAt?: number;
-}
-
-interface EthicsModal {
-  open: boolean;
-  exerciseId: string;
-  timing: 'before' | 'after';
+  settings: EthicalSettings;
   questions: Array<{
     id: string;
     question: string;
-    type: 'text';
+    type: 'text' | 'rating' | 'multiple-choice';
+    options?: string[];
     required: boolean;
   }>;
-  settings: EthicalSettings;
+  completed: boolean;
+  responses?: Record<string, any>;
+  completedAt?: number;
+  additionalContext?: string;
+}
+
+interface UnifiedEthicsModal {
+  open: boolean;
+  mode: 'new' | 'view' | 'edit';
+  exerciseId: string;
+  timing: 'before' | 'after';
   exerciseContext: {
     name: string;
     phase: string;
     step: string;
     humanAiScale: number;
-    description: string;
+    description?: string;
   };
   chatHistory: Array<{
     role: 'user' | 'assistant';
     content: string;
     timestamp?: number;
   }>;
-  existingResponses?: Record<string, any>;
+  previousExerciseContext?: {
+    name: string;
+    chatCount: number;
+    outcomes?: string[];
+  };
+  existingEthicsData?: {
+    settings: EthicalSettings;
+    questions: Array<{
+      id: string;
+      question: string;
+      type: 'text' | 'rating' | 'multiple-choice';
+      options?: string[];
+      required: boolean;
+    }>;
+    responses: Record<string, any>;
+    completedAt?: number;
+    additionalContext?: string;
+  };
 }
 
 const LOCAL_STORAGE_KEY = 'ethics-data';
 
 export function useEthics() {
   const ethicsData = ref<Record<string, EthicsData>>({});
-  const ethicsModal = ref<EthicsModal | null>(null);
+  const unifiedEthicsModal = ref<UnifiedEthicsModal | null>(null);
   const pendingNavigation = ref<{ type: 'exercise-change', targetIndex: number } | null>(null);
 
   // Load from localStorage
@@ -176,39 +190,21 @@ export function useEthics() {
     };
   };
 
-  // Trigger ethics check
-  const triggerEthicsCheck = (
+  // Trigger unified ethics modal
+  const openEthicsModal = (
     exercise: SelectedPinInfo,
     timing: 'before' | 'after',
+    mode: 'new' | 'view' | 'edit' = 'new',
     chatHistory: Array<{ role: 'user' | 'assistant'; content: string; timestamp?: number }> = []
   ) => {
-    const questions = getEthicsQuestions(exercise, timing);
-    const settings = getEthicsSettings(exercise, timing);
-
-    if (questions.length === 0 || !settings) return false;
-
-    const ethicalSettings: EthicalSettings = {
-      ethicalLens: findLensByType(settings.lens),
-      mainCapital: findCapitalByType(settings.capital),
-      zoomingState: settings.zoomingState as 'in' | 'out'
-    };
-
-    const formattedQuestions = questions.map((q, index) => ({
-      id: `${exercise.name}-${timing}-q${index}`,
-      question: q,
-      type: 'text' as const,
-      required: true
-    }));
-
     const key = getEthicsKey(exercise.name, timing);
-    const existingResponses = ethicsData.value[key]?.responses;
+    const existingData = ethicsData.value[key];
 
-    ethicsModal.value = {
+    unifiedEthicsModal.value = {
       open: true,
+      mode,
       exerciseId: exercise.name,
       timing,
-      questions: formattedQuestions,
-      settings: ethicalSettings,
       exerciseContext: {
         name: exercise.name,
         phase: exercise.location.phase,
@@ -217,56 +213,48 @@ export function useEthics() {
         description: exercise.description
       },
       chatHistory,
-      existingResponses
+      existingEthicsData: existingData ? {
+        settings: existingData.settings,
+        questions: existingData.questions,
+        responses: existingData.responses || {},
+        completedAt: existingData.completedAt,
+        additionalContext: existingData.additionalContext
+      } : undefined
     };
 
     return true;
   };
 
-  // Check if navigation should be blocked
-  const checkNavigationBlock = (
-    currentExercise: SelectedPinInfo | null,
-    targetExercise: SelectedPinInfo,
-    targetIndex: number,
-    chatHistory: Array<{ role: 'user' | 'assistant'; content: string; timestamp?: number }> = []
-  ): { allowed: boolean; reason?: string } => {
-    // Check if leaving current exercise requires post-ethics
-    if (currentExercise && hasEthicsRequirement(currentExercise, 'after') && !isEthicsCompleted(currentExercise.name, 'after')) {
-      pendingNavigation.value = { type: 'exercise-change', targetIndex };
-      triggerEthicsCheck(currentExercise, 'after', chatHistory);
-      return { allowed: false, reason: 'Complete post-exercise ethics review before leaving this exercise' };
-    }
+  // Handle ethics completion/update
+  const handleEthicsSubmit = (data: {
+    settings: EthicalSettings;
+    questions: Array<{
+      id: string;
+      question: string;
+      type: 'text' | 'rating' | 'multiple-choice';
+      options?: string[];
+      required: boolean;
+    }>;
+    responses: Record<string, any>;
+    additionalContext?: string;
+  }) => {
+    if (!unifiedEthicsModal.value) return;
 
-    // Check if entering target exercise requires pre-ethics
-    if (hasEthicsRequirement(targetExercise, 'before') && !isEthicsCompleted(targetExercise.name, 'before')) {
-      pendingNavigation.value = { type: 'exercise-change', targetIndex };
-      triggerEthicsCheck(targetExercise, 'before', []);
-      return { allowed: false, reason: 'Complete pre-exercise ethics review before starting this exercise' };
-    }
-
-    return { allowed: true };
-  };
-
-  // Handle ethics completion
-  const handleEthicsCompleted = (responses: Record<string, any>) => {
-    if (!ethicsModal.value) return;
-
-    const { exerciseId, timing } = ethicsModal.value;
+    const { exerciseId, timing } = unifiedEthicsModal.value;
     const key = getEthicsKey(exerciseId, timing);
-    const questions = getEthicsQuestions({ name: exerciseId } as SelectedPinInfo, timing);
-    const settings = getEthicsSettings({ name: exerciseId } as SelectedPinInfo, timing);
 
     ethicsData.value[key] = {
       exerciseId,
       timing,
-      questions,
-      settings: settings || { lens: 'virtue', capital: 'human', zoomingState: 'in' },
+      settings: data.settings,
+      questions: data.questions,
       completed: true,
-      responses,
-      completedAt: Date.now()
+      responses: data.responses,
+      completedAt: Date.now(),
+      additionalContext: data.additionalContext
     };
 
-    ethicsModal.value = null;
+    unifiedEthicsModal.value = null;
     
     // Return pending navigation info if any
     const pendingNav = pendingNavigation.value;
@@ -276,19 +264,9 @@ export function useEthics() {
 
   // Handle ethics cancellation
   const handleEthicsCancel = () => {
-    ethicsModal.value = null;
+    unifiedEthicsModal.value = null;
     pendingNavigation.value = null;
   };
-
-  // Watch for changes and auto-save
-  watch(ethicsData, saveEthicsData, { deep: true });
-
-  // Load on initialization
-  loadEthicsData();
-
-  // Computed values for modal state
-  const ethicsModalOpen = computed(() => ethicsModal.value?.open || false);
-  const currentEthicsData = computed(() => ethicsModal.value);
 
   // Get completed ethics data for a specific exercise and timing
   const getCompletedEthicsData = (exerciseId: string, timing: 'before' | 'after') => {
@@ -331,34 +309,62 @@ export function useEthics() {
     };
   };
 
+  // Check if navigation should be blocked due to incomplete ethics
+  const checkNavigationBlock = (exerciseId: string): string | null => {
+    const exerciseEthics = getExerciseEthicsStatus({ name: exerciseId } as any);
+    
+    if (exerciseEthics.beforeRequired && !exerciseEthics.beforeCompleted) {
+      return "Please complete the pre-exercise ethics review before proceeding.";
+    }
+    
+    if (exerciseEthics.afterRequired && !exerciseEthics.afterCompleted) {
+      return "Please complete the post-exercise ethics review before proceeding.";
+    }
+    
+    return null;
+  };
+
+  // Watch for changes and auto-save
+  watch(ethicsData, saveEthicsData, { deep: true });
+
+  // Load on initialization
+  loadEthicsData();
+
+  // Computed values for modal state
+  const ethicsModalOpen = computed(() => unifiedEthicsModal.value?.open || false);
+  const currentEthicsData = computed(() => unifiedEthicsModal.value);
+
   return {
     // Data
     ethicsData: computed(() => ethicsData.value),
+    unifiedEthicsModal: computed(() => unifiedEthicsModal.value),
     ethicsModalOpen,
     currentEthicsData,
     
-    // Functions
+    // Main functions
+    openEthicsModal,
+    handleEthicsSubmit,
+    handleEthicsCancel,
+    checkNavigationBlock,
+    
+    // Core functions
     hasEthicsRequirement,
     getExerciseEthicsStatus,
-    triggerEthicsCheck,
-    checkNavigationBlock,
-    handleEthicsCompleted,
-    handleEthicsCancel,
     isEthicsCompleted,
-    
-    // New viewer support functions
     getCompletedEthicsData,
     updateEthicsResponses,
     hasCompletedEthics,
     getExerciseCompletedEthics,
     
-    // For backwards compatibility with existing components
+    // Legacy compatibility
     getEthicsSettings,
     getEthicsQuestions,
     hasEthics: hasEthicsRequirement,
     isCompleted: isEthicsCompleted,
+    triggerEthicsCheck: openEthicsModal, // Map old function to new
+    handleEthicsCompleted: handleEthicsSubmit, // Map old function to new
     
-    // Placeholder functions for legacy components (simplified)
+    // Simplified legacy functions
     getEthicalCheck: (exerciseId: string, timing: 'before' | 'after') => {
       const key = getEthicsKey(exerciseId, timing);
       const data = ethicsData.value[key];
@@ -367,7 +373,12 @@ export function useEthics() {
         exerciseId,
         timing,
         status: data.completed ? 'completed' : 'pending',
-        questions: data.questions.map((q, i) => ({ id: `${key}-q${i}`, question: q, type: 'text', required: true })),
+        questions: data.questions.map((q, i) => ({ 
+          id: q.id || `${key}-q${i}`, 
+          question: typeof q === 'string' ? q : q.question, 
+          type: 'text', 
+          required: true 
+        })),
         responses: data.responses
       } : null;
     },
@@ -388,16 +399,17 @@ export function useEthics() {
         ethicsData.value[key] = {
           exerciseId,
           timing,
-          questions: [], // Will be populated when needed
-          settings: { lens: 'virtue', capital: 'human', zoomingState: 'in' },
+          settings: {
+            ethicalLens: ETHICAL_LENSES[0],
+            mainCapital: MAIN_CAPITALS[0],
+            zoomingState: 'in' as const
+          },
+          questions: [],
           completed: true,
           responses,
           completedAt: Date.now()
         };
       }
-    },
-    
-    ensureEthicalCheck: () => null, // Simplified placeholder
-    ensureEthicalCheckFromExercise: () => null // Simplified placeholder
+    }
   };
 } 
