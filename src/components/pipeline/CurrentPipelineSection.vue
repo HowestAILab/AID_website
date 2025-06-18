@@ -103,7 +103,7 @@
                 @dragleave="handleDragLeave"
               >
                 <div
-                  class="w-7 h-7 bg-light border-2 border-gray-700 transform rotate-45 flex items-center justify-center transition-all duration-200 shadow-sm"
+                  class="w-7 h-7 bg-light border-2 border-gray-700 transform rotate-45 flex items-center justify-center transition-all duration-200 shadow-sm cursor-pointer"
                   :class="{
                     'scale-110 shadow-md':
                       dragOverIndex ===
@@ -138,10 +138,13 @@
                           (p) => p.originalIndex === exercise.originalIndex
                         )
                       ),
+                    'hover:bg-primary-accent/10 hover:border-primary-accent/60': !isDragging,
                   }"
+                  @click="handleExerciseClick(exercise, $event)"
+                  @mousedown="handleMouseDown"
                 >
                   <span
-                    class="text-xs transform -rotate-45 font-bold"
+                    class="text-xs transform -rotate-45 font-bold pointer-events-none"
                     :class="
                       currentActiveExercise?.originalIndex ===
                       exercise.originalIndex
@@ -153,8 +156,8 @@
                   </span>
                 </div>
                 <button
-                  @click="$emit('unselectPinRequested', exercise.originalIndex)"
-                  class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600 shadow-sm"
+                  @click.stop="$emit('unselectPinRequested', exercise.originalIndex)"
+                  class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600 shadow-sm z-10"
                   :class="{ 'pointer-events-none': isDragging }"
                 >
                   <X class="w-3 h-3" />
@@ -440,6 +443,12 @@ const isDragging = ref(false);
 const draggedIndex = ref<number | null>(null);
 const dragOverIndex = ref<number | null>(null);
 
+// Click detection state
+const mouseDownTime = ref<number>(0);
+const mouseDownPosition = ref<{ x: number; y: number } | null>(null);
+const CLICK_THRESHOLD_TIME = 200; // ms
+const CLICK_THRESHOLD_DISTANCE = 5; // pixels
+
 // Computed properties
 const overallProgress = computed(() =>
   calculatePipelineProgress(props.selectedPins)
@@ -516,9 +525,18 @@ const handleOpenExercise = (exercise: SelectedPinInfo, index: number) => {
 
 // Drag and drop handlers
 const handleDragStart = (event: DragEvent, index: number) => {
-  isDragging.value = true;
+  // Small delay to allow distinguishing clicks from drags
+  setTimeout(() => {
+    isDragging.value = true;
+  }, 50);
+  
   draggedIndex.value = index;
   phaseRestrictionMessage.value = null; // Clear any previous messages
+  
+  // Reset click detection since this is a drag
+  mouseDownTime.value = 0;
+  mouseDownPosition.value = null;
+  
   if (event.dataTransfer) {
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", index.toString());
@@ -666,6 +684,37 @@ const handleEthicsClick = (exercise: SelectedPinInfo) => {
     );
     openExercise(exercise, index);
   }
+};
+
+// Exercise click handlers
+const handleMouseDown = (event: MouseEvent) => {
+  mouseDownTime.value = Date.now();
+  mouseDownPosition.value = { x: event.clientX, y: event.clientY };
+};
+
+const handleExerciseClick = (exercise: SelectedPinInfo, event: MouseEvent) => {
+  // Only trigger click if this wasn't a drag operation
+  if (!isDragging.value && mouseDownTime.value && mouseDownPosition.value) {
+    const timeDiff = Date.now() - mouseDownTime.value;
+    const distance = Math.sqrt(
+      Math.pow(event.clientX - mouseDownPosition.value.x, 2) +
+      Math.pow(event.clientY - mouseDownPosition.value.y, 2)
+    );
+    
+    // Click is valid if it's quick and the mouse didn't move much
+    if (timeDiff < CLICK_THRESHOLD_TIME && distance < CLICK_THRESHOLD_DISTANCE) {
+      const index = props.selectedPins.findIndex(
+        (p) => p.originalIndex === exercise.originalIndex
+      );
+      if (index >= 0) {
+        emit('openExercise', exercise, index);
+      }
+    }
+  }
+  
+  // Reset click detection state
+  mouseDownTime.value = 0;
+  mouseDownPosition.value = null;
 };
 </script>
 

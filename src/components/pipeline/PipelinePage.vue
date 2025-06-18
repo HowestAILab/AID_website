@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick, watch } from "vue";
 import { ArrowLeft, List, Grid3X3, Play } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import PipelineOverviewView from "./PipelineOverviewView.vue";
@@ -146,6 +146,13 @@ onMounted(() => {
       openExercise(pendingOpen.exercise);
     }
   });
+});
+
+// Watch for pending exercise changes, even if the component is already mounted
+watch(getPendingExerciseOpen, (pendingOpen) => {
+  if (pendingOpen) {
+    openExercise(pendingOpen.exercise);
+  }
 });
 
 // Computed properties
