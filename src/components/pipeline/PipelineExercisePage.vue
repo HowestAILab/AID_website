@@ -472,6 +472,8 @@ const handleEthicsSubmit = (data: any) => {
   ethicsBlockingMessage.value = null;
   // Clear pending navigation since user has engaged with ethics
   pendingNavigationIndex.value = null;
+  // Close the modal and reset state
+  handleModalClose();
 };
 
 const handleCancel = () => {

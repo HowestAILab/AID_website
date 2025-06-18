@@ -51,31 +51,35 @@ interface UnifiedEthicsModal {
 
 const LOCAL_STORAGE_KEY = 'ethics-data';
 
+// Create a single, shared reactive state
+const ethicsData = ref<Record<string, EthicsData>>({});
+
+// Load data once when the module is first imported
+try {
+  const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+  if (stored) {
+    ethicsData.value = JSON.parse(stored);
+  }
+} catch (error) {
+  console.error('Failed to load ethics data from localStorage:', error);
+}
+
+// Watch for changes and save to localStorage
+watch(
+  ethicsData,
+  (newValue) => {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newValue));
+    } catch (error) {
+      console.error('Failed to save ethics data to localStorage:', error);
+    }
+  },
+  { deep: true }
+);
+
 export function useEthics() {
-  const ethicsData = ref<Record<string, EthicsData>>({});
   const unifiedEthicsModal = ref<UnifiedEthicsModal | null>(null);
   const pendingNavigation = ref<{ type: 'exercise-change', targetIndex: number } | null>(null);
-
-  // Load from localStorage
-  const loadEthicsData = () => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (stored) {
-        ethicsData.value = JSON.parse(stored);
-      }
-    } catch (error) {
-      console.error('Failed to load ethics data:', error);
-    }
-  };
-
-  // Save to localStorage
-  const saveEthicsData = () => {
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(ethicsData.value));
-    } catch (error) {
-      console.error('Failed to save ethics data:', error);
-    }
-  };
 
   // Helper functions
   const findLensByType = (type: string): EthicalLens => 
@@ -248,21 +252,16 @@ export function useEthics() {
       timing: data.timing,
       settings: data.settings,
       questions: data.questions,
-      completed: isCompleted,
       responses: data.responses,
+      completed: isCompleted,
       completedAt: isCompleted ? Date.now() : undefined,
       additionalContext: data.additionalContext,
     };
+
     ethicsData.value[key] = newData;
 
-    // Update the data inside the modal state so it's fresh
-    if (unifiedEthicsModal.value.allExistingEthicsData) {
-      unifiedEthicsModal.value.allExistingEthicsData[data.timing] = newData;
-    } else {
-      unifiedEthicsModal.value.allExistingEthicsData = { [data.timing]: newData };
-    }
-
-    // Modal is no longer closed here, it's handled by the user.
+    // The modal should be closed from the component that opened it
+    // handleEthicsCancel(); // No longer closing from here
   };
 
   // Handle ethics cancellation
@@ -326,12 +325,6 @@ export function useEthics() {
     
     return null;
   };
-
-  // Watch for changes and auto-save
-  watch(ethicsData, saveEthicsData, { deep: true });
-
-  // Load on initialization
-  loadEthicsData();
 
   // Computed values for modal state
   const ethicsModalOpen = computed(() => unifiedEthicsModal.value?.open || false);

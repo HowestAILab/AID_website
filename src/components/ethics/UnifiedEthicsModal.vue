@@ -1018,15 +1018,10 @@ const handleSubmit = async () => {
       responses: { ...responses },
       additionalContext: additionalContext.value,
     });
-    
-    // The modal now stays open for the user to switch or close manually.
-    // If you want it to close automatically on full completion:
-    // const allDone = props.availableTimings.every(t => getTimingStatus(t).isCompleted);
-    // if (allDone) {
-    //   isOpen.value = false;
-    //   emit("update:open", false);
-    // }
-    
+
+    // Close the modal upon submission.
+    isOpen.value = false;
+    emit("update:open", false);
   } catch (error) {
     console.error("Error submitting ethics review:", error);
   } finally {
@@ -1079,6 +1074,9 @@ const saveChanges = async () => {
 
     isEditingExisting.value = false;
     originalResponses.value = { ...responses };
+    // Close the modal
+    isOpen.value = false;
+    emit("update:open", false);
   } catch (error) {
     console.error("Error saving changes:", error);
   } finally {
