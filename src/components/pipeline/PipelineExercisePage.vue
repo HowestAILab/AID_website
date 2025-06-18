@@ -260,7 +260,7 @@
     "
     @update:open="handleEthicsModalOpenChange"
     @submit="handleEthicsSubmit"
-    @cancel="handleEthicsCancel"
+    @cancel="handleCancel"
   />
 </template>
 
@@ -329,6 +329,7 @@ const {
 // Local state
 const currentChatMessageCount = ref(0);
 const ethicsBlockingMessage = ref<string | null>(null);
+const pendingNavigationIndex = ref<number | null>(null);
 
 // Computed properties
 const derivedDriveType = computed<DriveType>(() => {
@@ -418,17 +419,17 @@ const goToNextExercise = () => {
 };
 
 const requestExerciseChange = (targetIndex: number) => {
-  const targetExercise = props.allExercises[targetIndex];
-  const currentChatHistory = convertChatMessages(currentMessages.value || []);
-
-  const blockingMessage = ethics.checkNavigationBlock(targetExercise.name);
-
-  if (!blockingMessage) {
-    emit("navigate-to-exercise", targetIndex);
-    ethicsBlockingMessage.value = null;
-  } else {
-    ethicsBlockingMessage.value = blockingMessage;
+  // Check for post-ethics on the CURRENT exercise before navigating away.
+  const currentStatus = ethics.getExerciseEthicsStatus(props.exercise);
+  if (currentStatus.afterRequired && !currentStatus.afterCompleted) {
+    pendingNavigationIndex.value = targetIndex;
+    openEthicsModalForExercise(props.exercise);
+    return;
   }
+
+  // If no post-ethics block, navigate immediately.
+  // The pre-ethics check for the target exercise will be handled by the watcher.
+  emit("navigate-to-exercise", targetIndex);
 };
 
 // Completion functions
@@ -440,24 +441,36 @@ const markAsIncomplete = () => {
   markExerciseIncomplete(props.exercise.name);
 };
 
-// Ethics event handlers
-const handleEthicsSubmit = (data: any) => {
-  const pendingNav = ethics.handleEthicsSubmit(data);
-  ethicsBlockingMessage.value = null;
-
-  if (pendingNav?.type === "exercise-change") {
-    emit("navigate-to-exercise", pendingNav.targetIndex);
+// Modal Close Handler for Pending Navigation
+const handleModalClose = () => {
+  if (pendingNavigationIndex.value !== null) {
+    // A navigation was pending. Check if the requirement is now met.
+    const currentStatus = ethics.getExerciseEthicsStatus(props.exercise);
+    if (!currentStatus.afterRequired || currentStatus.afterCompleted) {
+      // Requirement met, proceed with navigation.
+      emit("navigate-to-exercise", pendingNavigationIndex.value);
+    }
+    // Whether it was met or not, we clear the pending navigation.
+    // If not met, the navigation is simply cancelled.
+    pendingNavigationIndex.value = null;
   }
+  ethics.handleEthicsCancel();
 };
 
-const handleEthicsCancel = () => {
-  ethics.handleEthicsCancel();
+// Ethics event handlers
+const handleEthicsSubmit = (data: any) => {
+  ethics.handleEthicsSubmit(data);
+  // The check for pending navigation will happen when the modal closes.
   ethicsBlockingMessage.value = null;
+};
+
+const handleCancel = () => {
+  handleModalClose();
 };
 
 const handleEthicsModalOpenChange = (open: boolean) => {
   if (!open) {
-    ethics.handleEthicsCancel();
+    handleModalClose();
   }
 };
 
@@ -516,26 +529,35 @@ const handleChatUpdated = (messageCount: number) => {
   currentChatMessageCount.value = stats.userMessages || 0;
 };
 
+const initializeAndCheckEthics = (exercise: SelectedPinInfo) => {
+  if (setCurrentExercise) {
+    setCurrentExercise(exercise);
+  }
+  nextTick(() => {
+    const stats = getChatStats(exercise.name);
+    currentChatMessageCount.value = stats.userMessages || 0;
+  });
+  ethicsBlockingMessage.value = null;
+  pendingNavigationIndex.value = null; // Reset pending navigation on new page.
+
+  // Check for pre-ethics requirement on the newly loaded exercise
+  const status = ethics.getExerciseEthicsStatus(exercise);
+  if (status.beforeRequired && !status.beforeCompleted) {
+    nextTick(() => {
+      openEthicsModalForExercise(exercise);
+    });
+  }
+};
+
 // Initialize on mount and exercise changes
 onMounted(() => {
-  if (setCurrentExercise) {
-    setCurrentExercise(props.exercise);
-  }
-  currentChatMessageCount.value = (currentMessages.value || []).length;
+  initializeAndCheckEthics(props.exercise);
 });
 
 watch(
   () => props.exercise,
   (newExercise) => {
-    if (setCurrentExercise) {
-      setCurrentExercise(newExercise);
-    }
-
-    nextTick(() => {
-      currentChatMessageCount.value = (currentMessages.value || []).length;
-    });
-
-    ethicsBlockingMessage.value = null;
+    initializeAndCheckEthics(newExercise);
   }
 );
 </script>
