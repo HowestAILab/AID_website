@@ -1,6 +1,11 @@
 import { ref, computed, watch } from 'vue';
 import type { SelectedPinInfo } from '@/types/exercise';
 import type { EthicalCheck } from '@/types/ethics';
+import { useProjectLocalStorage } from './storage/useProjectLocalStorage';
+import { useProjects } from './useProjects';
+
+const { currentProject } = useProjects();
+const progressStorage = useProjectLocalStorage('pipelineProgress');
 
 const LOCAL_STORAGE_KEY = 'pipelineProgress';
 
@@ -28,35 +33,26 @@ interface ExerciseProgress {
 }
 
 export function usePipelineProgress() {
-  const exerciseProgress = ref<Record<string, ExerciseProgress>>({});
-
-  // Load from localStorage
-  const loadProgress = () => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (stored) {
-        exerciseProgress.value = JSON.parse(stored);
-      }
-    } catch (error) {
-      console.error('Failed to load pipeline progress:', error);
-      exerciseProgress.value = {};
-    }
-  };
-
-  // Save to localStorage
-  const saveProgress = () => {
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(exerciseProgress.value));
-    } catch (error) {
-      console.error('Failed to save pipeline progress:', error);
-    }
-  };
+  const exerciseProgress = ref<Record<string, ExerciseProgress>>(progressStorage.getItem() || {});
 
   // Watch for changes and auto-save
-  watch(exerciseProgress, saveProgress, { deep: true });
+  watch(
+    exerciseProgress,
+    (newValue) => {
+      progressStorage.setItem(newValue);
+    },
+    { deep: true }
+  );
 
-  // Load on initialization
-  loadProgress();
+  // When the project changes, reload the progress
+  watch(
+    () => currentProject.value?.id,
+    (newProjectId, oldProjectId) => {
+      if (newProjectId !== oldProjectId) {
+        exerciseProgress.value = progressStorage.getItem() || {};
+      }
+    }
+  );
 
   // Mark exercise as completed
   const markExerciseCompleted = (exerciseId: string, originalIndex: number, notes?: string) => {
@@ -214,7 +210,7 @@ export function usePipelineProgress() {
     try {
       if (data.exerciseProgress) {
         exerciseProgress.value = data.exerciseProgress;
-        saveProgress();
+        progressStorage.setItem(exerciseProgress.value);
         return true;
       }
       return false;
@@ -240,7 +236,5 @@ export function usePipelineProgress() {
     getPhaseProgress,
     exportPipelineData,
     importPipelineData,
-    loadProgress,
-    saveProgress
   };
 } 

@@ -2,6 +2,8 @@ import { ref, computed, watch } from 'vue';
 import type { SelectedPinInfo } from '@/types/exercise';
 import { ETHICAL_LENSES, MAIN_CAPITALS } from '@/types/ethics';
 import type { EthicalSettings, EthicalLens, MainCapital } from '@/types/ethics';
+import { useProjectLocalStorage } from './storage/useProjectLocalStorage';
+import { useProjects } from './useProjects';
 
 interface EthicsData {
   exerciseId: string;
@@ -49,32 +51,29 @@ interface UnifiedEthicsModal {
   };
 }
 
-const LOCAL_STORAGE_KEY = 'ethics-data';
+const { currentProject } = useProjects();
+const ethicsStorage = useProjectLocalStorage('ethics-data');
 
 // Create a single, shared reactive state
-const ethicsData = ref<Record<string, EthicsData>>({});
+const ethicsData = ref<Record<string, EthicsData>>(ethicsStorage.getItem() || {});
 
-// Load data once when the module is first imported
-try {
-  const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-  if (stored) {
-    ethicsData.value = JSON.parse(stored);
-  }
-} catch (error) {
-  console.error('Failed to load ethics data from localStorage:', error);
-}
-
-// Watch for changes and save to localStorage
+// Watch for changes and save to localStorage for the current project
 watch(
   ethicsData,
   (newValue) => {
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newValue));
-    } catch (error) {
-      console.error('Failed to save ethics data to localStorage:', error);
-    }
+    ethicsStorage.setItem(newValue);
   },
   { deep: true }
+);
+
+// When the project changes, we need to reload the ethics data
+watch(
+  () => currentProject.value?.id,
+  (newProjectId, oldProjectId) => {
+    if (newProjectId !== oldProjectId) {
+      ethicsData.value = ethicsStorage.getItem() || {};
+    }
+  }
 );
 
 export function useEthics() {

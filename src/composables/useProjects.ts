@@ -1,5 +1,6 @@
 import { ref, computed, watch } from 'vue';
 import type { SelectedPinInfo } from '@/types/exercise';
+import { clearProjectData } from './storage/useProjectLocalStorage';
 
 export type { SelectedPinInfo };
 
@@ -21,8 +22,6 @@ const saveProjectsToStorage = (projectsData: Project[]) => {
     console.error('Failed to save projects to localStorage:', error);
   }
 };
-
-
 
 const loadProjectsFromStorage = (): Project[] => {
   try {
@@ -135,6 +134,9 @@ export function useProjects() {
     if (index !== -1) {
       projects.value.splice(index, 1);
       
+      // Clear associated project data from localStorage
+      clearProjectData(projectId);
+
       // If we deleted the current project, clear current project
       if (currentProjectId.value === projectId) {
         currentProjectId.value = projects.value.length > 0 ? projects.value[0].id : null;

@@ -1,5 +1,7 @@
 import { ref, computed, watch } from 'vue';
 import type { SelectedPinInfo } from '@/types/exercise';
+import { useProjectLocalStorage } from './storage/useProjectLocalStorage';
+import { useProjects } from './useProjects';
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -19,40 +21,33 @@ export interface ExerciseChatData {
   [exerciseId: string]: ExerciseChatSession;
 }
 
-const LOCAL_STORAGE_KEY = 'exercise-chat-sessions';
+const { currentProject } = useProjects();
+const chatStorage = useProjectLocalStorage('exercise-chat-sessions');
 
 export function useExerciseChat() {
-  const exerciseChatSessions = ref<ExerciseChatData>({});
+  const exerciseChatSessions = ref<ExerciseChatData>(chatStorage.getItem() || {});
   const currentExerciseId = ref<string | null>(null);
   const isLoading = ref(false);
 
-  // Load from localStorage
-  const loadChatSessions = () => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (stored) {
-        exerciseChatSessions.value = JSON.parse(stored);
-      }
-    } catch (error) {
-      console.error('Failed to load exercise chat sessions:', error);
-      exerciseChatSessions.value = {};
-    }
-  };
-
-  // Save to localStorage
-  const saveChatSessions = () => {
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(exerciseChatSessions.value));
-    } catch (error) {
-      console.error('Failed to save exercise chat sessions:', error);
-    }
-  };
-
   // Watch for changes and auto-save
-  watch(exerciseChatSessions, saveChatSessions, { deep: true });
+  watch(
+    exerciseChatSessions,
+    (newValue) => {
+      chatStorage.setItem(newValue);
+    },
+    { deep: true }
+  );
 
-  // Load on initialization
-  loadChatSessions();
+  // When the project changes, reload the chat sessions
+  watch(
+    () => currentProject.value?.id,
+    (newProjectId, oldProjectId) => {
+      if (newProjectId !== oldProjectId) {
+        exerciseChatSessions.value = chatStorage.getItem() || {};
+        currentExerciseId.value = null; // Reset current exercise
+      }
+    }
+  );
 
   // Current session computed property
   const currentChatSession = computed(() => {
@@ -185,7 +180,7 @@ export function useExerciseChat() {
     try {
       if (data.exerciseChatSessions) {
         exerciseChatSessions.value = data.exerciseChatSessions;
-        saveChatSessions();
+        chatStorage.setItem(exerciseChatSessions.value);
         return true;
       }
       return false;
@@ -297,8 +292,6 @@ export function useExerciseChat() {
     getChatStats,
 
     // Persistence
-    loadChatSessions,
-    saveChatSessions,
     exportChatSessions,
     importChatSessions,
   };
