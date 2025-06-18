@@ -129,13 +129,16 @@
 
     <UnifiedEthicsModal
       v-if="ethics.unifiedEthicsModal.value"
-      :open="ethics.ethicsModalOpen.value"
+      :open="ethics.unifiedEthicsModal.value.open"
       :mode="ethics.unifiedEthicsModal.value.mode"
       :exercise-name="ethics.unifiedEthicsModal.value.exerciseId"
-      :timing="ethics.unifiedEthicsModal.value.timing"
+      :initial-timing="ethics.unifiedEthicsModal.value.initialTiming"
+      :available-timings="ethics.unifiedEthicsModal.value.availableTimings"
       :exercise-context="ethics.unifiedEthicsModal.value.exerciseContext"
       :chat-history="ethics.unifiedEthicsModal.value.chatHistory || []"
-      :existing-ethics-data="ethics.unifiedEthicsModal.value.existingEthicsData"
+      :all-existing-ethics-data="
+        ethics.unifiedEthicsModal.value.allExistingEthicsData
+      "
       @update:open="handleEthicsModalOpenChange"
       @submit="handleEthicsSubmit"
       @cancel="handleEthicsCancel"
@@ -190,7 +193,7 @@ const {
   getPhaseProgress,
 } = usePipelineProgress();
 
-const { getChatStats } = useExerciseChat();
+const { getChatStats, getExerciseMessages } = useExerciseChat();
 const ethics = useEthics();
 
 const phases = ["Discover", "Define", "Develop", "Deliver"];
@@ -265,9 +268,8 @@ const exerciseEthicsCompleted = (exercise: SelectedPinInfo): boolean => {
   return status.allCompleted || false;
 };
 
-const getChatHistoryCount = (exerciseId: string): number => {
-  const stats = getChatStats(exerciseId);
-  return stats.userMessages;
+const getChatHistoryCount = (exerciseName: string) => {
+  return getChatStats(exerciseName).messageCount;
 };
 
 const formatCompletionDate = (exerciseId: string): string => {
@@ -283,73 +285,74 @@ const formatCompletionDate = (exerciseId: string): string => {
   });
 };
 
-const openExercise = (exercise: SelectedPinInfo, index: number) => {
-  // Find the original index in the selectedPins array
-  const originalIndex = props.selectedPins.findIndex(
-    (pin) => pin.originalIndex === exercise.originalIndex
-  );
+const openExercise = (exercise: SelectedPinInfo, originalIndex: number) => {
   emit("open-exercise", exercise, originalIndex);
 };
 
-// Helper function to convert chat messages to the format expected by UnifiedEthicsModal
-const convertChatMessages = (messages: any[]) => {
-  return messages
-    .filter((msg) => msg.role !== "system")
-    .map((msg) => ({
-      role: msg.role as "user" | "assistant",
-      content: msg.content,
-      timestamp: msg.timestamp || Date.now(),
-    }));
-};
-
 const handleEthicsClick = (exercise: SelectedPinInfo) => {
-  const status = ethics.getExerciseEthicsStatus(exercise);
-  const { getChatStats, getExerciseMessages } = useExerciseChat();
+  const { beforeRequired, afterRequired, beforeCompleted, afterCompleted } =
+    ethics.getExerciseEthicsStatus(exercise);
+  
+  const rawChatHistory = getExerciseMessages(exercise.name);
+  const currentChatHistory = rawChatHistory.filter(
+    (msg) => msg.role !== "system"
+  ) as { role: "user" | "assistant"; content: string; timestamp?: number }[];
 
-  // Get chat history for this exercise
-  const rawChatHistory = getExerciseMessages(exercise.name) || [];
-  const currentChatHistory = convertChatMessages(rawChatHistory);
+  const availableTimings: ("before" | "after")[] = [];
+  if (beforeRequired) availableTimings.push("before");
+  if (afterRequired) availableTimings.push("after");
 
-  if (status.beforeCompleted || status.afterCompleted) {
-    // Show unified modal for viewing completed ethics
-    const timing = status.beforeCompleted ? "before" : "after";
-    ethics.openEthicsModal(exercise, timing, "view", currentChatHistory);
-  } else if (status.beforeRequired && !status.beforeCompleted) {
-    // Show unified modal for completing before ethics
-    ethics.openEthicsModal(exercise, "before", "new", currentChatHistory);
-  } else if (status.afterRequired && !status.afterCompleted) {
-    // Show unified modal for completing after ethics
-    ethics.openEthicsModal(exercise, "after", "new", currentChatHistory);
-  } else {
-    // No ethics requirements - navigate to exercise
-    const originalIndex = props.selectedPins.findIndex(
-      (pin) => pin.originalIndex === exercise.originalIndex
+  // Determine which timing to view
+  let timingToView: "before" | "after" | null = null;
+  if (beforeCompleted) timingToView = "before";
+  if (afterCompleted) timingToView = "after"; // 'after' takes precedence if both are done
+
+  // If there's something to view, open in view mode
+  if (timingToView) {
+    ethics.openEthicsModal(
+      exercise,
+      timingToView,
+      "view",
+      currentChatHistory,
+      availableTimings
     );
-    openExercise(exercise, originalIndex);
+    return;
+  }
+
+  // If not completed, open in new mode
+  if (beforeRequired && !beforeCompleted) {
+    ethics.openEthicsModal(
+      exercise,
+      "before",
+      "new",
+      currentChatHistory,
+      availableTimings
+    );
+  } else if (afterRequired && !afterCompleted) {
+    ethics.openEthicsModal(
+      exercise,
+      "after",
+      "new",
+      currentChatHistory,
+      availableTimings
+    );
   }
 };
 
-// Ethics modal handlers
+// This function needs to be simple because the v-if on the modal
+// removes it from the DOM, so we can't rely on its internal state.
+const handleEthicsModalOpenChange = (isOpen: boolean) => {
+  if (!isOpen && ethics.unifiedEthicsModal.value) {
+    ethics.unifiedEthicsModal.value.open = false;
+  }
+};
+
 const handleEthicsSubmit = (data: any) => {
-  const pendingNav = ethics.handleEthicsSubmit(data);
-  // Could handle any pending navigation here if needed
+  ethics.handleEthicsSubmit(data);
 };
 
 const handleEthicsCancel = () => {
   ethics.handleEthicsCancel();
-};
-
-const handleEthicsModalOpenChange = (open: boolean) => {
-  if (!open) {
-    ethics.handleEthicsCancel();
-  }
-};
-
-const handleEthicsEdit = (
-  exercise: SelectedPinInfo,
-  timing: "before" | "after"
-) => {
-  emit("edit-ethics", exercise, timing);
 };
 </script>
 
@@ -383,5 +386,15 @@ const handleEthicsEdit = (
   .auto-fit-minmax {
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   }
+}
+
+/* Ensures the content area can scroll independently */
+.min-h-0 {
+  min-height: 0;
+}
+
+/* For grid layout */
+.auto-fit-minmax {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 </style>
