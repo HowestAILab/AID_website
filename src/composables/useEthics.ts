@@ -24,7 +24,8 @@ interface UnifiedEthicsModal {
   open: boolean;
   mode: 'new' | 'view' | 'edit';
   exerciseId: string;
-  timing: 'before' | 'after';
+  initialTiming: 'before' | 'after';
+  availableTimings: ('before' | 'after')[];
   exerciseContext: {
     name: string;
     phase: string;
@@ -42,18 +43,9 @@ interface UnifiedEthicsModal {
     chatCount: number;
     outcomes?: string[];
   };
-  existingEthicsData?: {
-    settings: EthicalSettings;
-    questions: Array<{
-      id: string;
-      question: string;
-      type: 'text' | 'rating' | 'multiple-choice';
-      options?: string[];
-      required: boolean;
-    }>;
-    responses: Record<string, any>;
-    completedAt?: number;
-    additionalContext?: string;
+  allExistingEthicsData?: {
+    before?: EthicsData;
+    after?: EthicsData;
   };
 }
 
@@ -193,33 +185,33 @@ export function useEthics() {
   // Trigger unified ethics modal
   const openEthicsModal = (
     exercise: SelectedPinInfo,
-    timing: 'before' | 'after',
+    initialTiming: 'before' | 'after',
     mode: 'new' | 'view' | 'edit' = 'new',
-    chatHistory: Array<{ role: 'user' | 'assistant'; content: string; timestamp?: number }> = []
+    chatHistory: Array<{
+      role: 'user' | 'assistant';
+      content: string;
+      timestamp?: number;
+    }> = [],
+    availableTimings: ('before' | 'after')[]
   ) => {
-    const key = getEthicsKey(exercise.name, timing);
-    const existingData = ethicsData.value[key];
-
     unifiedEthicsModal.value = {
       open: true,
       mode,
       exerciseId: exercise.name,
-      timing,
+      initialTiming,
+      availableTimings,
       exerciseContext: {
         name: exercise.name,
         phase: exercise.location.phase,
         step: exercise.location.step,
         humanAiScale: exercise.location.human_ai_scale,
-        description: exercise.description
+        description: exercise.description,
       },
       chatHistory,
-      existingEthicsData: existingData ? {
-        settings: existingData.settings,
-        questions: existingData.questions,
-        responses: existingData.responses || {},
-        completedAt: existingData.completedAt,
-        additionalContext: existingData.additionalContext
-      } : undefined
+      allExistingEthicsData: {
+        before: ethicsData.value[getEthicsKey(exercise.name, 'before')],
+        after: ethicsData.value[getEthicsKey(exercise.name, 'after')],
+      },
     };
 
     return true;
@@ -227,6 +219,7 @@ export function useEthics() {
 
   // Handle ethics completion/update
   const handleEthicsSubmit = (data: {
+    timing: 'before' | 'after';
     settings: EthicalSettings;
     questions: Array<{
       id: string;
@@ -240,26 +233,36 @@ export function useEthics() {
   }) => {
     if (!unifiedEthicsModal.value) return;
 
-    const { exerciseId, timing } = unifiedEthicsModal.value;
-    const key = getEthicsKey(exerciseId, timing);
+    const { exerciseId } = unifiedEthicsModal.value;
+    const key = getEthicsKey(exerciseId, data.timing);
 
-    ethicsData.value[key] = {
+    const isCompleted = data.questions.every((q) => {
+      const value = data.responses[q.id];
+      return q.required
+        ? value !== undefined && value !== null && value !== ""
+        : true;
+    });
+
+    const newData: EthicsData = {
       exerciseId,
-      timing,
+      timing: data.timing,
       settings: data.settings,
       questions: data.questions,
-      completed: true,
+      completed: isCompleted,
       responses: data.responses,
-      completedAt: Date.now(),
-      additionalContext: data.additionalContext
+      completedAt: isCompleted ? Date.now() : undefined,
+      additionalContext: data.additionalContext,
     };
+    ethicsData.value[key] = newData;
 
-    unifiedEthicsModal.value = null;
-    
-    // Return pending navigation info if any
-    const pendingNav = pendingNavigation.value;
-    pendingNavigation.value = null;
-    return pendingNav;
+    // Update the data inside the modal state so it's fresh
+    if (unifiedEthicsModal.value.allExistingEthicsData) {
+      unifiedEthicsModal.value.allExistingEthicsData[data.timing] = newData;
+    } else {
+      unifiedEthicsModal.value.allExistingEthicsData = { [data.timing]: newData };
+    }
+
+    // Modal is no longer closed here, it's handled by the user.
   };
 
   // Handle ethics cancellation

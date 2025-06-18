@@ -248,10 +248,16 @@
     :open="ethics.ethicsModalOpen.value"
     :mode="ethics.unifiedEthicsModal.value.mode"
     :exercise-name="ethics.unifiedEthicsModal.value.exerciseId"
-    :timing="ethics.unifiedEthicsModal.value.timing"
+    :initial-timing="ethics.unifiedEthicsModal.value.initialTiming"
+    :available-timings="ethics.unifiedEthicsModal.value.availableTimings"
     :exercise-context="ethics.unifiedEthicsModal.value.exerciseContext"
     :chat-history="ethics.unifiedEthicsModal.value.chatHistory || []"
-    :existing-ethics-data="ethics.unifiedEthicsModal.value.existingEthicsData"
+    :all-existing-ethics-data="
+      ethics.unifiedEthicsModal.value.allExistingEthicsData
+    "
+    :previous-exercise-context="
+      ethics.unifiedEthicsModal.value.previousExerciseContext
+    "
     @update:open="handleEthicsModalOpenChange"
     @submit="handleEthicsSubmit"
     @cancel="handleEthicsCancel"
@@ -455,7 +461,7 @@ const handleEthicsModalOpenChange = (open: boolean) => {
   }
 };
 
-const handleEthicsBadgeClick = (exercise: SelectedPinInfo) => {
+const openEthicsModalForExercise = (exercise: SelectedPinInfo) => {
   const status = ethics.getExerciseEthicsStatus(exercise);
   const rawChatHistory =
     exercise.name === props.exercise.name
@@ -463,21 +469,46 @@ const handleEthicsBadgeClick = (exercise: SelectedPinInfo) => {
       : getExerciseMessages(exercise.name) || [];
   const currentChatHistory = convertChatMessages(rawChatHistory);
 
-  if (status.beforeCompleted || status.afterCompleted) {
-    const timing = status.beforeCompleted ? "before" : "after";
-    ethics.openEthicsModal(exercise, timing, "view", currentChatHistory);
-  } else if (status.beforeRequired && !status.beforeCompleted) {
-    ethics.openEthicsModal(exercise, "before", "new", currentChatHistory);
-  } else if (status.afterRequired && !status.afterCompleted) {
-    ethics.openEthicsModal(exercise, "after", "new", currentChatHistory);
+  const availableTimings: ("before" | "after")[] = [];
+  if (status.beforeRequired) availableTimings.push("before");
+  if (status.afterRequired) availableTimings.push("after");
+
+  if (availableTimings.length === 0) {
+    return;
   }
+
+  // Determine which timing to open first.
+  // Priority: incomplete 'before', incomplete 'after', completed 'before'.
+  let initialTiming: "before" | "after" = availableTimings[0];
+  if (availableTimings.includes("before") && !status.beforeCompleted) {
+    initialTiming = "before";
+  } else if (availableTimings.includes("after") && !status.afterCompleted) {
+    initialTiming = "after";
+  } else if (availableTimings.includes("before")) {
+    initialTiming = "before";
+  }
+
+  const mode =
+    (initialTiming === "before" && status.beforeCompleted) ||
+    (initialTiming === "after" && status.afterCompleted)
+      ? "view"
+      : "new";
+
+  ethics.openEthicsModal(
+    exercise,
+    initialTiming,
+    mode,
+    currentChatHistory,
+    availableTimings
+  );
+};
+
+const handleEthicsBadgeClick = (exercise: SelectedPinInfo) => {
+  openEthicsModalForExercise(exercise);
 };
 
 const handleViewEthicsClick = () => {
-  const status = exerciseEthicsStatus.value;
-  const timing = status.beforeCompleted ? "before" : "after";
-  const currentChatHistory = convertChatMessages(currentMessages.value || []);
-  ethics.openEthicsModal(props.exercise, timing, "view", currentChatHistory);
+  openEthicsModalForExercise(props.exercise);
 };
 
 const handleChatUpdated = (messageCount: number) => {

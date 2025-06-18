@@ -1,17 +1,19 @@
 <template>
   <Dialog :open="isOpen" @update:open="handleOpenChange">
-    <DialogContent class="!max-w-[80vw] max-h-[90vh] overflow-hidden p-0 z-50">
+    <DialogContent
+      class="!max-w-[80vw] max-h-[90vh] overflow-hidden p-0 z-50 flex flex-col"
+    >
       <!-- Header -->
-      <div class="border-b bg-gradient-to-r from-purple-50 to-blue-50 p-6">
+      <div class="border-b bg-light p-6 flex-shrink-0">
         <DialogHeader>
           <DialogTitle class="flex items-center gap-3">
             <div
-              class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center"
+              class="w-10 h-10 bg-primary-accent rounded-full flex items-center justify-center"
             >
               <Shield class="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 class="text-xl font-semibold text-gray-900">
+              <h2 class="text-xl font-semibold text-on-light-default">
                 {{
                   currentStep === "builder"
                     ? "Ethics Review Setup"
@@ -20,17 +22,42 @@
                     : "View Ethics Review"
                 }}
               </h2>
-              <p class="text-sm text-gray-600 mt-1">
-                {{ timing === "before" ? "Pre-Exercise" : "Post-Exercise" }}
-                Ethics Check for "{{ exerciseName }}"
+              <p class="text-sm text-on-light-accent mt-1">
+                <span class="font-medium capitalize">{{ activeTiming }}</span>
+                -Exercise Ethics Check for "{{ exerciseName }}"
               </p>
             </div>
           </DialogTitle>
         </DialogHeader>
+        <!-- Timing Switcher -->
+        <div v-if="availableTimings && availableTimings.length > 1" class="mt-4">
+          <div class="flex gap-2 p-1 bg-on-light-accent/10 rounded-lg">
+            <Button
+              v-for="timing in availableTimings"
+              :key="timing"
+              @click="activeTiming = timing"
+              :variant="activeTiming === timing ? 'default' : 'ghost'"
+              class="flex-1 justify-center gap-2"
+              :class="{
+                'bg-primary-accent text-white hover:bg-primary-accent/90':
+                  activeTiming === timing,
+                'hover:bg-primary-accent/10': activeTiming !== timing,
+              }"
+            >
+              <CheckCircle2
+                v-if="getTimingStatus(timing).isCompleted"
+                class="w-4 h-4"
+              />
+              <span>{{
+                timing === "before" ? "Pre-Exercise" : "Post-Exercise"
+              }}</span>
+            </Button>
+          </div>
+        </div>
       </div>
 
       <!-- Content -->
-      <div class="flex h-[65vh]">
+      <div class="flex flex-1 min-h-0">
         <!-- Left Panel - Context Information -->
         <div class="w-1/3 border-r bg-gray-50 overflow-y-auto">
           <div class="p-4 space-y-4">
@@ -101,8 +128,8 @@
 
             <!-- Previous Exercise Context (for post-ethics) -->
             <div
-              v-if="timing === 'after' && previousExerciseContext"
-              class="bg-white rounded-lg p-4 shadow-sm"
+              v-if="activeTiming === 'after' && previousExerciseContext"
+              class="bg-white rounded-lg p-4 shadow-sm border border-on-light-accent/10"
             >
               <h3
                 class="font-medium text-gray-900 mb-2 flex items-center gap-2"
@@ -126,9 +153,9 @@
               </div>
             </div>
 
-            <!-- Current Ethics Settings (when not in builder) -->
+            <!-- Current Ethics Settings (when not in builder and not editing) -->
             <div
-              v-if="currentStep !== 'builder'"
+              v-if="currentStep !== 'builder' && !isEditingExisting"
               class="bg-white rounded-lg p-4 shadow-sm"
             >
               <h3
@@ -139,19 +166,19 @@
               </h3>
               <div class="space-y-2 text-sm">
                 <div class="flex items-center gap-2">
-                  <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
+                  <div class="w-3 h-3 bg-primary-accent/80 rounded-full"></div>
                   <span class="font-medium">{{
                     selectedEthicsSettings.ethicalLens.name
                   }}</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <div class="w-3 h-3 bg-primary-accent/60 rounded-full"></div>
                   <span class="font-medium">{{
                     selectedEthicsSettings.mainCapital.name
                   }}</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <div class="w-3 h-3 bg-primary-accent/40 rounded-full"></div>
                   <span class="font-medium capitalize"
                     >{{ selectedEthicsSettings.zoomingState }} Focus</span
                   >
@@ -164,98 +191,142 @@
         <!-- Right Panel - Main Content -->
         <div class="flex-1 overflow-y-auto">
           <!-- Builder Step -->
-          <div v-if="currentStep === 'builder'" class="p-6 space-y-6">
+          <div
+            v-if="
+              currentStep === 'builder' ||
+              (currentStep === 'view' && isEditingExisting)
+            "
+            class="p-6 space-y-6"
+          >
             <div class="space-y-4">
-              <h3 class="text-lg font-semibold text-gray-900">
-                Configure Ethics Framework
+              <h3 class="text-lg font-semibold text-on-light-default">
+                {{
+                  isEditingExisting
+                    ? "Modify Ethics Framework"
+                    : "Configure Ethics Framework"
+                }}
               </h3>
-              <p class="text-sm text-gray-600">
-                Select the ethical lens and capital focus for this review, then
-                add any additional context.
+              <p class="text-sm text-on-light-accent">
+                {{
+                  isEditingExisting
+                    ? "Update the framework to regenerate the ethics questions for this review."
+                    : "Select the ethical lens and capital focus for this review, then add any additional context."
+                }}
               </p>
             </div>
 
             <!-- Ethical Lens Selection -->
             <div class="space-y-3">
-              <label class="block text-sm font-medium text-gray-700">
+              <label class="block text-sm font-medium text-on-light-default">
                 Ethical Lens
               </label>
               <div class="grid grid-cols-2 gap-3">
-                <button
+                <TooltipProvider
                   v-for="lens in ETHICAL_LENSES"
                   :key="lens.type"
-                  @click="selectedEthicsSettings.ethicalLens = lens"
-                  class="p-3 border rounded-lg text-left hover:border-purple-300 transition-colors"
-                  :class="
-                    selectedEthicsSettings.ethicalLens.type === lens.type
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200'
-                  "
                 >
-                  <div class="font-medium text-sm">{{ lens.name }}</div>
-                  <div class="text-xs text-gray-600 mt-1">
-                    {{ lens.description }}
-                  </div>
-                </button>
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <button
+                        @click="selectedEthicsSettings.ethicalLens = lens"
+                        class="p-3 border rounded-lg text-left hover:border-primary-accent/40 transition-colors"
+                        :class="
+                          selectedEthicsSettings.ethicalLens.type === lens.type
+                            ? 'border-primary-accent bg-primary-accent/10'
+                            : 'border-on-light-accent/20'
+                        "
+                      >
+                        <div class="font-medium text-sm flex items-center gap-2">
+                          {{ lens.name }}
+                          <span
+                            v-if="suggestions?.lens === lens.type"
+                            class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full"
+                            >Suggested</span
+                          >
+                        </div>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p class="max-w-xs">{{ lens.description }}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
 
             <!-- Main Capital Selection -->
             <div class="space-y-3">
-              <label class="block text-sm font-medium text-gray-700">
+              <label class="block text-sm font-medium text-on-light-default">
                 Main Capital Focus
               </label>
               <div class="grid grid-cols-3 gap-3">
-                <button
+                <TooltipProvider
                   v-for="capital in MAIN_CAPITALS"
                   :key="capital.type"
-                  @click="selectedEthicsSettings.mainCapital = capital"
-                  class="p-3 border rounded-lg text-left hover:border-blue-300 transition-colors"
-                  :class="
-                    selectedEthicsSettings.mainCapital.type === capital.type
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200'
-                  "
                 >
-                  <div class="font-medium text-sm">{{ capital.name }}</div>
-                  <div class="text-xs text-gray-600 mt-1">
-                    {{ capital.description }}
-                  </div>
-                </button>
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <button
+                        @click="selectedEthicsSettings.mainCapital = capital"
+                        class="p-3 border rounded-lg text-left hover:border-primary-accent/40 transition-colors"
+                        :class="
+                          selectedEthicsSettings.mainCapital.type ===
+                          capital.type
+                            ? 'border-primary-accent bg-primary-accent/10'
+                            : 'border-on-light-accent/20'
+                        "
+                      >
+                        <div
+                          class="font-medium text-sm flex items-center gap-2"
+                        >
+                          {{ capital.name }}
+                          <span
+                            v-if="suggestions?.capital === capital.type"
+                            class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full"
+                            >Suggested</span
+                          >
+                        </div>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p class="max-w-xs">{{ capital.description }}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
 
             <!-- Zooming State Selection -->
             <div class="space-y-3">
-              <label class="block text-sm font-medium text-gray-700">
+              <label class="block text-sm font-medium text-on-light-default">
                 Focus Level
               </label>
               <div class="grid grid-cols-2 gap-3">
                 <button
                   @click="selectedEthicsSettings.zoomingState = 'in'"
-                  class="p-3 border rounded-lg text-left hover:border-green-300 transition-colors"
+                  class="p-3 border rounded-lg text-left hover:border-primary-accent/40 transition-colors"
                   :class="
                     selectedEthicsSettings.zoomingState === 'in'
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200'
+                      ? 'border-primary-accent bg-primary-accent/10'
+                      : 'border-on-light-accent/20'
                   "
                 >
                   <div class="font-medium text-sm">Zoom In</div>
-                  <div class="text-xs text-gray-600 mt-1">
+                  <div class="text-xs text-on-light-accent mt-1">
                     Focus on specific details and immediate impacts
                   </div>
                 </button>
                 <button
                   @click="selectedEthicsSettings.zoomingState = 'out'"
-                  class="p-3 border rounded-lg text-left hover:border-green-300 transition-colors"
+                  class="p-3 border rounded-lg text-left hover:border-primary-accent/40 transition-colors"
                   :class="
                     selectedEthicsSettings.zoomingState === 'out'
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200'
+                      ? 'border-primary-accent bg-primary-accent/10'
+                      : 'border-on-light-accent/20'
                   "
                 >
                   <div class="font-medium text-sm">Zoom Out</div>
-                  <div class="text-xs text-gray-600 mt-1">
+                  <div class="text-xs text-on-light-accent mt-1">
                     Focus on broader implications and systemic effects
                   </div>
                 </button>
@@ -264,7 +335,7 @@
 
             <!-- Additional Context -->
             <div class="space-y-3">
-              <label class="block text-sm font-medium text-gray-700">
+              <label class="block text-sm font-medium text-on-light-default">
                 Additional Context (Optional)
               </label>
               <Textarea
@@ -275,38 +346,55 @@
             </div>
 
             <!-- Generate Questions Button -->
-            <div class="pt-4">
+            <div
+              v-if="currentStep === 'builder' || frameworkModified"
+              class="pt-4"
+            >
               <Button
                 @click="generateQuestions"
                 :disabled="isGeneratingQuestions"
-                class="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                class="w-full bg-primary-accent hover:bg-primary-accent/90 text-white"
               >
                 <Loader2
                   v-if="isGeneratingQuestions"
                   class="w-4 h-4 mr-2 animate-spin"
                 />
-                <Sparkles v-else class="w-4 h-4 mr-2" />
+                <component
+                  :is="frameworkModified ? RefreshCw : Sparkles"
+                  class="w-4 h-4 mr-2"
+                />
                 {{
                   isGeneratingQuestions
-                    ? "Generating Questions..."
+                    ? "Generating..."
+                    : frameworkModified
+                    ? "Regenerate Questions with New Framework"
                     : "Generate Ethics Questions"
                 }}
               </Button>
+              <p
+                v-if="frameworkModified"
+                class="text-xs text-on-light-accent text-center mt-2"
+              >
+                Changing the framework will clear existing responses and create
+                a new set of questions.
+              </p>
             </div>
           </div>
 
           <!-- Review Step -->
           <div v-else-if="currentStep === 'review'" class="p-6 space-y-6">
             <!-- Progress Indicator -->
-            <div class="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+            <div
+              class="flex items-center gap-3 p-4 bg-primary-accent/10 rounded-lg"
+            >
               <div
-                class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold"
+                class="w-12 h-12 bg-primary-accent rounded-full flex items-center justify-center text-white font-semibold"
               >
                 {{ Math.round((answeredQuestions / totalQuestions) * 100) }}%
               </div>
               <div>
-                <p class="font-medium text-blue-900">Review Progress</p>
-                <p class="text-sm text-blue-700">
+                <p class="font-medium text-primary-accent">Review Progress</p>
+                <p class="text-sm text-on-light-accent">
                   {{ answeredQuestions }} of {{ totalQuestions }} questions
                   completed
                 </p>
@@ -350,7 +438,7 @@
                       class="min-h-[100px] resize-none"
                       :class="
                         responses[question.id]
-                          ? 'border-green-300 bg-green-50'
+                          ? 'border-green-300 bg-green-50/80'
                           : ''
                       "
                     />
@@ -380,34 +468,19 @@
           </div>
 
           <!-- View/Edit Step -->
-          <div v-else-if="currentStep === 'view'" class="p-6 space-y-6">
+          <div
+            v-else-if="currentStep === 'view' && !isEditingExisting"
+            class="p-6 space-y-6"
+          >
             <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-gray-900">
-                {{ isEditingExisting ? "Edit" : "View" }} Ethics Review
+              <h3 class="text-lg font-semibold text-on-light-default">
+                View Ethics Review
               </h3>
               <div class="flex gap-2">
-                <Button
-                  v-if="!isEditingExisting"
-                  @click="startEditing"
-                  variant="outline"
-                  size="sm"
-                >
+                <Button @click="startEditing" variant="outline" size="sm">
                   <Pencil class="w-4 h-4 mr-2" />
-                  Edit
+                  Edit Review
                 </Button>
-                <div v-else class="flex gap-2">
-                  <Button
-                    @click="saveChanges"
-                    size="sm"
-                    :disabled="!hasChanges"
-                  >
-                    <Save class="w-4 h-4 mr-2" />
-                    Save
-                  </Button>
-                  <Button @click="cancelEditing" variant="outline" size="sm">
-                    Cancel
-                  </Button>
-                </div>
               </div>
             </div>
 
@@ -472,7 +545,7 @@
       </div>
 
       <!-- Footer -->
-      <div class="border-t bg-gray-50 p-6">
+      <div class="border-t bg-gray-50 p-6 flex-shrink-0">
         <div class="flex items-center justify-between">
           <div class="text-sm text-gray-600">
             <span v-if="currentStep === 'builder'">
@@ -480,12 +553,12 @@
             </span>
             <span v-else-if="currentStep === 'review'">
               Complete all questions to proceed with the
-              {{ timing === "before" ? "exercise" : "next step" }}
+              {{ activeTiming === "before" ? "exercise" : "next step" }}
             </span>
             <span v-else>
               {{
                 isEditingExisting
-                  ? "Edit your responses"
+                  ? "Edit your responses or modify the framework"
                   : "View completed ethics review"
               }}
             </span>
@@ -501,10 +574,10 @@
 
             <!-- Builder Step Button -->
             <Button
-              v-if="currentStep === 'builder'"
+              v-if="currentStep === 'builder' && !frameworkModified"
               @click="generateQuestions"
               :disabled="isGeneratingQuestions"
-              class="bg-purple-600 hover:bg-purple-700 text-white"
+              class="bg-primary-accent hover:bg-primary-accent/90 text-white"
             >
               <Loader2
                 v-if="isGeneratingQuestions"
@@ -519,7 +592,7 @@
               v-else-if="currentStep === 'review'"
               @click="handleSubmit"
               :disabled="!isFormComplete || isSubmitting"
-              class="bg-purple-600 hover:bg-purple-700 text-white"
+              class="bg-primary-accent hover:bg-primary-accent/90 text-white"
             >
               <Loader2 v-if="isSubmitting" class="w-4 h-4 mr-2 animate-spin" />
               <Shield v-else class="w-4 h-4 mr-2" />
@@ -531,24 +604,29 @@
               <Button
                 v-if="!isEditingExisting"
                 @click="startEditing"
-                class="bg-purple-600 hover:bg-purple-700 text-white"
+                class="bg-primary-accent hover:bg-primary-accent/90 text-white"
               >
                 <Pencil class="w-4 h-4 mr-2" />
                 Edit Review
               </Button>
-              <Button
-                v-else
-                @click="saveChanges"
-                :disabled="!hasChanges || isSubmitting"
-                class="bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                <Loader2
-                  v-if="isSubmitting"
-                  class="w-4 h-4 mr-2 animate-spin"
-                />
-                <Save v-else class="w-4 h-4 mr-2" />
-                Save Changes
-              </Button>
+              <template v-else>
+                <Button @click="cancelEditing" variant="outline" size="sm">
+                  Cancel
+                </Button>
+                <Button
+                  @click="saveChanges"
+                  size="sm"
+                  :disabled="!hasChanges || isSubmitting"
+                  class="bg-primary-accent hover:bg-primary-accent/90 text-white"
+                >
+                  <Loader2
+                    v-if="isSubmitting"
+                    class="w-4 h-4 mr-2 animate-spin"
+                  />
+                  <Save v-else class="w-4 h-4 mr-2" />
+                  Save Changes
+                </Button>
+              </template>
             </template>
           </div>
         </div>
@@ -579,7 +657,15 @@ import {
   Sparkles,
   Pencil,
   Save,
+  Info,
+  RefreshCw,
 } from "lucide-vue-next";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { ETHICAL_LENSES, MAIN_CAPITALS } from "@/types/ethics";
 import type { EthicalSettings, EthicalLens, MainCapital } from "@/types/ethics";
@@ -590,6 +676,17 @@ export interface EthicsQuestion {
   type: "text" | "rating" | "multiple-choice";
   options?: string[];
   required: boolean;
+}
+
+interface EthicsData {
+  exerciseId: string;
+  timing: "before" | "after";
+  settings: EthicalSettings;
+  questions: EthicsQuestion[];
+  completed: boolean;
+  responses?: Record<string, any>;
+  completedAt?: number;
+  additionalContext?: string;
 }
 
 export interface ChatMessage {
@@ -614,18 +711,20 @@ export interface PreviousExerciseContext {
 
 const props = defineProps<{
   open: boolean;
-  mode: "new" | "view" | "edit"; // Mode determines the initial step
+  mode: "new" | "view" | "edit"; // Mode for the initial timing
   exerciseName: string;
-  timing: "before" | "after";
+  initialTiming: "before" | "after";
+  availableTimings: ("before" | "after")[];
   exerciseContext: ExerciseContext;
   chatHistory: ChatMessage[];
   previousExerciseContext?: PreviousExerciseContext;
-  existingEthicsData?: {
-    settings: EthicalSettings;
-    questions: EthicsQuestion[];
-    responses: Record<string, any>;
-    completedAt?: number;
-    additionalContext?: string;
+  suggestions?: {
+    lens?: string;
+    capital?: string;
+  };
+  allExistingEthicsData?: {
+    before?: EthicsData;
+    after?: EthicsData;
   };
 }>();
 
@@ -634,6 +733,7 @@ const emit = defineEmits<{
   (
     e: "submit",
     data: {
+      timing: "before" | "after";
       settings: EthicalSettings;
       questions: EthicsQuestion[];
       responses: Record<string, any>;
@@ -645,10 +745,13 @@ const emit = defineEmits<{
 
 // State management
 const isOpen = ref(props.open);
+const activeTiming = ref(props.initialTiming);
 const currentStep = ref<"builder" | "review" | "view">("builder");
 const isGeneratingQuestions = ref(false);
 const isSubmitting = ref(false);
 const isEditingExisting = ref(false);
+const frameworkModified = ref(false);
+const originalSettings = ref<EthicalSettings | null>(null);
 
 // Ethics configuration
 const selectedEthicsSettings = reactive<EthicalSettings>({
@@ -683,20 +786,44 @@ const isFormComplete = computed(() => {
 
 const hasChanges = computed(() => {
   if (!isEditingExisting.value) return false;
+  if (frameworkModified.value) return false; // Don't allow saving if framework changed, must regenerate
   return Object.keys(responses).some((key) => {
     return originalResponses.value[key] !== responses[key];
   });
 });
 
 const existingCompletedAt = computed(() => {
-  return props.existingEthicsData?.completedAt;
+  return props.allExistingEthicsData?.[activeTiming.value]?.completedAt;
 });
 
-// Initialize component based on mode
-const initializeComponent = () => {
-  if (props.mode === "new") {
+const getTimingStatus = (timing: "before" | "after") => {
+  const data = props.allExistingEthicsData?.[timing];
+  return {
+    isCompleted: !!data?.completed,
+  };
+};
+
+// Initialize or switch component state based on timing
+const initializeForTiming = (timing: "before" | "after") => {
+  const data = props.allExistingEthicsData?.[timing];
+  const isCompleted = !!data?.completed;
+  const hasData = !!data;
+
+  frameworkModified.value = false;
+  isEditingExisting.value = false;
+
+  if (hasData) {
+    currentStep.value = "view";
+    Object.assign(selectedEthicsSettings, data.settings);
+    originalSettings.value = JSON.parse(JSON.stringify(data.settings));
+    additionalContext.value = data.additionalContext || "";
+    ethicsQuestions.value = data.questions || [];
+    Object.keys(responses).forEach((key) => delete responses[key]);
+    Object.assign(responses, data.responses || {});
+    originalResponses.value = { ...(data.responses || {}) };
+  } else {
+    // No data, start fresh in the builder
     currentStep.value = "builder";
-    // Reset to defaults
     Object.assign(selectedEthicsSettings, {
       ethicalLens: ETHICAL_LENSES[0],
       mainCapital: MAIN_CAPITALS[0],
@@ -705,39 +832,40 @@ const initializeComponent = () => {
     additionalContext.value = "";
     ethicsQuestions.value = [];
     Object.keys(responses).forEach((key) => delete responses[key]);
-  } else if (props.mode === "view" || props.mode === "edit") {
-    currentStep.value = "view";
-    isEditingExisting.value = props.mode === "edit";
-
-    if (props.existingEthicsData) {
-      // Load existing data
-      Object.assign(selectedEthicsSettings, props.existingEthicsData.settings);
-      additionalContext.value =
-        props.existingEthicsData.additionalContext || "";
-      ethicsQuestions.value = props.existingEthicsData.questions;
-
-      // Load responses
-      Object.keys(responses).forEach((key) => delete responses[key]);
-      Object.assign(responses, props.existingEthicsData.responses);
-      originalResponses.value = { ...props.existingEthicsData.responses };
-    }
+    originalResponses.value = {};
   }
 };
 
 // Generate questions using AI (mock implementation for now)
 const generateQuestions = async () => {
   isGeneratingQuestions.value = true;
+  frameworkModified.value = false;
+
+  // Clear previous responses when generating new questions
+  Object.keys(responses).forEach((key) => delete responses[key]);
 
   try {
-    // Simulate AI question generation
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // This is where you would check for an API key and make a real call
+    const useMock = !import.meta.env.VITE_OPENAI_API_KEY;
 
-    // Mock questions based on settings and context
-    const baseQuestions = generateMockQuestions();
-    ethicsQuestions.value = baseQuestions;
+    if (useMock) {
+      // Simulate AI question generation
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      ethicsQuestions.value = generateMockQuestions();
+    } else {
+      // Placeholder for real AI call
+      // const prompt = buildAIPrompt();
+      // const generatedQuestions = await callAI(prompt);
+      // ethicsQuestions.value = parseAIResponse(generatedQuestions);
+      console.warn("AI question generation is not implemented. Using mock data.");
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      ethicsQuestions.value = generateMockQuestions();
+    }
+
     currentStep.value = "review";
   } catch (error) {
     console.error("Error generating questions:", error);
+    // Add user-facing error handling (e.g., a toast notification)
   } finally {
     isGeneratingQuestions.value = false;
   }
@@ -746,7 +874,7 @@ const generateQuestions = async () => {
 // Generate mock questions based on current settings
 const generateMockQuestions = (): EthicsQuestion[] => {
   const { ethicalLens, mainCapital, zoomingState } = selectedEthicsSettings;
-  const timing = props.timing;
+  const timing = activeTiming.value;
   const context = additionalContext.value;
 
   const questions: EthicsQuestion[] = [];
@@ -847,7 +975,9 @@ const generateMockQuestions = (): EthicsQuestion[] => {
 
 // Get existing response for view mode
 const getExistingResponse = (questionId: string): string => {
-  return props.existingEthicsData?.responses?.[questionId] || "";
+  return props.allExistingEthicsData?.[activeTiming.value]?.responses?.[
+    questionId
+  ] || "";
 };
 
 // Format date
@@ -882,14 +1012,21 @@ const handleSubmit = async () => {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     emit("submit", {
+      timing: activeTiming.value,
       settings: selectedEthicsSettings,
       questions: ethicsQuestions.value,
       responses: { ...responses },
       additionalContext: additionalContext.value,
     });
-
-    isOpen.value = false;
-    emit("update:open", false);
+    
+    // The modal now stays open for the user to switch or close manually.
+    // If you want it to close automatically on full completion:
+    // const allDone = props.availableTimings.every(t => getTimingStatus(t).isCompleted);
+    // if (allDone) {
+    //   isOpen.value = false;
+    //   emit("update:open", false);
+    // }
+    
   } catch (error) {
     console.error("Error submitting ethics review:", error);
   } finally {
@@ -908,13 +1045,20 @@ const handleCancel = () => {
 const startEditing = () => {
   isEditingExisting.value = true;
   originalResponses.value = { ...responses };
+  originalSettings.value = JSON.parse(JSON.stringify(selectedEthicsSettings));
+  frameworkModified.value = false;
 };
 
 const cancelEditing = () => {
   isEditingExisting.value = false;
+  frameworkModified.value = false;
   // Restore original responses
   Object.keys(responses).forEach((key) => delete responses[key]);
   Object.assign(responses, originalResponses.value);
+  // Restore original settings
+  if (originalSettings.value) {
+    Object.assign(selectedEthicsSettings, originalSettings.value);
+  }
 };
 
 const saveChanges = async () => {
@@ -926,6 +1070,7 @@ const saveChanges = async () => {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     emit("submit", {
+      timing: activeTiming.value,
       settings: selectedEthicsSettings,
       questions: ethicsQuestions.value,
       responses: { ...responses },
@@ -947,24 +1092,20 @@ watch(
   (value) => {
     isOpen.value = value;
     if (value) {
-      initializeComponent();
+      activeTiming.value = props.initialTiming;
+      initializeForTiming(props.initialTiming);
     }
   }
 );
 
-watch(
-  () => props.mode,
-  () => {
-    if (props.open) {
-      initializeComponent();
-    }
-  }
-);
+watch(activeTiming, (newTiming) => {
+  initializeForTiming(newTiming);
+});
 
 // Initialize on mount
 onMounted(() => {
   if (props.open) {
-    initializeComponent();
+    initializeForTiming(props.initialTiming);
   }
 });
 </script>
