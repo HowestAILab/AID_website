@@ -17,8 +17,12 @@
                 {{
                   currentStep === "builder"
                     ? "Ethics Review Setup"
+                    : currentStep === "generating"
+                    ? "Generating Ethics Questions"
                     : currentStep === "review"
                     ? "Ethics Review"
+                    : currentStep === "summary"
+                    ? "Ethics Summary"
                     : "View Ethics Review"
                 }}
               </h2>
@@ -155,14 +159,24 @@
 
             <!-- Current Ethics Settings (when not in builder and not editing) -->
             <div
-              v-if="currentStep !== 'builder' && !isEditingExisting"
+              v-if="(currentStep === 'review' || currentStep === 'summary') && !isEditingExisting"
               class="bg-white rounded-lg p-4 shadow-sm"
             >
               <h3
-                class="font-medium text-gray-900 mb-2 flex items-center gap-2"
+                class="font-medium text-gray-900 mb-2 flex items-center justify-between"
               >
-                <Settings class="w-4 h-4" />
-                Ethics Framework
+                <div class="flex items-center gap-2">
+                  <Settings class="w-4 h-4" />
+                  Ethics Framework
+                </div>
+                <button
+                  v-if="currentStep === 'review'"
+                  @click="startEditingParameters"
+                  class="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  title="Edit parameters"
+                >
+                  <Pencil class="w-4 h-4 text-gray-600" />
+                </button>
               </h3>
               <div class="space-y-2 text-sm">
                 <div class="flex items-center gap-2">
@@ -190,27 +204,67 @@
 
         <!-- Right Panel - Main Content -->
         <div class="flex-1 overflow-y-auto">
+          <!-- Generating Step -->
+          <div
+            v-if="currentStep === 'generating'"
+            class="p-6 flex items-center justify-center min-h-[400px]"
+          >
+            <div class="text-center space-y-4">
+              <div class="relative">
+                <Loader2 class="w-16 h-16 animate-spin mx-auto text-primary-accent" />
+                <div class="absolute inset-0 w-16 h-16 border-4 border-primary-accent/20 rounded-full mx-auto"></div>
+              </div>
+              <div class="space-y-2">
+                <h3 class="text-xl font-semibold text-on-light-default">
+                  Generating Ethics Questions
+                </h3>
+                <p class="text-sm text-on-light-accent max-w-md">
+                  We're creating personalized ethical considerations for your {{ activeTiming }}-exercise review using the virtue ethics framework.
+                </p>
+              </div>
+              <div class="flex items-center justify-center gap-2 text-xs text-on-light-accent">
+                <div class="w-2 h-2 bg-primary-accent rounded-full animate-pulse"></div>
+                <span>This usually takes a few seconds</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Builder Step -->
           <div
-            v-if="
+            v-else-if="
               currentStep === 'builder' ||
-              (currentStep === 'view' && isEditingExisting)
+              (currentStep === 'view' && isEditingExisting) ||
+              isEditingParameters
             "
             class="p-6 space-y-6"
           >
             <div class="space-y-4">
-              <h3 class="text-lg font-semibold text-on-light-default">
-                {{
-                  isEditingExisting
-                    ? "Modify Ethics Framework"
-                    : "Configure Ethics Framework"
-                }}
-              </h3>
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-on-light-default">
+                  {{
+                    isEditingParameters
+                      ? "Edit Ethics Framework"
+                      : isEditingExisting
+                      ? "Modify Ethics Framework"
+                      : "Configure Ethics Framework"
+                  }}
+                </h3>
+                <div v-if="isEditingParameters" class="flex gap-2">
+                  <Button @click="cancelParameterEditing" variant="outline" size="sm">
+                    Cancel
+                  </Button>
+                  <Button @click="saveParameterChanges" size="sm">
+                    Save & Regenerate
+                  </Button>
+                </div>
+              </div>
               <p class="text-sm text-on-light-accent">
                 {{
-                  isEditingExisting
+                  isEditingParameters
+                    ? "Modify the framework to regenerate the ethics questions for this review."
+                    : isEditingExisting
                     ? "Update the framework to regenerate the ethics questions for this review."
-                    : "Select the ethical lens and capital focus for this review, then add any additional context."
+                    : "The framework has been pre-configured with virtue ethics. Questions will be generated automatically."
                 }}
               </p>
             </div>
@@ -347,7 +401,7 @@
 
             <!-- Generate Questions Button -->
             <div
-              v-if="currentStep === 'builder' || frameworkModified"
+              v-if="(currentStep === 'builder' || frameworkModified) && !isEditingParameters"
               class="pt-4"
             >
               <Button
@@ -467,6 +521,145 @@
             </div>
           </div>
 
+          <!-- Summary Step -->
+          <div v-else-if="currentStep === 'summary'" class="p-6 space-y-6">
+            <div
+              v-if="isGeneratingSummary"
+              class="flex items-center justify-center py-12"
+            >
+              <div class="text-center">
+                <Loader2 class="w-8 h-8 animate-spin mx-auto mb-4 text-primary-accent" />
+                <p class="text-lg font-medium text-on-light-default">
+                  Generating Ethics Summary...
+                </p>
+                <p class="text-sm text-on-light-accent mt-2">
+                  Analyzing your responses and creating insights
+                </p>
+              </div>
+            </div>
+
+            <!-- Summary Content -->
+            <div v-else-if="ethicsSummary" class="space-y-6">
+              <div>
+                <h3 class="text-lg font-semibold text-on-light-default mb-2">
+                  Ethics Summary
+                </h3>
+                <p class="text-sm text-on-light-accent">
+                  Based on your responses, here's a comprehensive analysis of your ethical considerations.
+                </p>
+              </div>
+
+              <!-- Overall Assessment -->
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 class="font-medium text-blue-900 mb-2 flex items-center gap-2">
+                  <Shield class="w-4 h-4" />
+                  Overall Assessment
+                </h4>
+                <p class="text-sm text-blue-800">{{ ethicsSummary.overallAssessment }}</p>
+              </div>
+
+              <!-- Key Insights -->
+              <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 class="font-medium text-green-900 mb-3">Key Insights</h4>
+                <ul class="space-y-2">
+                  <li 
+                    v-for="insight in ethicsSummary.keyInsights" 
+                    :key="insight"
+                    class="text-sm text-green-800 flex items-start gap-2"
+                  >
+                    <CheckCircle2 class="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    {{ insight }}
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Recommended Actions -->
+              <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <h4 class="font-medium text-amber-900 mb-3">Recommended Actions</h4>
+                <ul class="space-y-2">
+                  <li 
+                    v-for="action in ethicsSummary.recommendedActions" 
+                    :key="action"
+                    class="text-sm text-amber-800 flex items-start gap-2"
+                  >
+                    <ArrowRight class="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    {{ action }}
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Ethical Risks -->
+              <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h4 class="font-medium text-red-900 mb-3">Ethical Risks to Monitor</h4>
+                <ul class="space-y-2">
+                  <li 
+                    v-for="risk in ethicsSummary.ethicalRisks" 
+                    :key="risk"
+                    class="text-sm text-red-800 flex items-start gap-2"
+                  >
+                    <AlertTriangle class="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    {{ risk }}
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Chat Interface -->
+              <div class="border rounded-lg bg-white">
+                <div class="border-b p-4">
+                  <h4 class="font-medium text-gray-900 flex items-center gap-2">
+                    <MessageSquare class="w-4 h-4" />
+                    Continue the Conversation
+                  </h4>
+                  <p class="text-sm text-gray-600 mt-1">
+                    Ask follow-up questions or explore specific ethical considerations further.
+                  </p>
+                </div>
+
+                <!-- Chat Messages -->
+                <div v-if="chatMessages.length > 0" class="max-h-64 overflow-y-auto p-4 space-y-3">
+                  <div
+                    v-for="message in chatMessages"
+                    :key="message.id"
+                    class="flex"
+                    :class="message.role === 'user' ? 'justify-end' : 'justify-start'"
+                  >
+                    <div
+                      class="max-w-xs lg:max-w-md px-3 py-2 rounded-lg text-sm"
+                      :class="
+                        message.role === 'user'
+                          ? 'bg-primary-accent text-white'
+                          : 'bg-gray-100 text-gray-900'
+                      "
+                    >
+                      {{ message.content }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="p-4 border-t bg-gray-50">
+                  <div class="flex gap-2">
+                    <Input
+                      v-model="currentChatInput"
+                      placeholder="Ask a follow-up question about the ethics analysis..."
+                      @keydown.enter="sendChatMessage"
+                      :disabled="isSendingMessage"
+                      class="flex-1"
+                    />
+                    <Button
+                      @click="sendChatMessage"
+                      :disabled="!currentChatInput.trim() || isSendingMessage"
+                      class="bg-primary-accent hover:bg-primary-accent/90 text-white"
+                    >
+                      <Loader2 v-if="isSendingMessage" class="w-4 h-4 animate-spin" />
+                      <Send v-else class="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- View/Edit Step -->
           <div
             v-else-if="currentStep === 'view' && !isEditingExisting"
@@ -551,9 +744,15 @@
             <span v-if="currentStep === 'builder'">
               Configure your ethics framework to generate relevant questions
             </span>
+            <span v-else-if="currentStep === 'generating'">
+              Generating personalized ethics questions based on your exercise context
+            </span>
             <span v-else-if="currentStep === 'review'">
               Complete all questions to proceed with the
               {{ activeTiming === "before" ? "exercise" : "next step" }}
+            </span>
+            <span v-else-if="currentStep === 'summary'">
+              Review your ethics summary and ask follow-up questions if needed
             </span>
             <span v-else>
               {{
@@ -567,7 +766,7 @@
             <Button
               variant="outline"
               @click="handleCancel"
-              :disabled="isSubmitting || isGeneratingQuestions"
+              :disabled="isSubmitting || isGeneratingQuestions || isGeneratingSummary || currentStep === 'generating'"
             >
               Cancel
             </Button>
@@ -590,8 +789,20 @@
             <!-- Review Step Button -->
             <Button
               v-else-if="currentStep === 'review'"
-              @click="handleSubmit"
+              @click="handleReviewComplete"
               :disabled="!isFormComplete || isSubmitting"
+              class="bg-primary-accent hover:bg-primary-accent/90 text-white"
+            >
+              <Loader2 v-if="isSubmitting" class="w-4 h-4 mr-2 animate-spin" />
+              <Shield v-else class="w-4 h-4 mr-2" />
+              {{ isSubmitting ? "Generating summary..." : "Complete Ethics Review" }}
+            </Button>
+
+            <!-- Summary Step Button -->
+            <Button
+              v-else-if="currentStep === 'summary'"
+              @click="handleSubmit"
+              :disabled="isSubmitting || !ethicsSummary"
               class="bg-primary-accent hover:bg-primary-accent/90 text-white"
             >
               <Loader2 v-if="isSubmitting" class="w-4 h-4 mr-2 animate-spin" />
@@ -644,6 +855,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Shield,
@@ -659,6 +871,9 @@ import {
   Save,
   Info,
   RefreshCw,
+  ArrowRight,
+  AlertTriangle,
+  Send,
 } from "lucide-vue-next";
 import {
   Tooltip,
@@ -678,6 +893,21 @@ export interface EthicsQuestion {
   required: boolean;
 }
 
+export interface EthicsChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: number;
+}
+
+export interface EthicsSummary {
+  overallAssessment: string;
+  keyInsights: string[];
+  recommendedActions: string[];
+  ethicalRisks: string[];
+  generatedAt: number;
+}
+
 interface EthicsData {
   exerciseId: string;
   timing: "before" | "after";
@@ -687,6 +917,8 @@ interface EthicsData {
   responses?: Record<string, any>;
   completedAt?: number;
   additionalContext?: string;
+  summary?: EthicsSummary;
+  chatMessages?: EthicsChatMessage[];
 }
 
 export interface ChatMessage {
@@ -738,6 +970,8 @@ const emit = defineEmits<{
       questions: EthicsQuestion[];
       responses: Record<string, any>;
       additionalContext?: string;
+      summary?: EthicsSummary | null;
+      chatMessages?: EthicsChatMessage[];
     }
   ): void;
   (e: "cancel"): void;
@@ -746,12 +980,20 @@ const emit = defineEmits<{
 // State management
 const isOpen = ref(props.open);
 const activeTiming = ref(props.initialTiming);
-const currentStep = ref<"builder" | "review" | "view">("builder");
+const currentStep = ref<"builder" | "generating" | "review" | "summary" | "view">("builder");
 const isGeneratingQuestions = ref(false);
+const isGeneratingSummary = ref(false);
 const isSubmitting = ref(false);
 const isEditingExisting = ref(false);
+const isEditingParameters = ref(false);
 const frameworkModified = ref(false);
 const originalSettings = ref<EthicalSettings | null>(null);
+
+// New state for summary and chat
+const ethicsSummary = ref<EthicsSummary | null>(null);
+const chatMessages = ref<EthicsChatMessage[]>([]);
+const currentChatInput = ref("");
+const isSendingMessage = ref(false);
 
 // Ethics configuration
 const selectedEthicsSettings = reactive<EthicalSettings>({
@@ -789,7 +1031,7 @@ const hasChanges = computed(() => {
   if (frameworkModified.value) return false; // Don't allow saving if framework changed, must regenerate
   return Object.keys(responses).some((key) => {
     return originalResponses.value[key] !== responses[key];
-  });
+  }) || chatMessages.value.length > 0; // Include chat messages as changes
 });
 
 const existingCompletedAt = computed(() => {
@@ -803,14 +1045,22 @@ const getTimingStatus = (timing: "before" | "after") => {
   };
 };
 
+// Auto-select default lens (virtue ethics) and no capital
+const getDefaultSettings = (): EthicalSettings => ({
+  ethicalLens: ETHICAL_LENSES.find(lens => lens.type === 'virtue') || ETHICAL_LENSES[0],
+  mainCapital: { type: 'human', name: 'No Specific Capital Focus', description: 'General ethical considerations without capital-specific focus' } as MainCapital,
+  zoomingState: "in" as const,
+});
+
 // Initialize or switch component state based on timing
-const initializeForTiming = (timing: "before" | "after") => {
+const initializeForTiming = async (timing: "before" | "after") => {
   const data = props.allExistingEthicsData?.[timing];
   const isCompleted = !!data?.completed;
   const hasData = !!data;
 
   frameworkModified.value = false;
   isEditingExisting.value = false;
+  isEditingParameters.value = false;
 
   if (hasData) {
     currentStep.value = "view";
@@ -821,18 +1071,25 @@ const initializeForTiming = (timing: "before" | "after") => {
     Object.keys(responses).forEach((key) => delete responses[key]);
     Object.assign(responses, data.responses || {});
     originalResponses.value = { ...(data.responses || {}) };
+    
+    // Load existing summary and chat if available
+    ethicsSummary.value = data.summary || null;
+    chatMessages.value = data.chatMessages || [];
   } else {
-    // No data, start fresh in the builder
-    currentStep.value = "builder";
-    Object.assign(selectedEthicsSettings, {
-      ethicalLens: ETHICAL_LENSES[0],
-      mainCapital: MAIN_CAPITALS[0],
-      zoomingState: "in" as const,
-    });
+    // No data, start with generating state
+    currentStep.value = "generating";
+    Object.assign(selectedEthicsSettings, getDefaultSettings());
     additionalContext.value = "";
     ethicsQuestions.value = [];
     Object.keys(responses).forEach((key) => delete responses[key]);
     originalResponses.value = {};
+    ethicsSummary.value = null;
+    chatMessages.value = [];
+    
+    // Auto-generate questions after a short delay for better UX
+    setTimeout(async () => {
+      await generateQuestions();
+    }, 800);
   }
 };
 
@@ -998,13 +1255,18 @@ const formatDate = (timestamp: number): string => {
 
 // Event handlers
 const handleOpenChange = (open: boolean) => {
-  if (!open && !isSubmitting.value && !isGeneratingQuestions.value) {
+  if (!open && !isSubmitting.value && !isGeneratingQuestions.value && !isGeneratingSummary.value && currentStep.value !== 'generating') {
     emit("update:open", false);
   }
 };
 
+const handleReviewComplete = async () => {
+  if (!isFormComplete.value) return;
+  await generateSummary();
+};
+
 const handleSubmit = async () => {
-  if (!isFormComplete.value || isSubmitting.value) return;
+  if (isSubmitting.value) return;
 
   isSubmitting.value = true;
 
@@ -1017,6 +1279,8 @@ const handleSubmit = async () => {
       questions: ethicsQuestions.value,
       responses: { ...responses },
       additionalContext: additionalContext.value,
+      summary: ethicsSummary.value || undefined,
+      chatMessages: chatMessages.value.length > 0 ? [...chatMessages.value] : undefined,
     });
 
     // Close the modal upon submission.
@@ -1030,7 +1294,7 @@ const handleSubmit = async () => {
 };
 
 const handleCancel = () => {
-  if (!isSubmitting.value && !isGeneratingQuestions.value) {
+  if (!isSubmitting.value && !isGeneratingQuestions.value && !isGeneratingSummary.value && currentStep.value !== 'generating') {
     emit("cancel");
     isOpen.value = false;
     emit("update:open", false);
@@ -1044,6 +1308,11 @@ const startEditing = () => {
   frameworkModified.value = false;
 };
 
+const startEditingParameters = () => {
+  isEditingParameters.value = true;
+  frameworkModified.value = false;
+};
+
 const cancelEditing = () => {
   isEditingExisting.value = false;
   frameworkModified.value = false;
@@ -1051,6 +1320,15 @@ const cancelEditing = () => {
   Object.keys(responses).forEach((key) => delete responses[key]);
   Object.assign(responses, originalResponses.value);
   // Restore original settings
+  if (originalSettings.value) {
+    Object.assign(selectedEthicsSettings, originalSettings.value);
+  }
+};
+
+const cancelParameterEditing = () => {
+  isEditingParameters.value = false;
+  frameworkModified.value = false;
+  // Restore original settings if they exist
   if (originalSettings.value) {
     Object.assign(selectedEthicsSettings, originalSettings.value);
   }
@@ -1070,6 +1348,8 @@ const saveChanges = async () => {
       questions: ethicsQuestions.value,
       responses: { ...responses },
       additionalContext: additionalContext.value,
+      summary: ethicsSummary.value || undefined,
+      chatMessages: chatMessages.value.length > 0 ? [...chatMessages.value] : undefined,
     });
 
     isEditingExisting.value = false;
@@ -1081,6 +1361,86 @@ const saveChanges = async () => {
     console.error("Error saving changes:", error);
   } finally {
     isSubmitting.value = false;
+  }
+};
+
+const saveParameterChanges = async () => {
+  frameworkModified.value = true;
+  isEditingParameters.value = false;
+  await generateQuestions();
+};
+
+// Generate mock summary
+const generateSummary = async () => {
+  isGeneratingSummary.value = true;
+
+  try {
+    // Mock AI summary generation
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const mockSummary: EthicsSummary = {
+      overallAssessment: `Based on your responses, you demonstrate a strong commitment to ethical considerations in this ${activeTiming.value}-exercise review. Your approach shows careful consideration of stakeholder impacts and thoughtful reflection on potential consequences.`,
+      keyInsights: [
+        "Strong focus on stakeholder welfare and transparent communication",
+        "Proactive identification of potential ethical risks",
+        "Balanced consideration of short-term and long-term implications",
+        "Clear commitment to responsible AI development practices"
+      ],
+      recommendedActions: [
+        "Continue monitoring stakeholder feedback throughout the process",
+        "Document decision-making rationale for future reference",
+        "Consider establishing regular ethics check-ins during implementation",
+        "Share insights with team members to promote ethical awareness"
+      ],
+      ethicalRisks: [
+        "Potential for unintended consequences despite careful planning",
+        "Need for ongoing monitoring as context evolves",
+        "Importance of maintaining stakeholder engagement"
+      ],
+      generatedAt: Date.now()
+    };
+
+    ethicsSummary.value = mockSummary;
+    currentStep.value = "summary";
+  } catch (error) {
+    console.error("Error generating summary:", error);
+  } finally {
+    isGeneratingSummary.value = false;
+  }
+};
+
+// Chat functionality
+const sendChatMessage = async () => {
+  if (!currentChatInput.value.trim() || isSendingMessage.value) return;
+
+  const userMessage: EthicsChatMessage = {
+    id: `chat-${Date.now()}-user`,
+    role: "user",
+    content: currentChatInput.value.trim(),
+    timestamp: Date.now()
+  };
+
+  chatMessages.value.push(userMessage);
+  const userInput = currentChatInput.value.trim();
+  currentChatInput.value = "";
+  isSendingMessage.value = true;
+
+  try {
+    // Mock AI response
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const aiResponse: EthicsChatMessage = {
+      id: `chat-${Date.now()}-ai`,
+      role: "assistant",
+      content: `Thank you for your question about "${userInput}". This is an important consideration that aligns with the ethical framework we've established. Based on your responses and the current analysis, I'd recommend continuing to monitor this aspect and consider how it might evolve as your exercise progresses.`,
+      timestamp: Date.now()
+    };
+
+    chatMessages.value.push(aiResponse);
+  } catch (error) {
+    console.error("Error sending chat message:", error);
+  } finally {
+    isSendingMessage.value = false;
   }
 };
 
