@@ -146,7 +146,7 @@
           </Button>
 
           <!-- Completion Status -->
-          <div class="ml-auto flex items-center gap-2">
+          <div class="ml-auto flex items-center gap-2 relative">
             <div
               v-if="isExerciseCompleted(exercise.name)"
               class="flex items-center gap-2 text-green-600"
@@ -154,15 +154,16 @@
               <CheckCircle2 class="w-5 h-5" />
               <span class="text-sm font-medium">Completed</span>
             </div>
-            <Button
-              v-if="!isExerciseCompleted(exercise.name)"
-              @click="markAsCompleted"
-              class="bg-green-600 hover:bg-green-700 text-white"
-              size="sm"
-            >
-              <Check class="w-4 h-4 mr-2" />
-              Mark Complete
-            </Button>
+            <div v-if="!isExerciseCompleted(exercise.name)" class="relative">
+              <Button
+                @click="markAsCompleted"
+                class="bg-green-600 hover:bg-green-700 text-white"
+                size="sm"
+              >
+                <Check class="w-4 h-4 mr-2" />
+                Mark Complete
+              </Button>
+            </div>
             <Button
               v-else
               @click="markAsIncomplete"
@@ -172,6 +173,16 @@
               <RotateCcw class="w-4 h-4 mr-2" />
               Mark Incomplete
             </Button>
+            <div
+              v-if="showConfetti"
+              class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+              style="z-index: 9999;"
+            >
+              <VueConfetti
+                :particleCount="100"
+                :force="0.3"
+              />
+            </div>
           </div>
         </div>
 
@@ -274,6 +285,7 @@ import { useExerciseChat } from "@/composables/useExerciseChat";
 import { useExercises } from "@/composables/useExercises";
 import type { SelectedPinInfo } from "@/types/exercise";
 import CustomCanvas from "@/components/canvas/CustomCanvas.vue";
+import VueConfetti from "vue-confetti-explosion";
 
 // Lazy load the modal component
 const ExerciseSpecificModal = defineAsyncComponent(
@@ -294,8 +306,12 @@ const emit = defineEmits<{
 }>();
 
 // Composables
-const { isExerciseCompleted, markExerciseCompleted, markExerciseIncomplete } =
-  usePipelineProgress();
+const {
+  isExerciseCompleted,
+  markExerciseCompleted,
+  markExerciseIncomplete,
+  calculatePipelineProgress,
+} = usePipelineProgress();
 
 const ethics = useEthics();
 const {
@@ -312,6 +328,7 @@ const currentChatMessageCount = ref(0);
 const ethicsBlockingMessage = ref<string | null>(null);
 const pendingNavigationIndex = ref<number | null>(null);
 const showExerciseModal = ref(false);
+const showConfetti = ref(false);
 
 // Computed properties
 const derivedDriveType = computed<DriveType>(() => {
@@ -451,7 +468,19 @@ const requestExerciseChange = (targetIndex: number) => {
 
 // Completion functions
 const markAsCompleted = () => {
+  const wasIncomplete = !isExerciseCompleted(props.exercise.name);
   markExerciseCompleted(props.exercise.name, props.exercise.originalIndex);
+
+  if (wasIncomplete) {
+    nextTick(() => {
+      if (calculatePipelineProgress(props.allExercises) === 100) {
+        showConfetti.value = true;
+        setTimeout(() => {
+          showConfetti.value = false;
+        }, 3000);
+      }
+    });
+  }
 };
 
 const markAsIncomplete = () => {
