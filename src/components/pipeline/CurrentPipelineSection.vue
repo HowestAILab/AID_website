@@ -29,150 +29,209 @@
 
     <div class="flex-grow relative flex items-center">
       <div class="h-px bg-gray-400 w-full absolute"></div>
-
-      <!-- Phase-grouped exercises -->
-      <div class="flex items-center gap-4 w-full px-4 relative z-10">
-        <template
-          v-for="phaseGroup in exercisesByPhase"
-          :key="phaseGroup.phase"
+      <div class="flex items-center w-full px-4 relative z-10">
+        <!-- Add button for the start -->
+        <div
+          class="relative flex-shrink-0 items-center justify-center h-7 w-2 group transition-all duration-200 ease-in-out hover:w-6"
         >
-          <!-- Phase container -->
-          <div
-            class="flex items-center gap-3 p-2 rounded-lg transition-all duration-200"
-            :class="{
-              'bg-gray-50 border-2 border-dashed border-gray-300':
-                isDragging &&
-                phaseGroup.exercises.length > 0 &&
-                draggedIndex !== null &&
-                phaseGroup.phase === selectedPins[draggedIndex]?.location.phase,
-              'opacity-30':
-                isDragging &&
-                phaseGroup.exercises.length > 0 &&
-                draggedIndex !== null &&
-                phaseGroup.phase !== selectedPins[draggedIndex]?.location.phase,
-            }"
+          <button
+            @click.stop="$emit('addCustomEthics', 0)"
+            class="bg-purple-200 text-purple-700 rounded-full flex items-center justify-center w-5 h-5 shadow-sm transition-opacity duration-200 opacity-0 group-hover:opacity-100"
           >
+            <Plus class="w-3 h-3" />
+          </button>
+        </div>
+
+        <template v-for="(item, index) in renderablePipeline" :key="index">
+          <!-- Phase Block -->
+          <div v-if="!item.isEthics" class="flex items-center gap-3 p-2 rounded-lg transition-all duration-200" :class="{
+            'bg-gray-50 border-2 border-dashed border-gray-300':
+              isDragging &&
+              item.exercises && item.exercises.length > 0 &&
+              draggedIndex !== null &&
+              item.phase === selectedPins[draggedIndex]?.location.phase,
+            'opacity-30':
+              isDragging &&
+              item.exercises && item.exercises.length > 0 &&
+              draggedIndex !== null &&
+              item.phase !== selectedPins[draggedIndex]?.location.phase,
+          }">
             <!-- Phase label with colored background - positioned in front -->
             <div
               class="text-xs font-semibold px-3 py-1 rounded-full border-2 bg-white"
-              :class="getPhaseColor(phaseGroup.phase)"
+              :class="getPhaseColor(item.phase || '')"
             >
-              {{ phaseGroup.phase }}
+              {{ item.phase }}
             </div>
 
             <!-- Exercises within this phase -->
-            <div class="flex gap-2 items-center">
-              <div
-                v-for="exercise in phaseGroup.exercises"
-                :key="exercise.originalIndex"
-                class="relative group"
-                :class="{
-                  'opacity-50':
-                    draggedIndex ===
-                    selectedPins.findIndex(
-                      (p) => p.originalIndex === exercise.originalIndex
-                    ),
-                  'cursor-move': !isDragging,
-                }"
-                draggable="true"
-                @dragstart="
-                  handleDragStart(
-                    $event,
-                    selectedPins.findIndex(
-                      (p) => p.originalIndex === exercise.originalIndex
-                    )
-                  )
-                "
-                @dragend="handleDragEnd"
-                @dragover.prevent
-                @drop="
-                  handleDrop(
-                    $event,
-                    selectedPins.findIndex(
-                      (p) => p.originalIndex === exercise.originalIndex
-                    )
-                  )
-                "
-                @dragenter.prevent="
-                  handleDragEnter(
-                    selectedPins.findIndex(
-                      (p) => p.originalIndex === exercise.originalIndex
-                    )
-                  )
-                "
-                @dragleave="handleDragLeave"
-              >
-                <div
-                  class="w-7 h-7 bg-light border-2 border-gray-700 transform rotate-45 flex items-center justify-center transition-all duration-200 shadow-sm cursor-pointer"
-                  :class="{
-                    'scale-110 shadow-md':
-                      dragOverIndex ===
-                        selectedPins.findIndex(
-                          (p) => p.originalIndex === exercise.originalIndex
-                        ) &&
-                      draggedIndex !==
-                        selectedPins.findIndex(
-                          (p) => p.originalIndex === exercise.originalIndex
-                        ),
-                    'bg-primary-accent/20 border-primary-accent':
-                      dragOverIndex ===
-                        selectedPins.findIndex(
-                          (p) => p.originalIndex === exercise.originalIndex
-                        ) &&
-                      draggedIndex !==
-                        selectedPins.findIndex(
-                          (p) => p.originalIndex === exercise.originalIndex
-                        ),
-                    'bg-primary-accent border-primary-accent ring-2 ring-primary-accent/50':
-                      currentActiveExercise?.originalIndex ===
-                      exercise.originalIndex,
-                    'opacity-30':
-                      draggedIndex !== null &&
-                      draggedIndex !==
-                        selectedPins.findIndex(
-                          (p) => p.originalIndex === exercise.originalIndex
-                        ) &&
-                      !canDropAtIndex(
-                        draggedIndex,
-                        selectedPins.findIndex(
-                          (p) => p.originalIndex === exercise.originalIndex
-                        )
-                      ),
-                    'hover:bg-primary-accent/10 hover:border-primary-accent/60': !isDragging,
-                  }"
-                  @click="handleExerciseClick(exercise, $event)"
-                  @mousedown="handleMouseDown"
-                >
-                  <span
-                    class="text-xs transform -rotate-45 font-bold pointer-events-none"
-                    :class="
-                      currentActiveExercise?.originalIndex ===
-                      exercise.originalIndex
-                        ? 'text-white'
-                        : 'text-gray-800'
-                    "
-                  >
-                    {{ exercise.originalIndex + 1 }}
-                  </span>
+            <div v-if="item.exercises" class="flex gap-2 items-center">
+              <!-- Loop through exercises and place an add button BEFORE each one -->
+              <template v-for="exercise in item.exercises" :key="exercise.isEthicsExercise ? exercise.ethicsExerciseData!.id : exercise.originalIndex">
+                <div class="relative group h-7 flex items-center">
+                  <button
+                    @click.stop="$emit('addCustomEthics', findExerciseIndexInPipeline(exercise))"
+                    class="w-5 h-5 bg-purple-200 text-purple-700 rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-purple-200 shadow-sm z-10"
+                    title="Add Ethics Reflection">
+                    <Plus class="w-3 h-3" />
+                  </button>
                 </div>
-                <button
-                  @click.stop="$emit('unselectPinRequested', exercise.originalIndex)"
-                  class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600 shadow-sm z-10"
-                  :class="{ 'pointer-events-none': isDragging }"
-                >
-                  <X class="w-3 h-3" />
-                </button>
-              </div>
+                <!-- Exercise rendering (div with v-if/v-else for ethics/regular) -->
+                <div draggable="true"
+                  @dragstart="handleDragStart($event, findExerciseIndexInPipeline(exercise))"
+                  @dragend="handleDragEnd" @dragover.prevent
+                  @drop="handleDrop($event, findExerciseIndexInPipeline(exercise))"
+                  @dragenter.prevent="handleDragEnter(findExerciseIndexInPipeline(exercise))"
+                  @dragleave="handleDragLeave"
+                  class="relative group"
+                  :class="{
+                    'opacity-50': draggedIndex === findExerciseIndexInPipeline(exercise),
+                    'cursor-move': !isDragging,
+                  }">
+                  <!-- Purple circle for ethics exercises -->
+                  <div
+                    v-if="exercise.isEthicsExercise"
+                    class="w-7 h-7 bg-purple-500 border-2 border-purple-700 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm cursor-pointer"
+                    :class="{
+                      'scale-110 shadow-md':
+                        dragOverIndex ===
+                          selectedPins.findIndex(
+                            (p) => p.originalIndex === exercise.originalIndex
+                          ) &&
+                        draggedIndex !==
+                          selectedPins.findIndex(
+                            (p) => p.originalIndex === exercise.originalIndex
+                          ),
+                      'bg-purple-200 border-purple-500':
+                        dragOverIndex ===
+                          selectedPins.findIndex(
+                            (p) => p.originalIndex === exercise.originalIndex
+                          ) &&
+                        draggedIndex !==
+                          selectedPins.findIndex(
+                            (p) => p.originalIndex === exercise.originalIndex
+                          ),
+                      'bg-purple-600 border-purple-800 ring-2 ring-purple-500/50':
+                        currentActiveExercise?.originalIndex ===
+                        exercise.originalIndex,
+                      'opacity-30':
+                        draggedIndex !== null &&
+                        draggedIndex !==
+                          selectedPins.findIndex(
+                            (p) => p.originalIndex === exercise.originalIndex
+                          ) &&
+                        !canDropAtIndex(
+                          draggedIndex,
+                          selectedPins.findIndex(
+                            (p) => p.originalIndex === exercise.originalIndex
+                          )
+                        ),
+                      'hover:bg-purple-400 hover:border-purple-600': !isDragging,
+                    }"
+                    @click="handleExerciseClick(exercise, $event)"
+                    @mousedown="handleMouseDown"
+                  >
+                    <Shield
+                      class="w-4 h-4 text-white pointer-events-none"
+                    />
+                  </div>
+                  <!-- Diamond shape for regular exercises -->
+                  <div
+                    v-else
+                    class="w-7 h-7 bg-light border-2 border-gray-700 transform rotate-45 flex items-center justify-center transition-all duration-200 shadow-sm cursor-pointer"
+                    :class="{
+                      'scale-110 shadow-md':
+                        dragOverIndex ===
+                          selectedPins.findIndex(
+                            (p) => p.originalIndex === exercise.originalIndex
+                          ) &&
+                        draggedIndex !==
+                          selectedPins.findIndex(
+                            (p) => p.originalIndex === exercise.originalIndex
+                          ),
+                      'bg-primary-accent/20 border-primary-accent':
+                        dragOverIndex ===
+                          selectedPins.findIndex(
+                            (p) => p.originalIndex === exercise.originalIndex
+                          ) &&
+                        draggedIndex !==
+                          selectedPins.findIndex(
+                            (p) => p.originalIndex === exercise.originalIndex
+                          ),
+                      'bg-primary-accent border-primary-accent ring-2 ring-primary-accent/50':
+                        currentActiveExercise?.originalIndex ===
+                        exercise.originalIndex,
+                      'opacity-30':
+                        draggedIndex !== null &&
+                        draggedIndex !==
+                          selectedPins.findIndex(
+                            (p) => p.originalIndex === exercise.originalIndex
+                          ) &&
+                        !canDropAtIndex(
+                          draggedIndex,
+                          selectedPins.findIndex(
+                            (p) => p.originalIndex === exercise.originalIndex
+                          )
+                        ),
+                      'hover:bg-primary-accent/10 hover:border-primary-accent/60': !isDragging,
+                    }"
+                    @click="handleExerciseClick(exercise, $event)"
+                    @mousedown="handleMouseDown"
+                  >
+                    <span
+                      class="text-xs transform -rotate-45 font-bold pointer-events-none"
+                      :class="
+                        currentActiveExercise?.originalIndex ===
+                        exercise.originalIndex
+                          ? 'text-white'
+                          : 'text-gray-800'
+                      "
+                    >
+                      {{ exercise.originalIndex + 1 }}
+                    </span>
+                  </div>
+                  <!-- Show remove button only for regular exercises or CUSTOM ethics exercises -->
+                  <button
+                    v-if="!exercise.isEthicsExercise || exercise.ethicsExerciseData?.type === 'custom'"
+                    @click.stop="$emit('unselectPinRequested', exercise.isEthicsExercise ? exercise.ethicsExerciseData!.id : exercise.originalIndex, exercise.isEthicsExercise || false)"
+                    class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600 shadow-sm z-10"
+                    :class="{ 'pointer-events-none': isDragging }">
+                    <X class="w-3 h-3" />
+                  </button>
+                </div>
+              </template>
             </div>
           </div>
-
-          <!-- Phase separator (arrow)
+          <!-- Ethics Dot -->
+          <div v-else class="relative group flex items-center gap-3 p-2 rounded-lg">
+            <div
+              class="w-7 h-7 bg-purple-600 border-2 border-purple-800 rounded-full flex items-center justify-center cursor-pointer"
+              @click="item.exercise && handleExerciseClick(item.exercise, $event)"
+              @mousedown="handleMouseDown"
+            >
+              <Shield class="w-4 h-4 text-white" />
+            </div>
+            <!-- Remove button for CUSTOM ethics exercises -->
+            <button
+              v-if="item.exercise?.ethicsExerciseData?.type === 'custom'"
+              @click.stop="$emit('unselectPinRequested', item.exercise!.ethicsExerciseData!.id, true)"
+              class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600 shadow-sm z-10"
+              :class="{ 'pointer-events-none': isDragging }"
+            >
+              <X class="w-3 h-3" />
+            </button>
+          </div>
+          <!-- Separator with Add button -->
           <div
-            v-if="phaseIndex < exercisesByPhase.length - 1"
-            class="text-gray-400 mx-1 text-lg"
+            class="relative flex-shrink-0 items-center justify-center h-7 w-2 group transition-all duration-200 ease-in-out hover:w-6"
           >
-            →
-          </div> -->
+            <button
+              @click.stop="$emit('addCustomEthics', getPinInsertionIndex(index))"
+              class="bg-purple-200 text-purple-700 rounded-full flex items-center justify-center w-5 h-5 shadow-sm transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+            >
+              <Plus class="w-3 h-3" />
+            </button>
+          </div>
         </template>
 
         <div
@@ -243,8 +302,15 @@
           <!-- Exercise Header -->
           <div class="flex items-start justify-between mb-3">
             <div class="flex items-center gap-2 min-w-0">
-              <!-- Exercise Number -->
+              <!-- Exercise Number / Ethics Icon -->
               <div
+                v-if="exercise.isEthicsExercise"
+                class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0"
+              >
+                <Shield class="w-4 h-4" />
+              </div>
+              <div
+                v-else
                 class="w-8 h-8 bg-primary-accent rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0"
               >
                 {{ exercise.originalIndex + 1 }}
@@ -408,10 +474,11 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: "unselectPinRequested", originalIndex: number): void;
+  (e: "unselectPinRequested", id: number | string, isEthics: boolean): void;
   (e: "expandPipeline"): void;
   (e: "reorderPins", fromIndex: number, toIndex: number): void;
   (e: "openExercise", exercise: SelectedPinInfo, index: number): void;
+  (e: "addCustomEthics", index: number): void;
 }>();
 
 // Composables
@@ -716,6 +783,104 @@ const handleExerciseClick = (exercise: SelectedPinInfo, event: MouseEvent) => {
   mouseDownTime.value = 0;
   mouseDownPosition.value = null;
 };
+
+const findExerciseIndexInPipeline = (exercise: SelectedPinInfo): number => {
+  if (exercise.isEthicsExercise && exercise.ethicsExerciseData) {
+    const id = exercise.ethicsExerciseData.id;
+    return props.selectedPins.findIndex(p => p.isEthicsExercise && p.ethicsExerciseData?.id === id);
+  } else {
+    const id = exercise.originalIndex;
+    return props.selectedPins.findIndex(p => !p.isEthicsExercise && p.originalIndex === id);
+  }
+};
+
+const isFirstPhase = (phase: string) => {
+  return exercisesByPhase.value.length > 0 && exercisesByPhase.value[0].phase === phase;
+}
+
+const getPinInsertionIndex = (renderableIndex: number) => {
+  let pinCount = 0;
+  // Get the item from the renderable pipeline at the given index
+  const lastRenderableItem = renderablePipeline.value[renderableIndex];
+
+  if (!lastRenderableItem) {
+    // If the index is out of bounds (for adding at the end), count all pins
+    return props.selectedPins.length;
+  }
+  
+  // Find the last actual pin within the renderable item
+  let lastPinInRenderable: SelectedPinInfo | undefined;
+  if (lastRenderableItem.isEthics) {
+    lastPinInRenderable = lastRenderableItem.exercise;
+  } else {
+    lastPinInRenderable = lastRenderableItem.exercises?.[lastRenderableItem.exercises.length - 1];
+  }
+
+  if (!lastPinInRenderable) {
+    // Fallback for an empty phase group, insert before it
+    for (let i = 0; i < renderableIndex; i++) {
+        const item = renderablePipeline.value[i];
+        pinCount += item.isEthics ? 1 : (item.exercises?.length || 0);
+    }
+    return pinCount;
+  }
+
+  // Find the index of that last pin in the original `selectedPins` array
+  const id = lastPinInRenderable.isEthicsExercise ? lastPinInRenderable.ethicsExerciseData!.id : lastPinInRenderable.originalIndex;
+  const originalIndex = props.selectedPins.findIndex(p => 
+      (p.isEthicsExercise ? p.ethicsExerciseData?.id : p.originalIndex) === id
+  );
+
+  return originalIndex + 1;
+};
+
+const renderablePipeline = computed(() => {
+  const items: Array<{
+    isEthics: boolean;
+    phase?: string;
+    exercises?: SelectedPinInfo[];
+    exercise?: SelectedPinInfo;
+  }> = [];
+
+  if (!props.selectedPins || props.selectedPins.length === 0) {
+    return items;
+  }
+
+  let currentPhaseGroup: {
+    isEthics: false;
+    phase: string;
+    exercises: SelectedPinInfo[];
+  } | null = null;
+
+  for (const pin of props.selectedPins) {
+    if (pin.isEthicsExercise) {
+      if (currentPhaseGroup) {
+        items.push(currentPhaseGroup);
+        currentPhaseGroup = null;
+      }
+      items.push({ isEthics: true, exercise: pin });
+    } else {
+      if (!currentPhaseGroup || currentPhaseGroup.phase !== pin.location.phase) {
+        if (currentPhaseGroup) {
+          items.push(currentPhaseGroup);
+        }
+        currentPhaseGroup = {
+          isEthics: false,
+          phase: pin.location.phase,
+          exercises: [pin],
+        };
+      } else {
+        currentPhaseGroup.exercises.push(pin);
+      }
+    }
+  }
+
+  if (currentPhaseGroup) {
+    items.push(currentPhaseGroup);
+  }
+
+  return items;
+});
 </script>
 
 <style scoped>
@@ -727,3 +892,4 @@ const handleExerciseClick = (exercise: SelectedPinInfo, event: MouseEvent) => {
   overflow: hidden;
 }
 </style>
+

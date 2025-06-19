@@ -3,9 +3,11 @@ import type { SelectedPinInfo } from '@/types/exercise';
 import type { EthicalCheck } from '@/types/ethics';
 import { useProjectLocalStorage } from './storage/useProjectLocalStorage';
 import { useProjects } from './useProjects';
+import { useEthicsExercises } from './useEthicsExercises';
 
 const { currentProject } = useProjects();
 const progressStorage = useProjectLocalStorage('pipelineProgress');
+const { isEthicsExerciseCompleted } = useEthicsExercises();
 
 const LOCAL_STORAGE_KEY = 'pipelineProgress';
 
@@ -76,7 +78,11 @@ export function usePipelineProgress() {
   };
 
   // Check if exercise is completed
-  const isExerciseCompleted = (exerciseId: string): boolean => {
+  const isExerciseCompleted = (exerciseId: string, exercise?: SelectedPinInfo): boolean => {
+    // Handle ethics exercises differently
+    if (exercise?.isEthicsExercise && exercise.ethicsExerciseData) {
+      return isEthicsExerciseCompleted(exercise.ethicsExerciseData.id);
+    }
     return exerciseProgress.value[exerciseId]?.isCompleted || false;
   };
 
@@ -161,7 +167,7 @@ export function usePipelineProgress() {
     if (selectedPins.length === 0) return 0;
     
     const completedCount = selectedPins.filter(pin => {
-      return isExerciseCompleted(pin.name);
+      return isExerciseCompleted(pin.name, pin);
     }).length;
     
     return Math.round((completedCount / selectedPins.length) * 100);

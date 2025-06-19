@@ -1,10 +1,12 @@
 import { ref, onMounted, nextTick, watch } from 'vue';
 import { useProjects } from './useProjects';
+import { useEthicsExercises } from './useEthicsExercises';
 import type { SelectedPinInfo } from '@/types/exercise';
 import DoubleDiamond from '@/assets/DoubleDiamond.svg';
 
 export function useCanvas() {
   const { currentProject, updateProjectSelectedPins, getCurrentProjectSelectedPins } = useProjects();
+  const { addPredefinedEthicsExercises, removeEthicsExercise } = useEthicsExercises();
 
   // Container dimensions
   const containerWidth = ref<number>(834);
@@ -15,23 +17,34 @@ export function useCanvas() {
   const diamondGridRef = ref<any>(null);
 
   const handleSelectedPinsChange = (pins: SelectedPinInfo[]) => {
-    selectedPins.value = pins;
-    updateProjectSelectedPins(pins);
+    // Always ensures the full, correct list is constructed
+    const finalPins = addPredefinedEthicsExercises(pins);
+    selectedPins.value = finalPins;
+    updateProjectSelectedPins(finalPins);
   };
 
-  const handleUnselectPin = (originalPinIndex: number) => {
-    const updatedPins = selectedPins.value.filter(pin => pin.originalIndex !== originalPinIndex);
+  const handleUnselectPin = (id: number | string, isEthics: boolean) => {
+    let updatedPins: SelectedPinInfo[];
+
+    if (isEthics) {
+        updatedPins = removeEthicsExercise(id as string, selectedPins.value);
+    } else {
+        updatedPins = selectedPins.value.filter(pin => !pin.isEthicsExercise && pin.originalIndex !== id);
+    }
+
     selectedPins.value = updatedPins;
     updateProjectSelectedPins(updatedPins);
     if (diamondGridRef.value) {
-      diamondGridRef.value.loadSelectedPins(updatedPins);
+        diamondGridRef.value.loadSelectedPins(updatedPins);
     }
   };
 
   watch(currentProject, (project) => {
     if (project) {
       const projectPins = getCurrentProjectSelectedPins();
-      selectedPins.value = projectPins;
+      // Also apply the logic here to ensure consistency when loading a project
+      const finalPins = addPredefinedEthicsExercises(projectPins);
+      selectedPins.value = finalPins;
       
       // Debug: Check project loaded pins
       console.log('🔧 useCanvas Debug - Project loaded pins:', {

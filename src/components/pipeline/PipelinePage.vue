@@ -101,6 +101,7 @@ import PipelinePhasesView from "./PipelinePhasesView.vue";
 import PipelineExercisePage from "./PipelineExercisePage.vue";
 import { usePipelineProgress } from "@/composables/usePipelineProgress";
 import { usePipelineNavigation } from "@/composables/usePipelineNavigation";
+import { useEthicsExercises } from "@/composables/useEthicsExercises";
 import type { SelectedPinInfo } from "@/types/exercise";
 
 const props = defineProps<{
@@ -113,8 +114,7 @@ const emit = defineEmits<{
 
 // Composables
 const { getCurrentExercise } = usePipelineProgress();
-
-// Ethics handling is now done in PipelineExercisePage
+const { addPredefinedEthicsExercises, addCustomEthicsExercise } = useEthicsExercises();
 
 const { getPendingExerciseOpen, setCurrentActiveExercise } =
   usePipelineNavigation();
@@ -139,11 +139,23 @@ onMounted(() => {
     currentView.value = savedView;
   }
 
-  // Check for pending exercise open
+  // Check for pending exercise open from other pages
+  const pendingOpen = getPendingExerciseOpen();
+  if (pendingOpen) {
+    openExercise(pendingOpen.exercise);
+    return; // Stop further processing
+  }
+  
+  // Check if the first exercise is an incomplete initial ethics reflection
   nextTick(() => {
-    const pendingOpen = getPendingExerciseOpen();
-    if (pendingOpen) {
-      openExercise(pendingOpen.exercise);
+    const firstExercise = props.selectedPins[0];
+    if (
+      firstExercise &&
+      firstExercise.isEthicsExercise &&
+      firstExercise.ethicsExerciseData?.type === 'initial' &&
+      !firstExercise.ethicsExerciseData.completed
+    ) {
+      openExercise(firstExercise);
     }
   });
 });
@@ -160,34 +172,8 @@ const currentExerciseToWork = computed(() =>
   getCurrentExercise(props.selectedPins)
 );
 
-// Sort exercises in timeline order (following phase sequence but respecting user ordering within phases)
-const chronologicallyOrderedPins = computed(() => {
-  const phaseOrder = ["Discover", "Define", "Develop", "Deliver"];
-
-  // Group exercises by phase while preserving their order within each phase
-  const exercisesByPhase: Record<string, SelectedPinInfo[]> = {};
-
-  // Initialize phase groups
-  phaseOrder.forEach((phase) => {
-    exercisesByPhase[phase] = [];
-  });
-
-  // Group exercises by phase in the order they appear in selectedPins
-  props.selectedPins.forEach((exercise) => {
-    const phase = exercise.location.phase;
-    if (exercisesByPhase[phase]) {
-      exercisesByPhase[phase].push(exercise);
-    }
-  });
-
-  // Combine phases in correct order, preserving user order within each phase
-  const result: SelectedPinInfo[] = [];
-  phaseOrder.forEach((phase) => {
-    result.push(...exercisesByPhase[phase]);
-  });
-
-  return result;
-});
+// Use the selectedPins prop directly, as it's now the source of truth
+const chronologicallyOrderedPins = computed(() => props.selectedPins);
 
 // Helper functions
 const setCurrentView = (view: "overview" | "phases") => {
@@ -197,7 +183,7 @@ const setCurrentView = (view: "overview" | "phases") => {
 
 // Exercise navigation
 const openExercise = (exercise: SelectedPinInfo) => {
-  const index = chronologicallyOrderedPins.value.findIndex(
+  const index = props.selectedPins.findIndex(
     (pin) => pin.originalIndex === exercise.originalIndex
   );
   if (index >= 0) {
@@ -222,11 +208,11 @@ const handleBackToPipeline = () => {
 const handleNavigateToExercise = (exerciseIndex: number) => {
   if (
     exerciseIndex >= 0 &&
-    exerciseIndex < chronologicallyOrderedPins.value.length
+    exerciseIndex < props.selectedPins.length
   ) {
     currentExerciseIndex.value = exerciseIndex;
-    currentExercise.value = chronologicallyOrderedPins.value[exerciseIndex];
-    setCurrentActiveExercise(chronologicallyOrderedPins.value[exerciseIndex]);
+    currentExercise.value = props.selectedPins[exerciseIndex];
+    setCurrentActiveExercise(props.selectedPins[exerciseIndex]);
   }
 };
 

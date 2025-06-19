@@ -130,6 +130,7 @@
         @expandPipeline="handleExpandPipeline"
         @reorderPins="handleReorderPins"
         @openExercise="handleOpenExerciseFromPipeline"
+        @addCustomEthics="handleAddCustomEthics"
       />
     </div>
   </template>
@@ -158,6 +159,7 @@ import { useTabs } from "@/composables/useTabs";
 import { useCanvas } from "@/composables/useCanvas";
 import { useLayout } from "@/composables/useLayout";
 import { usePipelineNavigation } from "@/composables/usePipelineNavigation";
+import { useEthicsExercises } from "@/composables/useEthicsExercises";
 import type { SelectedPinInfo } from "@/types/exercise";
 
 const { isLoggedIn, initializeAuth } = useAuth();
@@ -204,6 +206,8 @@ const {
 
 const { setPendingExerciseOpen, setCurrentActiveExercise } =
   usePipelineNavigation();
+
+const { addCustomEthicsExercise, removeEthicsExercise } = useEthicsExercises();
 
 const isPipelineReady = computed(() => {
   if (selectedPins.value.length < 4) return false;
@@ -344,6 +348,12 @@ watch(isLoggedIn, (loggedIn) => {
     });
   }
 });
+
+// Handle adding custom ethics exercise
+const handleAddCustomEthics = (index: number) => {
+  const updatedPins = addCustomEthicsExercise(index, selectedPins.value);
+  handleSelectedPinsChange(updatedPins);
+};
 
 onMounted(() => {
   initializeAuth();

@@ -245,6 +245,31 @@
         </template>
       </div>
 
+      <!-- Ethics Exercise Position Lines -->
+      <div class="absolute inset-0" style="z-index: 4">
+        <div
+          v-for="ethicsPosition in getEthicsExercisePositions()"
+          :key="ethicsPosition.type"
+          class="absolute border-l-2 border-purple-500 border-dashed opacity-60"
+          :style="{
+            left: calculateEthicsLinePosition(ethicsPosition.position) + 'px',
+            top: svgScale.top + 'px',
+            height: svgScale.height + 'px',
+          }"
+        >
+          <!-- Ethics Line Label -->
+          <div
+            class="absolute -top-6 -left-8 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full font-medium border border-purple-300 whitespace-nowrap"
+            :class="{ 'bg-purple-200 border-purple-400': ethicsPosition.completed }"
+            :title="ethicsPosition.description"
+          >
+            <Shield class="w-3 h-3 inline mr-1" />
+            {{ ethicsPosition.name }}
+            <CheckCircle2 v-if="ethicsPosition.completed" class="w-3 h-3 inline ml-1 text-green-600" />
+          </div>
+        </div>
+      </div>
+
       <!-- Add invisible column hover areas -->
       <div class="absolute inset-0 pointer-events-none" style="z-index: 25">
         <div
@@ -281,10 +306,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Info } from "lucide-vue-next";
+import { Info, Shield, CheckCircle2 } from "lucide-vue-next";
 import { SECTION_LABEL_TEXTS } from "@/constants/app";
 import { useEthics } from "@/composables/useEthics";
 import { useExercises } from "@/composables/useExercises";
+import { useEthicsExercises } from "@/composables/useEthicsExercises";
 import type { SelectedPinInfo } from "@/types/exercise";
 import type { Exercise } from "@/types/exercise";
 
@@ -380,6 +406,7 @@ interface PinConfig {
 // Initialize pins ref with static data
 const { hasEthicsRequirement } = useEthics();
 const { getAllExercises, loadExercises } = useExercises();
+const { getEthicsExercisePositions } = useEthicsExercises();
 
 // Load exercises data
 loadExercises();
@@ -744,6 +771,15 @@ function getSectionBounds(phase: string, step: string) {
   const sectionEnd = sectionStart + sectionWidth;
   const padding = sectionWidth * 0.1;
   return { sectionStart, sectionEnd, padding };
+}
+
+// Calculate ethics line position based on position (0-1)
+function calculateEthicsLinePosition(position: number): number {
+  const svgLeft = svgScale.value.left;
+  const svgWidth = svgScale.value.width;
+  
+  // Position 0 = beginning, 0.5 = middle, 1 = end
+  return svgLeft + (svgWidth * position);
 }
 
 // calculatePhaseXPosition is now only used for initial dummy positions

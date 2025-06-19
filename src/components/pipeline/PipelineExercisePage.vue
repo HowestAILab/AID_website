@@ -190,7 +190,19 @@
 
         <!-- Main Content Area -->
         <div class="flex-1 min-h-0">
+          <!-- Show EthicsExercisePage for ethics exercises -->
+          <EthicsExercisePage
+            v-if="exercise.isEthicsExercise"
+            :exercise="exercise"
+            :all-exercises="allExercises"
+            :current-exercise-index="currentExerciseIndex"
+            @back="goBack"
+            @navigate-to-exercise="handleExerciseSelection"
+            class="h-full w-full"
+          />
+          <!-- Show CustomCanvas for regular exercises -->
           <CustomCanvas
+            v-else
             :exercise="exercise"
             class="h-full w-full"
             @chat-updated="handleChatUpdated"
@@ -279,6 +291,7 @@ import {
 import ExerciseAIChat from "@/components/exercise/ExerciseAIChat.vue";
 import EthicsBadge from "@/components/ethics/EthicsBadge.vue";
 import UnifiedEthicsModal from "@/components/ethics/UnifiedEthicsModal.vue";
+import EthicsExercisePage from "@/components/ethics/EthicsExercisePage.vue";
 import { usePipelineProgress } from "@/composables/usePipelineProgress";
 import { useEthics } from "@/composables/useEthics";
 import { useExerciseChat } from "@/composables/useExerciseChat";
